@@ -9,6 +9,7 @@ import {
   startLiveVoiceSession, stopLiveVoiceSession, onLiveVoiceState, getLiveVoiceState, type LiveVoiceState,
 } from '../services/liveVoiceSession';
 import { isLiveVoiceSupported } from '../services/liveVoice';
+import { playClick, playConfirm, playAlert } from '../services/sfx';
 
 const isTypingTarget = (el: EventTarget | null): boolean => {
   const node = el as HTMLElement | null;
@@ -29,6 +30,7 @@ export function VoiceInterface() {
   useEffect(() => () => stopLiveVoiceSession(), []); // never leave a mic stream open behind a closed HUD
 
   const toggleLiveVoice = async () => {
+    playClick();
     if (liveState === 'live' || liveState === 'connecting') {
       stopLiveVoiceSession();
       return;
@@ -38,7 +40,8 @@ export function VoiceInterface() {
       onTranscript: (text) => pushEntry({ who: 'ultron', text }),
       onError: (message) => setLiveError(message),
     });
-    if (!res.ok) setLiveError(res.error ?? 'Could not start Live Voice.');
+    if (res.ok) playConfirm();
+    else { playAlert(); setLiveError(res.error ?? 'Could not start Live Voice.'); }
   };
 
   useEffect(() => {
@@ -54,6 +57,7 @@ export function VoiceInterface() {
       e.preventDefault();
       if (held.current) return;
       held.current = true;
+      playClick();
       void beginPushToTalk();
     };
     const up = (e: KeyboardEvent) => {
@@ -121,6 +125,8 @@ export function VoiceInterface() {
               onMouseLeave={() => { if (held.current) { held.current = false; endPushToTalk(); } }}
               disabled={!canTalk}
               title={canTalk ? 'Hold to talk' : (sttReason || 'Speech to text unavailable')}
+              aria-label="Hold to talk to Atlas"
+              aria-pressed={coreState === 'listening'}
             >
               {coreState === 'listening' ? 'Listening' : 'Hold to talk'}
             </button>
@@ -141,6 +147,8 @@ export function VoiceInterface() {
                 onClick={() => void toggleLiveVoice()}
                 disabled={liveState === 'connecting'}
                 title="Real-time spoken conversation via Gemini Live - needs a Gemini API key in Settings"
+                aria-label="Toggle Live Voice"
+                aria-pressed={liveState === 'live'}
               >
                 {liveState === 'live' ? 'Live Voice: ON' : liveState === 'connecting' ? 'Connecting...' : 'Live Voice'}
               </button>

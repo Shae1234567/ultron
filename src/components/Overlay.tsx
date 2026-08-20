@@ -1,5 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { HexPanel } from './hud/HexPanel';
+import { panelTransition } from './hud/motionVariants';
 
 interface Props {
   title: string;
@@ -18,23 +20,29 @@ export function Overlay({ title, meta, onClose, children, footer }: Props) {
 
   return (
     <div className="overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <HexPanel
-        className="overlay__card"
-        title={title}
-        meta={meta}
-        scroll={false}
-        actions={<button className="hud-btn" style={{ marginLeft: 8 }} onClick={onClose}>Close</button>}
+      <motion.div
+        initial={panelTransition.initial}
+        animate={panelTransition.animate}
+        transition={panelTransition.transition}
       >
-        <div className="overlay__body">{children}</div>
-        {footer && (
-          <div style={{
-            display: 'flex', gap: 8, justifyContent: 'flex-end',
-            padding: '10px 20px 14px', borderTop: '1px solid var(--cyan-20)',
-          }}>
-            {footer}
-          </div>
-        )}
-      </HexPanel>
+        <HexPanel
+          className="overlay__card"
+          title={title}
+          meta={meta}
+          scroll={false}
+          actions={<button className="hud-btn" style={{ marginLeft: 8 }} onClick={onClose}>Close</button>}
+        >
+          <div className="overlay__body">{children}</div>
+          {footer && (
+            <div style={{
+              display: 'flex', gap: 8, justifyContent: 'flex-end',
+              padding: '10px 20px 14px', borderTop: '1px solid var(--cyan-20)',
+            }}>
+              {footer}
+            </div>
+          )}
+        </HexPanel>
+      </motion.div>
     </div>
   );
 }

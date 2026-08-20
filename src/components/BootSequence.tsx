@@ -1,6 +1,8 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store';
 import { GlitchText } from './hud/GlitchText';
+import { BootLog } from './BootLog';
+import { playBootChime } from '../services/sfx';
 
 const CHECK_LABEL: Record<string, string> = {
   memory: 'MEMORY',
@@ -27,6 +29,8 @@ export function BootSequence() {
   const finishBoot = useStore((s) => s.finishBoot);
   const [exiting, setExiting] = useState(false);
   const mountedAt = useRef(Date.now());
+
+  useEffect(() => { if (booting) playBootChime(); }, [booting]);
 
   useEffect(() => {
     const allSettled = CHECK_ORDER.every((k) => bootChecks[k] !== 'pending');
@@ -106,6 +110,8 @@ export function BootSequence() {
           );
         })}
       </div>
+
+      <BootLog bootChecks={bootChecks} />
     </div>
   );
 }

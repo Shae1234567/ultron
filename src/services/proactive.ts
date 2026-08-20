@@ -1,6 +1,7 @@
 import { useStore } from '../state/store';
 import { buildSystemPrompt, getAIResponseOnce } from './ai';
 import { speak } from './speech';
+import { ultron } from './bridge';
 import type { ChatMessage } from '../types';
 
 /**
@@ -61,6 +62,8 @@ function sayProactively(text: string): void {
     rate: voice?.rate,
     pitch: voice?.pitch,
   });
+  // A no-op when the window is already focused - see notify:show's handler.
+  void ultron.notify.show('Atlas', trimmed).catch(() => {});
 }
 
 function brainReady(): boolean {

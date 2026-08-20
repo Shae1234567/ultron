@@ -14,6 +14,13 @@ export interface UltronBridge {
     show(): Promise<void>;
     onState(cb: (s: { maximized: boolean }) => void): () => void;
   };
+  notify: {
+    show(title: string, body: string): Promise<{ ok: boolean; skipped?: boolean }>;
+  };
+  backup: {
+    export(): Promise<{ ok: boolean; path?: string; error?: string }>;
+    import(): Promise<{ ok: boolean; error?: string }>;
+  };
   tray: {
     isAutoLaunchEnabled(): Promise<boolean>;
     setAutoLaunch(enabled: boolean): Promise<void>;

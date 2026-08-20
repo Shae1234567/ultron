@@ -6,6 +6,7 @@ import type { Settings } from '../types';
 import { listVoices, primeVoices, speak, VOICE_DEFAULTS } from '../services/speech';
 import { startWakeWordListening, stopWakeWordListening, isWakeWordActive, type WakeWordStatus } from '../services/wakeWord';
 import { greetNow } from '../services/proactive';
+import { playWakeDetected, playClick } from '../services/sfx';
 
 const NEWS_CATEGORIES = ['world', 'nation', 'business', 'technology', 'science', 'sports', 'health'];
 
@@ -43,6 +44,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   }, []);
 
   const toggleWakeWord = async () => {
+    playClick();
     if (wakeStatus === 'listening') {
       stopWakeWordListening();
       setWakeStatus('off');
@@ -50,7 +52,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     }
     setWakeError(null);
     const res = await startWakeWordListening(
-      () => { void ultron.win.show(); greetNow(); },
+      () => { playWakeDetected(); void ultron.win.show(); void ultron.notify.show('Atlas', 'Heard you - I\'m here.').catch(() => {}); greetNow(); },
       setWakeStatus,
     );
     if (!res.ok) setWakeError(res.error ?? 'Could not start listening.');
@@ -427,6 +429,42 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
         </div>
         <div className="field__hint">
           Test plays instantly with the sliders as they are - Save to keep them.
+        </div>
+      </div>
+
+      <div style={{ height: 1, background: 'var(--cyan-20)', margin: '18px 0' }} />
+
+      <div className="field">
+        <span className="field__label">Backup</span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button
+            className="hud-btn"
+            onClick={async () => {
+              playClick();
+              const res = await ultron.backup.export();
+              if (res.ok && res.path) { setSaved(`Backup saved to ${res.path}`); setTimeout(() => setSaved(null), 4000); }
+              else if (res.error) setSaved(res.error);
+            }}
+          >
+            Export settings + memory
+          </button>
+          <button
+            className="hud-btn"
+            onClick={async () => {
+              playClick();
+              const res = await ultron.backup.import();
+              if (res.ok) {
+                setSettings(await ultron.settings.get());
+                setSaved('Backup restored.');
+                setTimeout(() => setSaved(null), 3000);
+              } else if (res.error) setSaved(res.error);
+            }}
+          >
+            Import backup
+          </button>
+        </div>
+        <div className="field__hint">
+          Never includes API keys or anything from .env - only settings and your memory file.
         </div>
       </div>
     </Overlay>

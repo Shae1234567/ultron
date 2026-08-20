@@ -17,6 +17,15 @@ const api = {
     },
   },
 
+  notify: {
+    show: (title: string, body: string) => ipcRenderer.invoke('notify:show', title, body),
+  },
+
+  backup: {
+    export: () => ipcRenderer.invoke('backup:export'),
+    import: () => ipcRenderer.invoke('backup:import'),
+  },
+
   ollama: {
     status: () => ipcRenderer.invoke('ollama:status'),
     chat: (payload: { requestId: string; messages: unknown[]; model?: string; temperature?: number }) =>

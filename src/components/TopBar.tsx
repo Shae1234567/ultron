@@ -90,16 +90,16 @@ export function TopBar() {
         <button className="hud-btn" onClick={() => setOverlay({ kind: 'cm8' })}>CM8</button>
         <button className="hud-btn" onClick={() => setOverlay({ kind: 'memory' })}>Memory</button>
         <button className="hud-btn" onClick={() => setOverlay({ kind: 'settings' })}>Settings</button>
-        <button className="winbtn" title="Minimize" onClick={() => void ultron.win.minimize()}>
+        <button className="winbtn" title="Minimize" aria-label="Minimize window" onClick={() => void ultron.win.minimize()}>
           <svg width="11" height="11" viewBox="0 0 11 11"><rect x="1" y="5" width="9" height="1" fill="currentColor" /></svg>
         </button>
-        <button className="winbtn" title="Maximize" onClick={() => void ultron.win.maximize()}>
+        <button className="winbtn" title="Maximize" aria-label={maximized ? 'Restore window' : 'Maximize window'} aria-pressed={maximized} onClick={() => void ultron.win.maximize()}>
           <svg width="11" height="11" viewBox="0 0 11 11">
             <rect x="1.5" y="1.5" width="8" height="8" fill="none" stroke="currentColor" strokeWidth="1" />
             {maximized && <rect x="3.5" y="3.5" width="6" height="6" fill="none" stroke="currentColor" strokeWidth="1" />}
           </svg>
         </button>
-        <button className="winbtn winbtn--close" title="Close" onClick={() => void ultron.win.close()}>
+        <button className="winbtn winbtn--close" title="Close" aria-label="Close window" onClick={() => void ultron.win.close()}>
           <svg width="11" height="11" viewBox="0 0 11 11">
             <path d="M1.5 1.5 L9.5 9.5 M9.5 1.5 L1.5 9.5" stroke="currentColor" strokeWidth="1.2" />
           </svg>

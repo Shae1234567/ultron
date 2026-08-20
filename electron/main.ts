@@ -18,6 +18,8 @@ import * as googleGmail from './googleGmail';
 import * as googleCalendarReal from './googleCalendarReal';
 import * as googleDrive from './googleDrive';
 import * as systemControl from './systemControl';
+import * as notifications from './notifications';
+import * as backup from './backup';
 import { setupTray, isAutoLaunchEnabled, setAutoLaunch } from './tray';
 
 process.env.DIST = path.join(__dirname, '../dist');
@@ -136,6 +138,22 @@ ipcMain.handle('win:maximize', () => {
 });
 ipcMain.handle('win:close', () => win?.close());
 ipcMain.handle('win:show', () => { win?.show(); win?.focus(); });
+
+/* ── IPC: notifications (native OS toast for background/proactive events) ── */
+
+ipcMain.handle('notify:show', (_e, title: unknown, body: unknown) => {
+  if (typeof title !== 'string' || typeof body !== 'string') return { ok: false };
+  // No need to interrupt with a system toast if the operator is already
+  // looking at the HUD - only fire when the window isn't focused.
+  if (win && win.isFocused()) return { ok: true, skipped: true };
+  notifications.showNotification(title, body);
+  return { ok: true };
+});
+
+/* ── IPC: backup (settings + memory export/import, never API keys) ────── */
+
+ipcMain.handle('backup:export', () => backup.exportBackup(win));
+ipcMain.handle('backup:import', () => backup.importBackup(win));
 
 /* ── IPC: brain (Ollama) ────────────────────────────────────────────── */
 

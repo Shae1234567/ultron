@@ -22,6 +22,13 @@ const nullBridge: UltronBridge = {
     show: async () => {},
     onState: () => () => {},
   },
+  notify: {
+    show: async () => ({ ok: false }),
+  },
+  backup: {
+    export: async () => ({ ok: false, error: unavailable('Backup') }),
+    import: async () => ({ ok: false, error: unavailable('Backup') }),
+  },
   tray: {
     isAutoLaunchEnabled: async () => false,
     setAutoLaunch: async () => {},

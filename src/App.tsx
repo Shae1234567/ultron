@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { Backdrop } from './components/Backdrop';
 import { TopBar } from './components/TopBar';
 import { CoreOrb } from './components/CoreOrb';
@@ -6,20 +6,14 @@ import { VoiceInterface } from './components/VoiceInterface';
 import { TranscriptPanel } from './components/TranscriptPanel';
 import { NewsPanel } from './components/NewsPanel';
 import { SystemPanel } from './components/SystemPanel';
-import { OllamaSetup } from './components/OllamaSetup';
-import { SettingsPanel } from './components/SettingsPanel';
-import { ConnectorSetup } from './components/ConnectorSetup';
-import { MemoryPanel } from './components/MemoryPanel';
-import { AgentSetup } from './components/AgentSetup';
-import { GitHubPanel } from './components/GitHubPanel';
-import { NotionPanel } from './components/NotionPanel';
-import { DiscordPanel } from './components/DiscordPanel';
-import { ObsidianPanel } from './components/ObsidianPanel';
-import { Cm8Panel } from './components/cm8/Cm8Panel';
+import {
+  OllamaSetup, SettingsPanel, ConnectorSetup, MemoryPanel, AgentSetup,
+  GitHubPanel, NotionPanel, DiscordPanel, ObsidianPanel, Cm8Panel,
+  BrowserPanel, WorldMapHologram, GooglePanel, OverlaySuspense,
+} from './components/LazyOverlays';
 import { BootSequence } from './components/BootSequence';
-import { BrowserPanel } from './components/BrowserPanel';
-import { GooglePanel } from './components/GooglePanel';
-import { WorldMapHologram } from './components/hud/WorldMapHologram';
+import { CommandPalette } from './components/CommandPalette';
+import { IdleDashboard } from './components/hud/IdleDashboard';
 import { useStore, useSttStore, type RightTab, type Overlay } from './state/store';
 import type { CoreState } from './types';
 import { ultron } from './services/bridge';
@@ -47,6 +41,19 @@ export function App() {
   const pushEntry = useStore((s) => s.pushEntry);
   const setBootCheck = useStore((s) => s.setBootCheck);
   const announced = useRef(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Ctrl+K / Cmd+K opens the command palette from anywhere in the app.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   // Startup probe: settings, memory, then the brain. If Ollama is down we
   // say so plainly and open the setup instructions rather than failing silently.
@@ -138,6 +145,7 @@ export function App() {
               <div className="core-caption__state" style={{ color: caption.color }}>{caption.text}</div>
               <div className="core-caption__hint">{caption.hint}</div>
             </div>
+            <IdleDashboard />
           </div>
           <VoiceInterface />
         </div>
@@ -147,39 +155,43 @@ export function App() {
         <div className="area-bottom"><TranscriptPanel /></div>
       </div>
 
-      {overlay?.kind === 'ollama' && <OllamaSetup onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'settings' && <SettingsPanel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'memory' && <MemoryPanel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'connector' && (
-        <ConnectorSetup id={overlay.id} onClose={() => setOverlay(null)} />
-      )}
-      {overlay?.kind === 'agent' && (
-        <AgentSetup id={overlay.id} onClose={() => setOverlay(null)} />
-      )}
-      {overlay?.kind === 'github' && <GitHubPanel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'notion' && <NotionPanel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'discord' && <DiscordPanel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'obsidian' && <ObsidianPanel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'cm8' && <Cm8Panel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'browser' && <BrowserPanel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'google' && <GooglePanel onClose={() => setOverlay(null)} />}
-      {overlay?.kind === 'worldmap' && (
-        <div
-          className="overlay"
-          onMouseDown={(e) => { if (e.target === e.currentTarget) setOverlay(null); }}
-        >
-          <div style={{ width: 'min(1100px, 92vw)', height: 'min(640px, 84vh)', position: 'relative' }}>
-            <button
-              className="hud-btn"
-              style={{ position: 'absolute', top: -38, right: 0, zIndex: 1 }}
-              onClick={() => setOverlay(null)}
-            >
-              Close
-            </button>
-            <WorldMapHologram />
+      <OverlaySuspense>
+        {overlay?.kind === 'ollama' && <OllamaSetup onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'settings' && <SettingsPanel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'memory' && <MemoryPanel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'connector' && (
+          <ConnectorSetup id={overlay.id} onClose={() => setOverlay(null)} />
+        )}
+        {overlay?.kind === 'agent' && (
+          <AgentSetup id={overlay.id} onClose={() => setOverlay(null)} />
+        )}
+        {overlay?.kind === 'github' && <GitHubPanel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'notion' && <NotionPanel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'discord' && <DiscordPanel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'obsidian' && <ObsidianPanel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'cm8' && <Cm8Panel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'browser' && <BrowserPanel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'google' && <GooglePanel onClose={() => setOverlay(null)} />}
+        {overlay?.kind === 'worldmap' && (
+          <div
+            className="overlay"
+            onMouseDown={(e) => { if (e.target === e.currentTarget) setOverlay(null); }}
+          >
+            <div style={{ width: 'min(1100px, 92vw)', height: 'min(640px, 84vh)', position: 'relative' }}>
+              <button
+                className="hud-btn"
+                style={{ position: 'absolute', top: -38, right: 0, zIndex: 1 }}
+                onClick={() => setOverlay(null)}
+              >
+                Close
+              </button>
+              <WorldMapHologram />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </OverlaySuspense>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
 
       <BootSequence />
     </>
