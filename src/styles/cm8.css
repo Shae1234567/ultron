@@ -1,0 +1,219 @@
+/* ── CM8 inside ULTRON ────────────────────────────────────────────────
+   The coach app rebuilt in Ultron's language: no new colours, no new fonts,
+   nothing borrowed from CM8's own styling. Every value here resolves to an
+   existing token so the module reads as part of Ultron rather than a guest. */
+
+.cm8 {
+  display: grid;
+  grid-template-columns: 176px 1fr;
+  gap: 14px;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ── section rail ── */
+.cm8__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 12px;
+  border-right: 1px solid var(--cyan-20);
+  overflow-y: auto;
+}
+
+.cm8__tab {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-align: left;
+  transition: color 0.18s, background 0.18s;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+.cm8__tab:hover { color: var(--white); background: var(--cyan-12); }
+.cm8__tab--on { color: var(--cyan); background: var(--cyan-12); text-shadow: var(--text-glow); }
+.cm8__tab--on::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 2px;
+  background: var(--cyan);
+  box-shadow: var(--glow-sm);
+}
+.cm8__tab-idx { font-size: 9px; color: var(--dimmer); }
+.cm8__tab--on .cm8__tab-idx { color: var(--cyan-deep); }
+
+/* ── content pane ── */
+.cm8__body { min-height: 0; overflow-y: auto; padding-right: 6px; }
+
+.cm8__lede {
+  font-size: 13px;
+  color: var(--dim);
+  line-height: 1.55;
+  margin-bottom: 14px;
+  max-width: 78ch;
+}
+
+.cm8__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 10px;
+}
+
+/* ── cards ── */
+.cm8-card {
+  position: relative;
+  background: rgba(11, 21, 36, 0.55);
+  border: 1px solid var(--cyan-20);
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)));
+  padding: 12px 13px;
+}
+.cm8-card__day {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--dimmer);
+  text-transform: uppercase;
+}
+.cm8-card__focus {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  margin: 3px 0 5px;
+}
+.cm8-card__focus--rest { color: var(--green); }
+.cm8-card__cue { font-size: 12px; color: var(--cyan-soft); font-style: italic; margin-bottom: 8px; }
+.cm8-card__meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--cyan-12);
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em;
+  color: var(--dimmer); text-transform: uppercase;
+}
+
+/* load pips - four cells, filled to the day's intensity */
+.cm8-pips { display: inline-flex; gap: 3px; }
+.cm8-pips i { width: 12px; height: 3px; background: var(--cyan-20); }
+.cm8-pips i.on { background: var(--cyan); box-shadow: var(--glow-sm); }
+
+/* ── drill accordion ── */
+.cm8-drill { border-top: 1px solid var(--cyan-12); }
+.cm8-drill:first-of-type { border-top: 0; }
+.cm8-drill__head {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 7px 0; text-align: left;
+  font-size: 12px; color: var(--dim); transition: color 0.15s;
+}
+.cm8-drill__head:hover { color: var(--white); }
+.cm8-drill__head--open { color: var(--cyan); }
+.cm8-drill__chev { margin-left: auto; font-size: 9px; color: var(--dimmer); transition: transform 0.25s; }
+.cm8-drill__head--open .cm8-drill__chev { transform: rotate(180deg); color: var(--cyan); }
+.cm8-drill__body { overflow: hidden; }
+.cm8-drill__body p {
+  font-size: 12px; line-height: 1.55; color: var(--dim);
+  padding: 0 0 9px 2px; border-left: 1px solid var(--cyan-20); padding-left: 10px;
+}
+
+/* ── exercise cards ── */
+.cm8-ex__name { font-family: var(--font-display); font-size: 12.5px; color: var(--white); letter-spacing: 0.03em; }
+.cm8-ex__dose {
+  display: inline-block; margin: 4px 0 6px;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; color: var(--cyan);
+}
+.cm8-ex__note { font-size: 12px; line-height: 1.55; color: var(--dim); }
+
+/* ── pillars ── */
+.cm8-pillar__num { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; color: var(--cyan-deep); }
+.cm8-pillar__cue { font-size: 12px; color: var(--cyan-soft); font-style: italic; margin: 6px 0 8px; }
+.cm8-pillar__drill {
+  display: flex; gap: 8px; font-size: 12px; color: var(--dim); padding: 4px 0;
+}
+.cm8-pillar__drill::before { content: '\203A'; color: var(--cyan-deep); }
+
+/* ── readouts / meters ── */
+.cm8-meter { margin-bottom: 9px; }
+.cm8-meter__top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--dim); margin-bottom: 4px;
+}
+.cm8-meter__val { color: var(--white); }
+.cm8-meter__track { height: 4px; background: var(--cyan-12); overflow: hidden; }
+.cm8-meter__fill { height: 100%; background: var(--cyan); box-shadow: var(--glow-sm); }
+.cm8-meter__fill--good { background: var(--green); box-shadow: 0 0 6px rgba(0, 255, 157, 0.45); }
+.cm8-meter__fill--warn { background: var(--red); box-shadow: 0 0 6px rgba(255, 59, 78, 0.4); }
+
+/* ── food log ── */
+.cm8-food { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 1100px) { .cm8-food { grid-template-columns: 1fr; } }
+
+.cm8-food__row {
+  display: grid; grid-template-columns: 82px 1fr auto auto; gap: 10px; align-items: center;
+  padding: 7px 0; border-bottom: 1px solid var(--cyan-12); font-size: 12px;
+}
+.cm8-food__type {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em;
+  color: var(--dimmer); text-transform: uppercase;
+}
+.cm8-food__score { font-family: var(--font-mono); font-size: 13px; color: var(--cyan); }
+.cm8-food__score--none { color: var(--dimmer); }
+.cm8-food__del { color: var(--dimmer); font-size: 14px; line-height: 1; padding: 2px 4px; }
+.cm8-food__del:hover { color: var(--red); }
+
+.cm8-verdict {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; margin-bottom: 12px;
+  border: 1px solid var(--cyan-20); background: var(--cyan-12);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.cm8-verdict--good { border-color: rgba(0, 255, 157, 0.4); background: rgba(0, 255, 157, 0.08); }
+.cm8-verdict--low { border-color: rgba(255, 59, 78, 0.4); background: rgba(255, 59, 78, 0.07); }
+.cm8-verdict__score { font-family: var(--font-display); font-size: 26px; color: var(--cyan); line-height: 1; }
+.cm8-verdict--good .cm8-verdict__score { color: var(--green); }
+.cm8-verdict--low .cm8-verdict__score { color: var(--red); }
+.cm8-verdict__score small { font-size: 11px; color: var(--dimmer); }
+.cm8-verdict__word { font-family: var(--font-display); font-size: 13px; color: var(--white); letter-spacing: 0.04em; }
+.cm8-verdict__body { font-size: 12px; color: var(--dim); line-height: 1.5; }
+
+.cm8-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+
+.cm8-next {
+  margin-top: 12px; padding: 11px 13px;
+  border: 1px solid var(--cyan-20); background: rgba(0, 217, 255, 0.05);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.cm8-next__tag {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.18em;
+  color: var(--cyan); text-transform: uppercase;
+}
+.cm8-next__head { font-family: var(--font-display); font-size: 13px; color: var(--white); margin: 5px 0 5px; }
+.cm8-next__body { font-size: 12px; color: var(--dim); line-height: 1.55; }
+.cm8-next__ideas { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+
+/* ── pitch map ── */
+.cm8-pitch { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+@media (max-width: 900px) { .cm8-pitch { grid-template-columns: 1fr; } }
+.cm8-zone { cursor: pointer; transition: fill 0.3s, stroke 0.3s; }
+.cm8-zone:hover { fill: rgba(0, 217, 255, 0.12); }
+.cm8-zone--on { fill: rgba(0, 255, 157, 0.13); stroke: rgba(0, 255, 157, 0.55); }
+.cm8-zone-label {
+  font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.1em;
+  fill: var(--dim); pointer-events: none;
+}
+.cm8-zone-label--on { fill: var(--green); }
+
+/* ── timeline / list rows ── */
+.cm8-row {
+  display: grid; grid-template-columns: 106px 1fr; gap: 12px;
+  padding: 8px 0; border-bottom: 1px solid var(--cyan-12); font-size: 12px; color: var(--dim);
+}
+.cm8-row b { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; color: var(--cyan); text-transform: uppercase; }
+
+.cm8-check { display: flex; gap: 8px; font-size: 12px; color: var(--dim); padding: 5px 0; }
+.cm8-check::before { content: '\2713'; color: var(--cyan); font-size: 11px; }
