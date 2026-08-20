@@ -30,6 +30,16 @@ import * as remoteServer from './remoteServer';
 import * as clipboardWatch from './clipboardWatch';
 import * as telegram from './telegram';
 import { getHardwareStats } from './hardwareStats';
+import * as calculator from './calculator';
+import * as wolframAlpha from './wolframAlpha';
+import * as quickNotes from './quickNotes';
+import * as joke from './joke';
+import * as ipInfo from './ipInfo';
+import * as batteryInfo from './batteryInfo';
+import * as windowSwitch from './windowSwitch';
+import * as screenshot from './screenshot';
+import * as fileVisibility from './fileVisibility';
+import * as geocode from './geocode';
 import { setupTray, isAutoLaunchEnabled, setAutoLaunch } from './tray';
 
 process.env.DIST = path.join(__dirname, '../dist');
@@ -232,6 +242,57 @@ ipcMain.handle('telegram:recentChats', () => telegram.getRecentChats());
 
 ipcMain.handle('system:hardwareStats', () => getHardwareStats());
 
+/* ── IPC: calculator / WolframAlpha ─────────────────────────────────────── */
+
+ipcMain.handle('calc:evaluate', (_e, expr: unknown) =>
+  typeof expr === 'string' ? calculator.evaluate(expr) : { ok: false, error: 'Bad expression' });
+ipcMain.handle('wolfram:hasKey', () => wolframAlpha.hasKey());
+ipcMain.handle('wolfram:ask', (_e, query: unknown) =>
+  typeof query === 'string' ? wolframAlpha.askWolframAlpha(query) : { ok: false, error: 'Bad query' });
+
+/* ── IPC: quick notes / joke ─────────────────────────────────────────────── */
+
+ipcMain.handle('notes:add', (_e, text: unknown) =>
+  typeof text === 'string' ? quickNotes.addNote(text) : undefined);
+ipcMain.handle('notes:list', () => quickNotes.listNotes());
+ipcMain.handle('notes:delete', (_e, id: unknown) => {
+  if (typeof id === 'string') quickNotes.deleteNote(id);
+});
+ipcMain.handle('joke:random', () => joke.getRandomJoke());
+
+/* ── IPC: IP / battery ───────────────────────────────────────────────────── */
+
+ipcMain.handle('ip:info', () => ipInfo.getIpInfo());
+ipcMain.handle('battery:info', () => batteryInfo.getBatteryInfo());
+
+/* ── IPC: window switching ──────────────────────────────────────────────── */
+
+ipcMain.handle('windows:list', () => windowSwitch.listOpenWindows());
+ipcMain.handle('windows:switchTo', (_e, titleContains: unknown) =>
+  typeof titleContains === 'string' ? windowSwitch.switchToWindow(titleContains) : { ok: false, error: 'Bad title' });
+ipcMain.handle('windows:cycle', () => windowSwitch.cycleWindow());
+
+/* ── IPC: screenshot ─────────────────────────────────────────────────────── */
+
+ipcMain.handle('screenshot:take', (_e, filename: unknown) =>
+  screenshot.takeScreenshotAndSave(typeof filename === 'string' ? filename : undefined));
+
+/* ── IPC: file visibility (same folder containment as files.ts) ────────── */
+
+ipcMain.handle('fileVisibility:hide', (_e, folderPath: unknown) =>
+  typeof folderPath === 'string' ? fileVisibility.hideFolderContents(folderPath) : { ok: false, error: 'Bad folder' });
+ipcMain.handle('fileVisibility:unhide', (_e, folderPath: unknown) =>
+  typeof folderPath === 'string' ? fileVisibility.unhideFolderContents(folderPath) : { ok: false, error: 'Bad folder' });
+
+/* ── IPC: geocoding / distance ───────────────────────────────────────────── */
+
+ipcMain.handle('geo:place', (_e, query: unknown) =>
+  typeof query === 'string' ? geocode.geocodePlace(query) : { ok: false, error: 'Bad query' });
+ipcMain.handle('geo:distance', (_e, from: unknown, to: unknown) =>
+  typeof from === 'string' && typeof to === 'string'
+    ? geocode.distanceToPlace(from, to)
+    : { ok: false, error: 'Bad payload' });
+
 /* ── Clipboard Intelligence: watched from boot, opt-in via a Settings toggle
    handled entirely on the renderer side (it just ignores the events if the
    panel is disabled) - the watcher itself is cheap enough to always run. ── */
@@ -410,7 +471,7 @@ ipcMain.handle('env:setKey', (_e, payload: unknown) => {
   const allowed = [
     'GNEWS_API_KEY', 'OLLAMA_HOST', 'OLLAMA_MODEL', 'GITHUB_TOKEN', 'NOTION_TOKEN',
     'DISCORD_WEBHOOK_URL', 'DISCORD_BOT_TOKEN', 'GEMINI_API_KEY', 'GEMINI_MODEL',
-    'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'TELEGRAM_BOT_TOKEN',
+    'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'TELEGRAM_BOT_TOKEN', 'WOLFRAM_APP_ID',
   ];
   if (!allowed.includes(key)) return { ok: false, error: 'Key not allowed' };
   // Newlines in the value would let a value smuggle in an extra "KEY=..."

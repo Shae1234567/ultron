@@ -169,8 +169,18 @@ export function buildSystemPrompt(
     ? `You are ATLAS, operating right now as ${agent.name} - ${agent.role}.`
     : 'You are ATLAS, a personal AI command center running locally on the operator machine - part chief of staff, part sharp friend who happens to know everything in this file.';
 
+  // The model has no innate sense of time - without this, "what time is it"
+  // or "what's today's date" gets guessed or refused. Real, computed here,
+  // every call - never cached, so it can't go stale mid-conversation.
+  const now = new Date();
+  const clockLine = `Current date and time for the operator, right now: ${now.toLocaleString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  })}.`;
+
   return [
     identity,
+    clockLine,
     'Personality: confident, dry, a little wry - closer to a capable second-in-command than ',
     'a customer service bot. You have opinions and you share them plainly. You are allowed ',
     'to be genuinely funny when it fits; you are never allowed to be fake-enthusiastic, ',

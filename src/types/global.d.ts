@@ -64,6 +64,43 @@ export interface UltronBridge {
   clipboard: {
     onNewText(cb: (text: string) => void): () => void;
   };
+  calc: {
+    evaluate(expr: string): Promise<{ ok: boolean; result?: number; error?: string }>;
+  };
+  wolfram: {
+    hasKey(): Promise<boolean>;
+    ask(query: string): Promise<{ ok: boolean; answer?: string; error?: string }>;
+  };
+  notes: {
+    add(text: string): Promise<{ id: string; text: string; createdAt: number } | undefined>;
+    list(): Promise<{ id: string; text: string; createdAt: number }[]>;
+    delete(id: string): Promise<void>;
+  };
+  joke: {
+    random(): Promise<{ ok: boolean; joke?: string; error?: string }>;
+  };
+  ip: {
+    info(): Promise<{ ok: boolean; info?: { publicIp?: string; localIp?: string }; error?: string }>;
+  };
+  battery: {
+    info(): Promise<{ ok: boolean; info?: { hasBattery: boolean; percent?: number; charging?: boolean; healthPercent?: number }; error?: string }>;
+  };
+  windows: {
+    list(): Promise<{ ok: boolean; windows: { title: string; processName: string }[]; error?: string }>;
+    switchTo(titleContains: string): Promise<{ ok: boolean; error?: string }>;
+    cycle(): Promise<{ ok: boolean; error?: string }>;
+  };
+  screenshot: {
+    take(filename?: string): Promise<{ ok: boolean; path?: string; error?: string }>;
+  };
+  fileVisibility: {
+    hide(folderPath: string): Promise<{ ok: boolean; hiddenCount?: number; error?: string }>;
+    unhide(folderPath: string): Promise<{ ok: boolean; shownCount?: number; error?: string }>;
+  };
+  geo: {
+    place(query: string): Promise<{ ok: boolean; place?: { name: string; lat: number; lon: number; displayName: string }; error?: string }>;
+    distance(from: string, to: string): Promise<{ ok: boolean; from?: unknown; to?: unknown; distanceKm?: number; error?: string }>;
+  };
   tray: {
     isAutoLaunchEnabled(): Promise<boolean>;
     setAutoLaunch(enabled: boolean): Promise<void>;

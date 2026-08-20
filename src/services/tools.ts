@@ -15,7 +15,7 @@ export interface ToolDefinition {
     properties: Record<string, { type: string; description: string; enum?: string[] }>;
     required: string[];
   };
-  group: 'browser' | 'files' | 'research' | 'google' | 'system' | 'flights' | 'telegram' | 'vision';
+  group: 'browser' | 'files' | 'research' | 'google' | 'system' | 'flights' | 'telegram' | 'vision' | 'utility';
 }
 
 export const TOOLS: ToolDefinition[] = [
@@ -362,6 +362,98 @@ export const TOOLS: ToolDefinition[] = [
     },
     group: 'vision',
   },
+  // utility - calculator, WolframAlpha, notes, jokes, IP/battery, windows, screenshot, hide, geo
+  {
+    name: 'calculate',
+    description: 'Evaluate a plain arithmetic expression (+ - * / ^ % parentheses). Safe, no code execution.',
+    parameters: { type: 'object', properties: { expression: { type: 'string', description: 'e.g. "2 + 3 * (4 - 1)"' } }, required: ['expression'] },
+    group: 'utility',
+  },
+  {
+    name: 'ask_wolfram_alpha',
+    description: 'Ask WolframAlpha a factual/computational question (unit conversions, science facts, general knowledge). Fails if no WolframAlpha app id is configured.',
+    parameters: { type: 'object', properties: { query: { type: 'string', description: 'The question.' } }, required: ['query'] },
+    group: 'utility',
+  },
+  {
+    name: 'add_note',
+    description: 'Save a short quick note (separate from the long-term memory file).',
+    parameters: { type: 'object', properties: { text: { type: 'string', description: 'The note text.' } }, required: ['text'] },
+    group: 'utility',
+  },
+  {
+    name: 'list_notes',
+    description: 'List saved quick notes, most recent last.',
+    parameters: { type: 'object', properties: {}, required: [] },
+    group: 'utility',
+  },
+  {
+    name: 'tell_joke',
+    description: 'Fetch a real random joke.',
+    parameters: { type: 'object', properties: {}, required: [] },
+    group: 'utility',
+  },
+  {
+    name: 'get_ip_address',
+    description: 'Get the operator\'s current public and local IP addresses.',
+    parameters: { type: 'object', properties: {}, required: [] },
+    group: 'utility',
+  },
+  {
+    name: 'get_battery_status',
+    description: 'Get the operator\'s real battery charge/charging status, if this machine has a battery.',
+    parameters: { type: 'object', properties: {}, required: [] },
+    group: 'utility',
+  },
+  {
+    name: 'switch_window',
+    description: 'Bring an open window to the foreground by a partial, case-insensitive title match.',
+    parameters: { type: 'object', properties: { titleContains: { type: 'string', description: 'Partial window title.' } }, required: ['titleContains'] },
+    group: 'utility',
+  },
+  {
+    name: 'take_screenshot',
+    description: 'Capture the screen right now and save it as a PNG file, with an optional custom filename.',
+    parameters: { type: 'object', properties: { filename: { type: 'string', description: 'Optional filename, .png added if missing.' } }, required: [] },
+    group: 'utility',
+  },
+  {
+    name: 'hide_folder_contents',
+    description: 'Hide (Windows hidden attribute) every file/folder directly inside an indexed folder. Only works inside folders already added via the Files tab.',
+    parameters: { type: 'object', properties: { folderPath: { type: 'string', description: 'Absolute path of an indexed folder.' } }, required: ['folderPath'] },
+    group: 'utility',
+  },
+  {
+    name: 'unhide_folder_contents',
+    description: 'Reverse of hide_folder_contents - clears the hidden attribute on everything directly inside an indexed folder.',
+    parameters: { type: 'object', properties: { folderPath: { type: 'string', description: 'Absolute path of an indexed folder.' } }, required: ['folderPath'] },
+    group: 'utility',
+  },
+  {
+    name: 'geocode_place',
+    description: 'Look up a place\'s real coordinates.',
+    parameters: { type: 'object', properties: { query: { type: 'string', description: 'Place name.' } }, required: ['query'] },
+    group: 'utility',
+  },
+  {
+    name: 'play_youtube_video',
+    description: 'Search YouTube for a query and open/click the first matching video to start playing it.',
+    parameters: { type: 'object', properties: { query: { type: 'string', description: 'What to search for, e.g. a song or artist.' } }, required: ['query'] },
+    group: 'utility',
+  },
+  {
+    name: 'distance_between_places',
+    description: 'Get the real great-circle distance in km between two places.',
+    parameters: {
+      type: 'object',
+      properties: {
+        from: { type: 'string', description: 'Starting place name.' },
+        to: { type: 'string', description: 'Destination place name.' },
+      },
+      required: ['from', 'to'],
+    },
+    group: 'utility',
+  },
 ];
 
 export function toolsForGroups(groups: string[]): ToolDefinition[] {
@@ -481,6 +573,55 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
         if (!apiKey) { result = { ok: false, error: 'No GEMINI_API_KEY configured.' }; break; }
         const { describeImage } = await import('./vision');
         result = await describeImage(capture.dataUrl, (args.question as string) || 'Describe what is on the screen.', apiKey);
+        break;
+      }
+      // utility
+      case 'calculate':
+        result = await ultron.calc.evaluate(args.expression as string);
+        break;
+      case 'ask_wolfram_alpha':
+        result = await ultron.wolfram.ask(args.query as string);
+        break;
+      case 'add_note':
+        result = await ultron.notes.add(args.text as string);
+        break;
+      case 'list_notes':
+        result = await ultron.notes.list();
+        break;
+      case 'tell_joke':
+        result = await ultron.joke.random();
+        break;
+      case 'get_ip_address':
+        result = await ultron.ip.info();
+        break;
+      case 'get_battery_status':
+        result = await ultron.battery.info();
+        break;
+      case 'switch_window':
+        result = await ultron.windows.switchTo(args.titleContains as string);
+        break;
+      case 'take_screenshot':
+        result = await ultron.screenshot.take(args.filename as string | undefined);
+        break;
+      case 'hide_folder_contents':
+        result = await ultron.fileVisibility.hide(args.folderPath as string);
+        break;
+      case 'unhide_folder_contents':
+        result = await ultron.fileVisibility.unhide(args.folderPath as string);
+        break;
+      case 'geocode_place':
+        result = await ultron.geo.place(args.query as string);
+        break;
+      case 'distance_between_places':
+        result = await ultron.geo.distance(args.from as string, args.to as string);
+        break;
+      // Reuses youtube_search's real structured result (a real scraped watch
+      // URL, not a guessed click-selector) and just navigates to it directly
+      // - far more reliable than clicking a thumbnail on a JS-heavy page.
+      case 'play_youtube_video': {
+        const search = await ultron.browser.youtubeSearch(args.query as string, 1);
+        if (!search.ok || !search.results[0]) { result = { ok: false, error: 'No matching video found.' }; break; }
+        result = await (ultron as any).browser.open(search.results[0].url);
         break;
       }
       default:

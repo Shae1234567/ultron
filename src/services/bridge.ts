@@ -72,6 +72,43 @@ const nullBridge: UltronBridge = {
   clipboard: {
     onNewText: () => () => {},
   },
+  calc: {
+    evaluate: async () => ({ ok: false, error: unavailable('Calculator') }),
+  },
+  wolfram: {
+    hasKey: async () => false,
+    ask: async () => ({ ok: false, error: unavailable('WolframAlpha') }),
+  },
+  notes: {
+    add: async () => undefined,
+    list: async () => [],
+    delete: async () => {},
+  },
+  joke: {
+    random: async () => ({ ok: false, error: unavailable('Joke') }),
+  },
+  ip: {
+    info: async () => ({ ok: false, error: unavailable('IP info') }),
+  },
+  battery: {
+    info: async () => ({ ok: false, error: unavailable('Battery info') }),
+  },
+  windows: {
+    list: async () => ({ ok: false, windows: [], error: unavailable('Window switching') }),
+    switchTo: async () => ({ ok: false, error: unavailable('Window switching') }),
+    cycle: async () => ({ ok: false, error: unavailable('Window switching') }),
+  },
+  screenshot: {
+    take: async () => ({ ok: false, error: unavailable('Screenshot') }),
+  },
+  fileVisibility: {
+    hide: async () => ({ ok: false, error: unavailable('File visibility') }),
+    unhide: async () => ({ ok: false, error: unavailable('File visibility') }),
+  },
+  geo: {
+    place: async () => ({ ok: false, error: unavailable('Geocoding') }),
+    distance: async () => ({ ok: false, error: unavailable('Geocoding') }),
+  },
   tray: {
     isAutoLaunchEnabled: async () => false,
     setAutoLaunch: async () => {},

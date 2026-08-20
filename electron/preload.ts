@@ -86,6 +86,44 @@ const api = {
     },
   },
 
+  calc: {
+    evaluate: (expr: string) => ipcRenderer.invoke('calc:evaluate', expr),
+  },
+  wolfram: {
+    hasKey: () => ipcRenderer.invoke('wolfram:hasKey'),
+    ask: (query: string) => ipcRenderer.invoke('wolfram:ask', query),
+  },
+  notes: {
+    add: (text: string) => ipcRenderer.invoke('notes:add', text),
+    list: () => ipcRenderer.invoke('notes:list'),
+    delete: (id: string) => ipcRenderer.invoke('notes:delete', id),
+  },
+  joke: {
+    random: () => ipcRenderer.invoke('joke:random'),
+  },
+  ip: {
+    info: () => ipcRenderer.invoke('ip:info'),
+  },
+  battery: {
+    info: () => ipcRenderer.invoke('battery:info'),
+  },
+  windows: {
+    list: () => ipcRenderer.invoke('windows:list'),
+    switchTo: (titleContains: string) => ipcRenderer.invoke('windows:switchTo', titleContains),
+    cycle: () => ipcRenderer.invoke('windows:cycle'),
+  },
+  screenshot: {
+    take: (filename?: string) => ipcRenderer.invoke('screenshot:take', filename),
+  },
+  fileVisibility: {
+    hide: (folderPath: string) => ipcRenderer.invoke('fileVisibility:hide', folderPath),
+    unhide: (folderPath: string) => ipcRenderer.invoke('fileVisibility:unhide', folderPath),
+  },
+  geo: {
+    place: (query: string) => ipcRenderer.invoke('geo:place', query),
+    distance: (from: string, to: string) => ipcRenderer.invoke('geo:distance', from, to),
+  },
+
   ollama: {
     status: () => ipcRenderer.invoke('ollama:status'),
     chat: (payload: { requestId: string; messages: unknown[]; model?: string; temperature?: number }) =>

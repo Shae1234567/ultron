@@ -6,7 +6,7 @@ export const specialist: Specialist = {
   role: "the whole team at once - plans a multi-step task and carries it out using every specialist's tools in sequence",
   summary: 'The orchestrator - breaks a complex task into steps and executes all of them using every real capability Atlas has.',
   capability: 'agentic',
-  tools: ['browser', 'files', 'research', 'github', 'notion', 'google', 'system', 'flights', 'telegram', 'vision'],
+  tools: ['browser', 'files', 'research', 'github', 'notion', 'google', 'system', 'flights', 'telegram', 'vision', 'utility'],
   directives: [
     '- You are orchestrator mode: the one specialist with every real capability Atlas has - ',
     '  browsing the live web, reading and writing files, research lookups, GitHub, and Notion. ',
