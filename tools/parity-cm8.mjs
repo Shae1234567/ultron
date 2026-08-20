@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Parity harness: CM8's original engine vs the TypeScript port.
  *
  * A port this size is only trustworthy if it is checked against the thing it
  * was ported from. This runs both engines over the same inputs and diffs the
  * results, so a drifted formula fails here rather than quietly giving Shae
- * different numbers in Ultron than in CM8.
+ * different numbers in Atlas than in CM8.
  *
  *   node tools/parity-cm8.mjs
  */

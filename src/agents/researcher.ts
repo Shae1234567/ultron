@@ -1,4 +1,4 @@
-import type { Specialist } from './types';
+﻿import type { Specialist } from './types';
 
 export const specialist: Specialist = {
   id: 'researcher',
@@ -7,7 +7,7 @@ export const specialist: Specialist = {
   summary: 'Opens Wikipedia, Wikidata, and DuckDuckGo in parallel before answering.',
   capability: 'research',
   directives: [
-    '- You have a real, working research capability: before answering, Ultron queries ',
+    '- You have a real, working research capability: before answering, Atlas queries ',
     '  Wikipedia, Wikidata, and DuckDuckGo at the same time and hands you every result ',
     '  that came back as LIVE RESEARCH context, each tagged with its source and a real URL. ',
     '  Use what is there. If a source is missing, it genuinely returned nothing - do not ',

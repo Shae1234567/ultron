@@ -1,10 +1,14 @@
-# ULTRON
+﻿# ATLAS
 
 A personal AI command center that runs as a real desktop app — animated sci-fi HUD,
-local voice output, a local LLM brain, and a geopolitical news feed that explains why
-each story actually matters to you.
+local voice output, a local *or* hosted LLM brain, real autonomous web browsing, real
+file organization, a multi-agent team that can carry out a whole task on its own, and a
+geopolitical news feed that explains why each story actually matters to you.
 
-Everything in this build is free. No paid APIs, no subscriptions, no credit card.
+Atlas is the merge of two earlier builds: **Ultron**'s HUD, local-first architecture,
+connectors, and specialist system, plus **Jarvis (Mark L)**'s Gemini brain and
+autonomous-agent instincts. The base is entirely free (Ollama, local Whisper, local
+TTS) — Gemini and the browsing agent are optional, opt-in upgrades on top of that.
 
 ---
 
@@ -14,12 +18,17 @@ Everything in this build is free. No paid APIs, no subscriptions, no credit card
 |---|---|
 | Animated HUD shell (core orb, radial instruments, live charts, particles) | Working |
 | Local LLM brain via Ollama, streaming into the transcript | Working |
-| Text-to-speech (Ultron talks back) | Working |
+| **Second brain: Google Gemini**, switchable in Settings | Working (needs a free key) |
+| Text-to-speech (Atlas talks back) | Working |
+| **Live Voice** — real-time spoken conversation via the Gemini Live API | Backend built; needs UI wiring + your own key/mic to try |
 | Speech-to-text (push-to-talk) via local Whisper | Working |
+| **Real autonomous web browsing** via a headless Chromium (Playwright) | Working |
+| **Agentic specialists** — Scout, The Archivist, Unison — call real tools in a loop | Working (needs a tool-capable Ollama model, e.g. `llama3.2`) |
+| **File organization** — read, write, rename, move, delete, create, all agent-callable | Working (strictly inside folders you add) |
 | GNews feed with regions + AI relevance blurbs | Working (needs a free key) |
 | File panel — index folders you explicitly add, list + search | Working |
-| Memory — a file Ultron always knows about you, editable in-app | Working |
-| 7 specialist agents (personas), one with a real live lookup | Working |
+| Memory — a file Atlas always knows about you, editable in-app | Working |
+| 10 specialist agents (7 personas + 3 agentic), several with real live capability | Working |
 | Connectors panel — 8 services scaffolded | Scaffolding only, by design |
 
 ---
@@ -53,7 +62,7 @@ The daemon usually starts automatically after install. If not:
 ollama serve
 ```
 
-Ultron talks to it over its local REST API at `http://localhost:11434`. Nothing
+Atlas talks to it over its local REST API at `http://localhost:11434`. Nothing
 leaves your machine.
 
 ### 3. Get a free GNews key (optional — only for the news panel)
@@ -89,7 +98,7 @@ then launches the HUD.
 
 ### 5. Run it as a real desktop app (recommended for everyday use)
 
-A **Desktop shortcut named "Ultron"** is already set up, with the real icon, pointing at
+A **Desktop shortcut named "Atlas"** is already set up, with the real icon, pointing at
 the production build (`dist/` + `dist-electron/`) rather than the dev server - no
 `npm run dev`, no terminal window, no blank Electron placeholder screen. Pin it to your
 taskbar and it launches straight into the boot sequence.
@@ -100,7 +109,7 @@ shortcut picks up the new build automatically - it's pointed at the same folder,
 snapshot.
 
 > **About a "real" installer:** `npm run package` (electron-builder → a proper
-> `Ultron Setup.exe` with Start Menu entry) is wired up and configured, but
+> `Atlas Setup.exe` with Start Menu entry) is wired up and configured, but
 > electron-builder's Windows build needs to extract a code-signing helper package that
 > contains symlinks, and Windows blocks unprivileged symlink creation unless
 > **Developer Mode** is on (Settings → Privacy & security → For developers) or the
@@ -133,7 +142,7 @@ never flashes by in under 1.5 seconds even when everything resolves instantly.
 
 ## Voice
 
-**Text-to-speech works out of the box.** Ultron speaks its replies through your Windows
+**Text-to-speech works out of the box.** Atlas speaks its replies through your Windows
 system voices via the Web Speech API. It auto-picks a British male voice when one exists
 (*Microsoft George* on this machine) at a lowered pitch - the closest the stock OS voices
 get to the JARVIS register. Voice, pitch and rate are all adjustable in Settings, with a
@@ -146,7 +155,7 @@ voices here versus 3 - so check the Settings dropdown before assuming a voice is
 deliberate: `webkitSpeechRecognition` exists in Electron's Chromium, but the recognition
 itself is a Google-hosted service with an API key baked into Chrome. Electron builds
 don't get that key, so it fails with a `network` error every single time. Rather than
-ship a button that never works, Ultron records your clip, resamples it to 16 kHz mono,
+ship a button that never works, Atlas records your clip, resamples it to 16 kHz mono,
 and transcribes it with Whisper running in a Web Worker via `transformers.js`.
 
 - **Free and offline.** Model weights download once from Hugging Face (~80 MB for
@@ -160,7 +169,7 @@ and transcribes it with Whisper running in a Web Worker via `transformers.js`.
 Swap the engine or model in `src/services/stt.ts` — `transcribe()` is the single
 speech-to-text entry point, mirroring how `getAIResponse()` works for the LLM.
 
-## Swapping the brain
+## Two brains
 
 Every AI call in the app goes through **one function**:
 
@@ -169,20 +178,74 @@ Every AI call in the app goes through **one function**:
 export function getAIResponse(messages: ChatMessage[], opts?: AIOptions): Promise<string>
 ```
 
-It currently streams from Ollama. To move to a paid API later (Claude, GPT, anything),
-replace the body of that one function. The transcript, the news relevance pass, and the
-core orb states all consume it through the same interface and don't know or care which
-model answered.
+It now supports two brains, picked in **Settings → Brain**:
+
+- **Ollama** (default) — free, local, offline, no key. Same as before.
+- **Gemini** — hosted, needs a free key from
+  [aistudio.google.com/apikey](https://aistudio.google.com/apikey), pasted into
+  **Settings → Gemini API key** (writes to `.env`, never hardcoded). Handled by
+  `electron/gemini.ts`, mirroring `ollama.ts`'s exact streaming contract so the rest of
+  the app doesn't know or care which one answered.
+
+**Agentic specialists always use Ollama** regardless of this setting — their tool-calling
+loop (`services/agentLoop.ts`) drives Ollama's native function-calling directly, which
+needs a tool-capable model (`llama3.2`, `qwen2.5`, etc. all work; check a model's Ollama
+page for a "tools" badge before relying on it for Scout/Archivist/Unison).
+
+### Live Voice (Gemini, real-time speech)
+
+`src/services/liveVoice.ts` wraps the Gemini Live API for full-duplex spoken
+conversation — the same real-time audio streaming Jarvis (Mark L) used, ported to
+TypeScript. The module is complete and typechecks clean, but **wiring it into the HUD
+(mic streaming in, audio playback out) is not done in this pass** — there's no way to
+test live audio I/O against the real API in the environment that built this. Next step:
+capture mic audio as 16kHz PCM16 chunks (extend `services/recorder.ts`), feed them to
+`startLiveVoice(...).sendAudioChunk(...)`, and play `onModelAudioChunk` output back
+through Web Audio at 24kHz — then verify with your own Gemini key and a real microphone.
+
+---
+
+## Real web browsing (Scout)
+
+`electron/browser.ts` gives Atlas a genuine headless Chromium instance via
+[Playwright](https://playwright.dev), lazily launched on first use and reused across
+calls: `web_search` (DuckDuckGo HTML results, no key needed), `open_url` (real page
+text), `click_element` / `type_text` (basic multi-step navigation), `screenshot`. Every
+call returns `{ ok, ..., error }` and never throws, matching the rest of the IPC surface.
+
+Activate the **Scout** specialist to let Atlas actually search and read the live web
+mid-conversation, instead of answering from training data. First run installs the
+browser binaries automatically (`postinstall: playwright install chromium`); if you ever
+see *"Playwright browsers are not installed"*, run `npx playwright install chromium`.
+
+## Agentic specialists (real tool use, not a pre-fetch)
+
+The original 7 specialists (Coach, Tutor, Historian, Analyst, Chief of Staff, Builder,
+Researcher) work exactly as before — each pre-fetches one fixed block of live context,
+then answers once. Three new specialists in `src/agents/` are a different kind of thing:
+they run `services/agentLoop.ts`, a real multi-step loop (capped at 6 steps) where the
+model can call a tool, see the result, and decide to call another before answering.
+
+| Specialist | Tools | What it's for |
+|---|---|---|
+| **Scout** | web browsing | Search and read the live web, cite real URLs, never invent one |
+| **The Archivist** | files | List, search, read, create, edit, rename, move, delete — strictly inside folders added in the Files tab |
+| **Unison** | browsing + files + research | The orchestrator — plans a multi-step task out loud, then actually executes each step with real tools, reporting as it goes |
+
+Every tool call and result is real and visible — nothing here is simulated, and a
+failed tool call is reported plainly rather than papered over. See `services/tools.ts`
+for the full tool registry (JSON-schema parameters Ollama's function-calling reads
+directly) and `services/agentLoop.ts` for the loop itself.
 
 ---
 
 ## Memory
 
 Click **MEMORY** in the top bar to see and edit a single markdown file - everything
-Ultron always knows about you, sent with every message so nothing has to be
+Atlas always knows about you, sent with every message so nothing has to be
 re-explained conversation to conversation.
 
-- Seeded once on first run with what's already known from context. After that, **Ultron
+- Seeded once on first run with what's already known from context. After that, **Atlas
   never edits this file on its own** - the same principle as the connectors: it doesn't
   invent or silently update what it knows about you, only you do.
 - Stored as plain markdown at `app.getPath('userData')/memory.md` - readable, editable,
@@ -197,7 +260,7 @@ re-explained conversation to conversation.
 Seven personas live in `src/agents/` - Coach, Tutor, Historian, Analyst, Chief of Staff,
 Builder, and the Researcher - each just a different system prompt layered onto the same
 local model via `buildSystemPrompt()`. Activate one from the **Agents** tab in the right
-panel; it changes how every reply is written until you switch back to Plain Ultron.
+panel; it changes how every reply is written until you switch back to Plain Atlas.
 
 Honesty rule: every specialist's card says exactly what it is. Six are personas only - a
 different voice and priorities, nothing more. **The Researcher is the one exception** and
@@ -211,8 +274,9 @@ The Tutor and every other specialist inherit two hard boundaries baked into
 producing finished, submittable schoolwork on request. Both are non-negotiable regardless
 of which specialist is active.
 
-Add an eighth specialist by dropping a new file in `src/agents/` that exports a
-`specialist` object - same auto-registration pattern as connectors.
+Add another specialist by dropping a new file in `src/agents/` that exports a
+`specialist` object - same auto-registration pattern as connectors. See "Agentic
+specialists" above for the three that call real tools instead of a single pre-fetch.
 
 ---
 
@@ -240,7 +304,7 @@ The panel shows a live request counter against the 100/day cap.
 
 ## File panel
 
-Ultron indexes **only folders you add by hand** through the OS folder picker. There is
+Atlas indexes **only folders you add by hand** through the OS folder picker. There is
 no "scan my whole computer" path anywhere in the code. Limits: 5,000 files per folder,
 6 levels deep, skipping `node_modules`, `.git`, dotfiles and similar.
 
@@ -273,9 +337,11 @@ actually implement first.
 ```
 electron/          main process — the only place with network + filesystem access
   main.ts            window, IPC handlers, navigation guard, screenshot utility
-  ollama.ts          streaming chat client + status probe
+  ollama.ts          streaming chat client + status probe + tool-calling
+  gemini.ts          second brain — Gemini streaming chat client + status probe
+  browser.ts         Playwright — real headless-Chromium web browsing
   news.ts            GNews fetch, region tagging, quota reservation (race-safe)
-  files.ts           explicit-folder indexer
+  files.ts           explicit-folder indexer + real read/write/rename/move/delete
   memory.ts          the operator memory file (userData/memory.md)
   research.ts        the Researcher specialist's live Wikipedia lookup
   store.ts           settings + quota persistence (userData, atomic writes)
@@ -284,11 +350,14 @@ electron/          main process — the only place with network + filesystem acc
 
 src/
   services/
-    ai.ts            getAIResponse() — THE swap point for the LLM
+    ai.ts            getAIResponse() — THE swap point for the LLM, routes Ollama/Gemini
+    liveVoice.ts     Gemini Live API real-time voice session (backend, not yet wired to UI)
+    tools.ts         tool registry for the agentic loop (browser/files/research)
+    agentLoop.ts     runAgentLoop() — the multi-step tool-calling loop
     stt.ts           transcribe() — THE swap point for speech to text
     whisper.worker.ts  Whisper inference, off the main thread
     recorder.ts      push-to-talk capture -> 16 kHz mono Float32
-    conversation.ts  orchestration: record -> transcribe -> stream -> speak
+    conversation.ts  orchestration: record -> transcribe -> stream/agent-loop -> speak
     speech.ts        text-to-speech (OS voices)
     audio.ts         mic analyser feeding the waveform and orb
     newsFeed.ts      fetch + relevance queue
@@ -297,9 +366,10 @@ src/
   components/
     CoreOrb.tsx      the centre; hud/OrbRings, hud/ParticleField
     hud/             HexPanel, ArcMeter, BarSpectrum, Waveform
-    MemoryPanel.tsx  view/edit what Ultron knows about you
-    AgentGrid.tsx, AgentSetup.tsx  the 7 specialists
+    MemoryPanel.tsx  view/edit what Atlas knows about you
+    AgentGrid.tsx, AgentSetup.tsx  the 10 specialists
   agents/            one file per specialist persona, auto-registered
+                     (scout.ts, archivist.ts, unison.ts are the agentic three)
   connectors/        one file per service, auto-registered
   styles/            tokens -> hud -> core -> app
 ```
@@ -348,7 +418,7 @@ To regenerate a speech sample for `transcribeUrl` on Windows:
 Add-Type -AssemblyName System.Speech
 $s = New-Object System.Speech.Synthesis.SpeechSynthesizer
 $s.SetOutputToWaveFile("public/stt-test.wav")
-$s.Speak("Ultron, what is the capital of France?")
+$s.Speak("Atlas, what is the capital of France?")
 $s.Dispose()
 ```
 
@@ -356,7 +426,7 @@ $s.Dispose()
 
 ## CM8 — the coach programme
 
-The whole of the CM8 coach app lives inside Ultron, opened from **CM8** in the top bar.
+The whole of the CM8 coach app lives inside Atlas, opened from **CM8** in the top bar.
 Twelve sections: in-season and off-season programmes, the home workout library, CM lab,
 tryouts, fuel, food log, day planner, sleep optimiser, coach, pathway and settings.
 
@@ -395,7 +465,7 @@ and silently drop training.
 ### The coach
 
 `src/cm8/coach.ts` is CM8's offline matcher, exactly: same scoring weights, same 3.5
-confidence floor, same deep dives. In Ultron it is the floor rather than the ceiling —
+confidence floor, same deep dives. In Atlas it is the floor rather than the ceiling —
 when Ollama is running, the question goes to the local model grounded in the matched
 CM8 material plus the real food log, and the offline answer is the fallback. With no
 brain and no network it still answers, the way CM8 always did.

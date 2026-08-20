@@ -1,22 +1,27 @@
-import type { ChatMessage, Settings } from '../types';
+﻿import type { ChatMessage, Settings } from '../types';
 import { ultron } from './bridge';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════
  *  THE SWAP POINT
  *
- *  Every AI call in Ultron goes through getAIResponse(). Today it talks to
+ *  Every AI call in Atlas goes through getAIResponse(). Today it talks to
  *  a local Ollama daemon (free, offline, no key). To move to a paid API
  *  later - Claude, GPT, whatever - replace the body of this one function.
  *  Nothing else in the app knows or cares which model answered.
  * ═══════════════════════════════════════════════════════════════════════
  */
 
+/** Which brain answers a given call. Defaults to 'ollama' when omitted, matching
+ *  every call site that existed before Gemini was added as a second brain. */
+export type Brain = 'ollama' | 'gemini';
+
 export interface AIOptions {
   onToken?: (token: string) => void;
   temperature?: number;
   model?: string;
   requestId?: string;
+  brain?: Brain;
 }
 
 type Pending = {
@@ -27,29 +32,35 @@ type Pending = {
 };
 
 const pending = new Map<string, Pending>();
+const requestBrain = new Map<string, Brain>();
 let wired = false;
 
 function wireOnce(): void {
   if (wired) return;
   wired = true;
-  ultron.ollama.onChunk(({ requestId, token }) => {
-    const p = pending.get(requestId);
-    if (!p) return;
-    p.buffer += token;
-    p.onToken?.(token);
-  });
-  ultron.ollama.onDone(({ requestId }) => {
-    const p = pending.get(requestId);
-    if (!p) return;
-    pending.delete(requestId);
-    p.resolve(p.buffer);
-  });
-  ultron.ollama.onError(({ requestId, error }) => {
-    const p = pending.get(requestId);
-    if (!p) return;
-    pending.delete(requestId);
-    p.reject(new Error(error));
-  });
+  // Both brains' events are always wired - requestIds are unique per call, so
+  // only the listener for whichever brain actually handled a given request
+  // ever finds a match in `pending` for it. Simpler than wiring per-brain.
+  for (const brain of [ultron.ollama, ultron.gemini]) {
+    brain.onChunk(({ requestId, token }) => {
+      const p = pending.get(requestId);
+      if (!p) return;
+      p.buffer += token;
+      p.onToken?.(token);
+    });
+    brain.onDone(({ requestId }) => {
+      const p = pending.get(requestId);
+      if (!p) return;
+      pending.delete(requestId);
+      p.resolve(p.buffer);
+    });
+    brain.onError(({ requestId, error }) => {
+      const p = pending.get(requestId);
+      if (!p) return;
+      pending.delete(requestId);
+      p.reject(new Error(error));
+    });
+  }
 }
 
 let counter = 0;
@@ -62,15 +73,18 @@ export function getAIResponse(messages: ChatMessage[], opts: AIOptions = {}): Pr
   wireOnce();
   const requestId = opts.requestId ?? newRequestId();
   if (pending.has(requestId)) return Promise.reject(new Error(`duplicate requestId: ${requestId}`));
+  const brainName: Brain = opts.brain === 'gemini' ? 'gemini' : 'ollama';
+  const brain = brainName === 'gemini' ? ultron.gemini : ultron.ollama;
+  requestBrain.set(requestId, brainName);
 
   return new Promise<string>((resolve, reject) => {
-    // Watchdog: if Ollama accepts the connection but never emits a chunk,
+    // Watchdog: if the brain accepts the connection but never emits a chunk,
     // done, or error (stalled model, dropped connection), this settles the
     // promise instead of leaving coreState stuck on 'thinking' forever.
     const timer = setTimeout(() => {
       if (pending.delete(requestId)) {
-        void ultron.ollama.cancel(requestId);
-        reject(new Error('Ollama did not respond in time.'));
+        void brain.cancel(requestId);
+        reject(new Error('The brain did not respond in time.'));
       }
     }, STREAM_TIMEOUT_MS);
 
@@ -80,7 +94,7 @@ export function getAIResponse(messages: ChatMessage[], opts: AIOptions = {}): Pr
       buffer: '',
       onToken: opts.onToken,
     });
-    ultron.ollama
+    brain
       .chat({ requestId, messages, model: opts.model, temperature: opts.temperature })
       .catch((e: unknown) => {
         clearTimeout(timer);
@@ -92,27 +106,30 @@ export function getAIResponse(messages: ChatMessage[], opts: AIOptions = {}): Pr
 
 /** Cancels and immediately settles the pending promise as rejected - without
  *  this, a request cancelled mid-stream can still resolve with whatever
- *  partial text Ollama had buffered, and Ultron ends up speaking it anyway. */
+ *  partial text the brain had buffered, and Atlas ends up speaking it anyway. */
 export function cancelAIResponse(requestId: string): void {
   const p = pending.get(requestId);
   if (p) {
     pending.delete(requestId);
     p.reject(new Error('cancelled'));
   }
-  void ultron.ollama.cancel(requestId);
+  const brainName = requestBrain.get(requestId) ?? 'ollama';
+  requestBrain.delete(requestId);
+  void (brainName === 'gemini' ? ultron.gemini : ultron.ollama).cancel(requestId);
 }
 
 /** One-shot, non-streaming. Used for short background jobs (news blurbs). */
 export async function getAIResponseOnce(
   messages: ChatMessage[],
-  opts: { temperature?: number; model?: string; timeoutMs?: number } = {},
+  opts: { temperature?: number; model?: string; timeoutMs?: number; brain?: Brain } = {},
 ): Promise<string> {
-  const res = await ultron.ollama.once({ messages, ...opts });
+  const bridge = opts.brain === 'gemini' ? ultron.gemini : ultron.ollama;
+  const res = await bridge.once({ messages, ...opts });
   if (!res.ok) throw new Error(res.error);
   return res.text;
 }
 
-/** A specialist persona layered on top of the base Ultron identity. See src/agents/. */
+/** A specialist persona layered on top of the base Atlas identity. See src/agents/. */
 export interface AgentPersona {
   id: string;
   name: string;
@@ -123,10 +140,10 @@ export interface AgentPersona {
 }
 
 /**
- * Ultron's persona + its memory of the operator + whatever Settings adds.
+ * Atlas's persona + its memory of the operator + whatever Settings adds.
  *
  * `memory` is the free-form file the operator edits directly (see
- * services/memory.ts) - the single source of "what Ultron knows about you",
+ * services/memory.ts) - the single source of "what Atlas knows about you",
  * always injected so nothing has to be re-explained every conversation.
  *
  * The safety directives below are not boilerplate: the operator is a minor,
@@ -149,8 +166,8 @@ export function buildSystemPrompt(
     : '';
 
   const identity = agent
-    ? `You are ULTRON, operating right now as ${agent.name} - ${agent.role}.`
-    : 'You are ULTRON, a personal AI command center running locally on the operator machine - part chief of staff, part sharp friend who happens to know everything in this file.';
+    ? `You are ATLAS, operating right now as ${agent.name} - ${agent.role}.`
+    : 'You are ATLAS, a personal AI command center running locally on the operator machine - part chief of staff, part sharp friend who happens to know everything in this file.';
 
   return [
     identity,
@@ -180,7 +197,7 @@ export function buildSystemPrompt(
     'submittable schoolwork on request - teach, outline, quiz, and explain ',
     'instead, and say plainly that is what you are doing and why.',
     agent?.directives.length ? `\n${agent.name.toUpperCase()} DIRECTIVES\n${agent.directives.join('\n')}` : '',
-    memory.trim() ? `\nMEMORY - what Ultron knows about the operator, maintained by them directly\n${memory.trim()}` : '',
+    memory.trim() ? `\nMEMORY - what Atlas knows about the operator, maintained by them directly\n${memory.trim()}` : '',
     profileLines ? `\nSETTINGS PROFILE\n${profileLines}` : '',
   ].filter(Boolean).join('\n');
 }

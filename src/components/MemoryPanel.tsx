@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Overlay } from './Overlay';
 import { useStore } from '../state/store';
 import { ultron } from '../services/bridge';
@@ -6,7 +6,7 @@ import { ultron } from '../services/bridge';
 const roughTokens = (s: string) => Math.round(s.length / 4);
 
 /**
- * Ultron never writes here on its own - the operator edits this file
+ * Atlas never writes here on its own - the operator edits this file
  * directly, and it is injected into every system prompt via buildSystemPrompt().
  */
 export function MemoryPanel({ onClose }: { onClose: () => void }) {
@@ -30,7 +30,7 @@ export function MemoryPanel({ onClose }: { onClose: () => void }) {
       const res = await ultron.memory.save(draft);
       if (res.ok) {
         setMemory(draft);
-        setSaved('Saved. Ultron will use this starting with the next message.');
+        setSaved('Saved. Atlas will use this starting with the next message.');
       } else {
         setSaved(res.error ?? 'Could not save memory.');
       }
@@ -57,7 +57,7 @@ export function MemoryPanel({ onClose }: { onClose: () => void }) {
     >
       <div className="alert-strip alert-strip--info" style={{ marginBottom: 14 }}>
         <span className="dot" />
-        This is sent to the model with every message. Ultron never edits it on its own - only you do.
+        This is sent to the model with every message. Atlas never edits it on its own - only you do.
       </div>
 
       <textarea

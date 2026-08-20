@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef } from 'react';
 import { Backdrop } from './components/Backdrop';
 import { TopBar } from './components/TopBar';
 import { CoreOrb } from './components/CoreOrb';
@@ -71,7 +71,7 @@ export function App() {
           who: 'system',
           text: status.running
             ? `Ollama is running but "${status.activeModel}" is not installed.`
-            : 'Ollama is not responding. Ultron cannot think until it is running.',
+            : 'Ollama is not responding. Atlas cannot think until it is running.',
           error: true,
         });
         setOverlay({ kind: 'ollama' });

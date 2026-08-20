@@ -1,4 +1,4 @@
-/**
+﻿/**
  * The Researcher specialist's real capability: querying several free,
  * no-key knowledge sources in parallel and handing the model verified
  * context instead of letting a small local model guess at facts.
@@ -20,7 +20,7 @@ export interface ResearchSource {
   url: string;
 }
 
-const UA = 'Ultron-Personal-Assistant/0.1 (local desktop app; no distribution)';
+const UA = 'Atlas-Personal-Assistant/0.1 (local desktop app; no distribution)';
 const TIMEOUT_MS = 8000;
 
 async function fetchJson(url: string): Promise<unknown> {

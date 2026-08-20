@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef } from 'react';
 import type { CoreState } from '../types';
 import { getLevel, micActive } from '../services/audio';
 import { isRenderActive } from '../services/visibility';
@@ -10,7 +10,7 @@ interface Props {
 }
 
 const GLYPH: Record<CoreState, string> = {
-  idle: 'ULTRON',
+  idle: 'ATLAS',
   listening: 'LISTENING',
   thinking: 'PROCESSING',
   speaking: 'RESPONDING',

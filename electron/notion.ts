@@ -1,4 +1,4 @@
-import { env } from './env';
+﻿import { env } from './env';
 
 /**
  * Real Notion connector. Free tier: an internal integration token, no OAuth
@@ -8,7 +8,7 @@ import { env } from './env';
  * result on any error, never a fabricated page list.
  */
 
-const UA = 'Ultron-Personal-Assistant/0.1 (local desktop app; no distribution)';
+const UA = 'Atlas-Personal-Assistant/0.1 (local desktop app; no distribution)';
 const TIMEOUT_MS = 10000;
 const NOTION_VERSION = '2022-06-28';
 

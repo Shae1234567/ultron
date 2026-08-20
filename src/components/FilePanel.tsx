@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store';
 import { ultron } from '../services/bridge';
 import { FileEditor } from './FileEditor';
@@ -118,8 +118,8 @@ export function FilePanel() {
 
       {folders.length === 0 ? (
         <div className="empty-note">
-          No folders indexed. Ultron can only see folders you add here explicitly -
-          it has no access to the rest of the drive. Once added, Ultron can also
+          No folders indexed. Atlas can only see folders you add here explicitly -
+          it has no access to the rest of the drive. Once added, Atlas can also
           create, edit, rename, move, and delete (to the Recycle Bin) files inside
           them.
         </div>

@@ -1,10 +1,10 @@
-import type { Connector } from './types';
+﻿import type { Connector } from './types';
 
 export const connector: Connector = {
   id: 'spotify',
   name: 'Spotify',
   category: 'Music',
-  summary: 'Show what is playing on the HUD and let Ultron control playback by voice.',
+  summary: 'Show what is playing on the HUD and let Atlas control playback by voice.',
   freeTier: 'Free. The Web API has no cost; playback control requires a Premium account.',
   docsUrl: 'https://developer.spotify.com/documentation/web-api',
   consoleUrl: 'https://developer.spotify.com/dashboard',

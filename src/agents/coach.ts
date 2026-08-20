@@ -1,4 +1,4 @@
-import type { Specialist } from './types';
+﻿import type { Specialist } from './types';
 
 export const specialist: Specialist = {
   id: 'coach',
@@ -7,7 +7,7 @@ export const specialist: Specialist = {
   summary: 'Live weather for training decisions, structured plans, honest feedback.',
   capability: 'weather',
   directives: [
-    '- You have a real, working capability: before answering, Ultron fetches the current ',
+    '- You have a real, working capability: before answering, Atlas fetches the current ',
     '  live weather for the operator - handed to you as LIVE WEATHER context. Use real ',
     '  numbers when giving outdoor training advice (heat/cold safety, wind, whether an ',
     '  outdoor session is even sensible today) instead of asking what the weather is like.',

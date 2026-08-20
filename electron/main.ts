@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen, shell } from 'electron';
+﻿import { app, BrowserWindow, ipcMain, screen, shell } from 'electron';
 import path from 'node:path';
 import { loadEnv, setEnvKey, writableEnvPath } from './env';
 import { getSettings, saveSettings } from './store';
@@ -11,6 +11,8 @@ import * as github from './github';
 import * as notion from './notion';
 import * as discord from './discord';
 import * as obsidian from './obsidian';
+import * as gemini from './gemini';
+import * as browserAgent from './browser';
 
 process.env.DIST = path.join(__dirname, '../dist');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
@@ -33,7 +35,7 @@ function createWindow(): void {
     show: false,
     frame: false,
     backgroundColor: '#060910',
-    title: 'ULTRON',
+    title: 'ATLAS',
     icon: path.join(__dirname, '../build-assets/icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -108,6 +110,10 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+// Scout's headless Chromium instance is a real OS process - leaving it running
+// after the HUD closes would silently leak a browser in the background.
+app.on('before-quit', () => { void browserAgent.closeBrowser(); });
+
 /* ── IPC: window chrome ─────────────────────────────────────────────── */
 
 ipcMain.handle('win:minimize', () => win?.minimize());
@@ -144,14 +150,63 @@ ipcMain.handle('ollama:once', async (_e, payload: {
   model?: string;
   temperature?: number;
   timeoutMs?: number;
+  tools?: ollama.OllamaToolSpec[];
 }) => {
   try {
-    const text = await ollama.chatOnce(payload.messages, payload);
+    const { text, toolCalls } = await ollama.chatOnce(payload.messages, payload);
+    return { ok: true as const, text, ...(toolCalls ? { toolCalls } : {}) };
+  } catch (e) {
+    return { ok: false as const, error: e instanceof Error ? e.message : String(e) };
+  }
+});
+
+/* ── IPC: brain (Gemini - second, hosted brain) ───────────────────────── */
+
+ipcMain.handle('gemini:status', () => gemini.status());
+
+ipcMain.handle('gemini:chat', (event, payload: {
+  requestId: string;
+  messages: gemini.ChatMessage[];
+  model?: string;
+  temperature?: number;
+}) => {
+  void gemini.chatStream(event.sender, payload.requestId, payload.messages, {
+    model: payload.model,
+    temperature: payload.temperature,
+  });
+  return { started: true };
+});
+
+ipcMain.handle('gemini:cancel', (_e, requestId: string) => gemini.cancel(requestId));
+
+ipcMain.handle('gemini:once', async (_e, payload: {
+  messages: gemini.ChatMessage[];
+  model?: string;
+  temperature?: number;
+  timeoutMs?: number;
+}) => {
+  try {
+    const text = await gemini.chatOnce(payload.messages, payload);
     return { ok: true as const, text };
   } catch (e) {
     return { ok: false as const, error: e instanceof Error ? e.message : String(e) };
   }
 });
+
+/* ── IPC: browser (Playwright - real autonomous web browsing) ─────────── */
+
+ipcMain.handle('browser:search', (_e, query: unknown, limit?: number) =>
+  typeof query === 'string' ? browserAgent.webSearch(query, limit) : { ok: false, results: [], error: 'Bad query' });
+ipcMain.handle('browser:open', (_e, url: unknown) =>
+  typeof url === 'string' ? browserAgent.openPage(url) : { ok: false, error: 'Bad url' });
+ipcMain.handle('browser:click', (_e, selector: unknown) =>
+  typeof selector === 'string' ? browserAgent.clickOnPage(selector) : { ok: false, error: 'Bad selector' });
+ipcMain.handle('browser:type', (_e, selector: unknown, text: unknown, submit?: boolean) =>
+  typeof selector === 'string' && typeof text === 'string'
+    ? browserAgent.typeOnPage(selector, text, Boolean(submit))
+    : { ok: false, error: 'Bad payload' });
+ipcMain.handle('browser:screenshot', () => browserAgent.screenshotPage());
+ipcMain.handle('browser:close', () => browserAgent.closeBrowser());
 
 /* ── IPC: news ──────────────────────────────────────────────────────── */
 
@@ -165,7 +220,7 @@ ipcMain.handle('settings:get', () => getSettings());
 ipcMain.handle('settings:save', (_e, patch: unknown) => {
   if (!patch || typeof patch !== 'object') return getSettings();
   // `folders` is deliberately never settable through this channel - the
-  // whole point of files.ts's design is that Ultron only ever indexes
+  // whole point of files.ts's design is that Atlas only ever indexes
   // folders added through the real OS picker (files:add). Accepting it here
   // would let any renderer-side bug or bad prompt output point the indexer
   // at an arbitrary path with no dialog in the way.
@@ -181,7 +236,10 @@ ipcMain.handle('env:setKey', (_e, payload: unknown) => {
     return { ok: false, error: 'Bad payload' };
   }
   const { key, value } = payload as { key: string; value: string };
-  const allowed = ['GNEWS_API_KEY', 'OLLAMA_HOST', 'OLLAMA_MODEL', 'GITHUB_TOKEN', 'NOTION_TOKEN', 'DISCORD_WEBHOOK_URL', 'DISCORD_BOT_TOKEN'];
+  const allowed = [
+    'GNEWS_API_KEY', 'OLLAMA_HOST', 'OLLAMA_MODEL', 'GITHUB_TOKEN', 'NOTION_TOKEN',
+    'DISCORD_WEBHOOK_URL', 'DISCORD_BOT_TOKEN', 'GEMINI_API_KEY', 'GEMINI_MODEL',
+  ];
   if (!allowed.includes(key)) return { ok: false, error: 'Key not allowed' };
   // Newlines in the value would let a value smuggle in an extra "KEY=..."
   // line, writing keys the allowlist above was supposed to block.

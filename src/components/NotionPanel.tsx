@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Overlay } from './Overlay';
 import { ultron } from '../services/bridge';
 import type { NotionUser, NotionItem } from '../types';
@@ -98,7 +98,7 @@ export function NotionPanel({ onClose }: { onClose: () => void }) {
           <div className="step">
             <span className="step__n">2</span>
             <div className="step__text">
-              Share the pages you want Ultron to see: open the page, click ••• , then Connections,
+              Share the pages you want Atlas to see: open the page, click ••• , then Connections,
               and pick your integration. Nothing is visible until it's explicitly shared - that's
               Notion's own model, not a limitation here.
             </div>
@@ -131,7 +131,7 @@ export function NotionPanel({ onClose }: { onClose: () => void }) {
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
             <div>
-              <div style={{ color: 'var(--white)', fontWeight: 600 }}>{user.botName || 'Ultron integration'}</div>
+              <div style={{ color: 'var(--white)', fontWeight: 600 }}>{user.botName || 'Atlas integration'}</div>
               <span className="mono" style={{ fontSize: 10.5, color: 'var(--dim)' }}>
                 {user.workspaceName ? `workspace: ${user.workspaceName}` : ''}
               </span>

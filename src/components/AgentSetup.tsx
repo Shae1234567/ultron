@@ -1,4 +1,4 @@
-import { Overlay } from './Overlay';
+﻿import { Overlay } from './Overlay';
 import { getSpecialist } from '../agents';
 import { useStore } from '../state/store';
 
@@ -9,6 +9,7 @@ const CAPABILITY_LABEL: Record<string, string> = {
   'on-this-day': 'LIVE - ON THIS DAY',
   github: 'LIVE - GITHUB',
   notion: 'LIVE - NOTION',
+  agentic: 'LIVE - AGENTIC (REAL TOOLS)',
 };
 
 const CAPABILITY_DESCRIPTION: Record<string, string> = {
@@ -17,6 +18,7 @@ const CAPABILITY_DESCRIPTION: Record<string, string> = {
   'on-this-day': "Genuinely fetches real historical events for today's date before answering - not simulated.",
   github: 'Genuinely pulls your real repos and open issues/PRs before answering, once GitHub is connected in the Connectors tab.',
   notion: 'Genuinely pulls your real Notion pages and databases before answering, once Notion is connected in the Connectors tab.',
+  agentic: 'Genuinely calls real tools mid-conversation (web browsing, file operations, research) in a multi-step loop, not a single pre-fetch - requires Ollama running.',
 };
 
 export function AgentSetup({ id, onClose }: { id: string; onClose: () => void }) {
@@ -66,7 +68,7 @@ export function AgentSetup({ id, onClose }: { id: string; onClose: () => void })
 
       <div className="field__hint" style={{ marginTop: 10 }}>
         Runs on the same local Ollama model as everything else - only the system prompt
-        changes. Switch back to Plain Ultron any time from the Agents tab.
+        changes. Switch back to Plain Atlas any time from the Agents tab.
       </div>
     </Overlay>
   );

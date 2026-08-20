@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import type {
   Article, CoreState, IndexedFolder, OllamaStatus, Quota, Region, Settings, TranscriptEntry,
 } from '../types';
@@ -42,11 +42,11 @@ interface UltronState {
   settings: Settings | null;
   setSettings: (s: Settings) => void;
 
-  /* memory - Ultron's persistent knowledge of the operator, editable in-app */
+  /* memory - Atlas's persistent knowledge of the operator, editable in-app */
   memory: string;
   setMemory: (m: string) => void;
 
-  /* active specialist - null means plain Ultron, no persona layered on */
+  /* active specialist - null means plain Atlas, no persona layered on */
   activeAgent: Specialist | null;
   setActiveAgent: (a: Specialist | null) => void;
 

@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Text-to-speech via the Web Speech API - free, built into Chromium, and it
  * uses the OS voices so it works reliably inside Electron.
  *
  * Speech-to-text deliberately does NOT live here. The Web Speech recognition
  * API exists in Electron but is backed by a Google-hosted service that Electron
- * builds cannot reach, so it fails with a `network` error every time. Ultron
+ * builds cannot reach, so it fails with a `network` error every time. Atlas
  * runs Whisper locally instead - see services/stt.ts.
  */
 
@@ -55,7 +55,7 @@ export function primeVoices(): void {
   };
 }
 
-/** Deep and deliberate - as close to Ultron as the stock OS voices get. */
+/** Deep and deliberate - as close to Atlas as the stock OS voices get. */
 export const VOICE_DEFAULTS = { rate: 0.93, pitch: 0.8 };
 
 export interface SpeakOptions {

@@ -21,7 +21,7 @@ const api = {
     chat: (payload: { requestId: string; messages: unknown[]; model?: string; temperature?: number }) =>
       ipcRenderer.invoke('ollama:chat', payload),
     cancel: (requestId: string) => ipcRenderer.invoke('ollama:cancel', requestId),
-    once: (payload: { messages: unknown[]; model?: string; temperature?: number; timeoutMs?: number }) =>
+    once: (payload: { messages: unknown[]; model?: string; temperature?: number; timeoutMs?: number; tools?: unknown[] }) =>
       ipcRenderer.invoke('ollama:once', payload),
     onChunk: (cb: (p: { requestId: string; token: string }) => void) => {
       const handler = (_e: unknown, p: { requestId: string; token: string }) => cb(p);
@@ -38,6 +38,39 @@ const api = {
       ipcRenderer.on('ollama:error', handler);
       return () => ipcRenderer.off('ollama:error', handler);
     },
+  },
+
+  gemini: {
+    status: () => ipcRenderer.invoke('gemini:status'),
+    chat: (payload: { requestId: string; messages: unknown[]; model?: string; temperature?: number }) =>
+      ipcRenderer.invoke('gemini:chat', payload),
+    cancel: (requestId: string) => ipcRenderer.invoke('gemini:cancel', requestId),
+    once: (payload: { messages: unknown[]; model?: string; temperature?: number; timeoutMs?: number }) =>
+      ipcRenderer.invoke('gemini:once', payload),
+    onChunk: (cb: (p: { requestId: string; token: string }) => void) => {
+      const handler = (_e: unknown, p: { requestId: string; token: string }) => cb(p);
+      ipcRenderer.on('gemini:chunk', handler);
+      return () => ipcRenderer.off('gemini:chunk', handler);
+    },
+    onDone: (cb: (p: { requestId: string; aborted?: boolean }) => void) => {
+      const handler = (_e: unknown, p: { requestId: string; aborted?: boolean }) => cb(p);
+      ipcRenderer.on('gemini:done', handler);
+      return () => ipcRenderer.off('gemini:done', handler);
+    },
+    onError: (cb: (p: { requestId: string; error: string }) => void) => {
+      const handler = (_e: unknown, p: { requestId: string; error: string }) => cb(p);
+      ipcRenderer.on('gemini:error', handler);
+      return () => ipcRenderer.off('gemini:error', handler);
+    },
+  },
+
+  browser: {
+    search: (query: string, limit?: number) => ipcRenderer.invoke('browser:search', query, limit),
+    open: (url: string) => ipcRenderer.invoke('browser:open', url),
+    click: (selector: string) => ipcRenderer.invoke('browser:click', selector),
+    type: (selector: string, text: string, submit?: boolean) => ipcRenderer.invoke('browser:type', selector, text, submit),
+    screenshot: () => ipcRenderer.invoke('browser:screenshot'),
+    close: () => ipcRenderer.invoke('browser:close'),
   },
 
   news: {

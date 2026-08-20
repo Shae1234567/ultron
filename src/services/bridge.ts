@@ -33,6 +33,26 @@ const nullBridge: UltronBridge = {
     onDone: () => () => {},
     onError: () => () => {},
   },
+  gemini: {
+    status: async () => ({
+      running: false, host: 'https://generativelanguage.googleapis.com', models: [],
+      activeModel: 'gemini-2.0-flash', modelInstalled: false, error: unavailable('Gemini'),
+    }),
+    chat: async () => ({ started: false }),
+    cancel: async () => {},
+    once: async () => ({ ok: false as const, error: unavailable('Gemini') }),
+    onChunk: () => () => {},
+    onDone: () => () => {},
+    onError: () => () => {},
+  },
+  browser: {
+    search: async () => ({ ok: false, results: [], error: unavailable('Browser') }),
+    open: async () => ({ ok: false, error: unavailable('Browser') }),
+    click: async () => ({ ok: false, error: unavailable('Browser') }),
+    type: async () => ({ ok: false, error: unavailable('Browser') }),
+    screenshot: async () => ({ ok: false, error: unavailable('Browser') }),
+    close: async () => {},
+  },
   news: {
     fetch: async () => ({
       articles: [], quota: { used: 0, cap: 100, date: '' }, fetchedAt: Date.now(),
@@ -46,6 +66,8 @@ const nullBridge: UltronBridge = {
       profile: { location: 'Calgary, Alberta, Canada', interests: [], notes: '' },
       news: { autoRefreshMinutes: 60, dailyCap: 100, categories: ['world', 'nation'], country: 'ca' },
       ollama: { host: 'http://localhost:11434', model: 'llama3.2' },
+      brain: 'ollama' as const,
+      gemini: { model: 'gemini-2.0-flash' },
       voice: { name: '', rate: 0.93, pitch: 0.8 },
       folders: [],
     }),

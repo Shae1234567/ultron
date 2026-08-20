@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Overlay } from '../Overlay';
 import { Cm8FoodLog } from './Cm8FoodLog';
@@ -133,7 +133,7 @@ function LibrarySection() {
   );
 }
 
-/** The pitch map, rebuilt as an Ultron readout - same five zones, same copy. */
+/** The pitch map, rebuilt as an Atlas readout - same five zones, same copy. */
 function LabSection() {
   const [zone, setZone] = useState(2);
   const active = ZONES[zone];

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Overlay } from './Overlay';
 import { ultron } from '../services/bridge';
 import type { VaultFolder, NoteRef } from '../types';
@@ -49,7 +49,7 @@ export function ObsidianPanel({ onClose }: { onClose: () => void }) {
             <span className="step__n">1</span>
             <div className="step__text">
               Add your vault folder from the Files tab - the same OS folder picker the file
-              index already uses. Ultron only ever reads folders you add by hand.
+              index already uses. Atlas only ever reads folders you add by hand.
             </div>
           </div>
           <div className="step">

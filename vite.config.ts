@@ -26,7 +26,26 @@ export default defineConfig({
   plugins: [
     react(),
     electron({
-      main: { entry: 'electron/main.ts' },
+      main: {
+        entry: 'electron/main.ts',
+        vite: {
+          build: {
+            rollupOptions: {
+              // playwright-core probes for optional native drivers (kerberos,
+              // mongodb-client-encryption, ...) it never actually needs unless
+              // that specific proxy/auth path is used - none of them are
+              // installed, and none need to be. Node resolves 'playwright'
+              // itself from node_modules fine at runtime in the main process,
+              // so there's no reason for Rollup to bundle any of this tree.
+              external: [
+                'playwright', 'playwright-core',
+                'kerberos', 'mongodb-client-encryption', 'aws4', 'snappy', 'saslprep', 'socks-proxy-agent',
+                '@google/genai',
+              ],
+            },
+          },
+        },
+      },
       preload: { input: path.join(__dirname, 'electron/preload.ts') },
     }),
     renderer(),

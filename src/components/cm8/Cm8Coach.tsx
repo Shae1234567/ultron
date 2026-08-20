@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { offlineReply, groundingFor, type CoachAnswer } from '../../cm8/coach';
 import { getAIResponseOnce } from '../../services/ai';
@@ -26,7 +26,7 @@ const OPENER: Turn = {
 /**
  * The coach, with the offline knowledge base as the floor.
  *
- * When Ultron's local model is up, the question goes to it grounded in the very
+ * When Atlas's local model is up, the question goes to it grounded in the very
  * same CM8 material, so the answer is a real answer rather than the nearest
  * matching topic - and it can follow up on anything the knowledge base never
  * covered. When the model is down, this still works exactly as CM8 does, with
@@ -67,7 +67,7 @@ export function Cm8Coach() {
       const grounding = groundingFor(q);
 
       const system = [
-        "You are Shae's football coach inside Ultron. Shae is 14, a centre mid for Calgary Rangers,",
+        "You are Shae's football coach inside Atlas. Shae is 14, a centre mid for Calgary Rangers,",
         'currently Tier 4 and aiming for Tier 3 at tryouts on 10 September 2026.',
         'Be direct and specific. Short paragraphs. No preamble, no hedging, no bullet-point padding.',
         'Never invent numbers about his training or food — use what is given below or say you do not know.',

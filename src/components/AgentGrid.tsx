@@ -1,4 +1,4 @@
-import { specialists } from '../agents';
+﻿import { specialists } from '../agents';
 import { useStore } from '../state/store';
 
 /**
@@ -16,7 +16,7 @@ export function AgentGrid() {
     <>
       <div className="alert-strip alert-strip--info">
         <span className="dot" />
-        {activeAgent ? `Active: ${activeAgent.name}` : 'Plain Ultron - no specialist active'}
+        {activeAgent ? `Active: ${activeAgent.name}` : 'Plain Atlas - no specialist active'}
       </div>
       <div className="conn-grid">
         <div
@@ -24,7 +24,7 @@ export function AgentGrid() {
           onClick={() => setActiveAgent(null)}
           style={!activeAgent ? { borderColor: 'var(--cyan-55)', background: 'rgba(0,217,255,0.1)' } : undefined}
         >
-          <div className="conn-card__name">Plain Ultron</div>
+          <div className="conn-card__name">Plain Atlas</div>
           <div className="conn-card__cat">Default</div>
           <div className="conn-card__status">{!activeAgent ? 'ACTIVE' : 'ACTIVATE ›'}</div>
         </div>
@@ -45,7 +45,7 @@ export function AgentGrid() {
       <div className="empty-note" style={{ paddingTop: 4 }}>
         Each specialist is one file in <span className="mono" style={{ color: 'var(--cyan)' }}>src/agents/</span> - a
         persona layered on the same local model. Activating one changes how every reply is
-        written until you switch back to Plain Ultron.
+        written until you switch back to Plain Atlas.
       </div>
     </>
   );

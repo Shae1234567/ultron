@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useStore } from '../state/store';
 import { ultron } from '../services/bridge';
 
@@ -53,7 +53,7 @@ export function TopBar() {
     <div className="topbar">
       <div className="topbar__drag">
         <div>
-          <div className="brand">ULTRON</div>
+          <div className="brand">ATLAS</div>
           <div className="brand__sub">COMMAND CENTER v0.1</div>
         </div>
 

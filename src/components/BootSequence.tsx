@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store';
 
 const CHECK_LABEL: Record<string, string> = {
@@ -84,7 +84,7 @@ export function BootSequence() {
         </svg>
       </div>
 
-      <div className="boot__wordmark">ULTRON</div>
+      <div className="boot__wordmark">ATLAS</div>
       <div className="boot__subtitle">COMMAND CENTER — INITIALIZING</div>
 
       <div className="boot__checks">

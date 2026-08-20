@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { buildPlan, fmt, toTimeInput, type Plan, type PlanEvent } from '../../cm8/planner';
 import { planIcs, downloadIcs, scheduleReminders, clearReminders, notificationsAllowed } from '../../cm8/sleep';
@@ -76,7 +76,7 @@ export function Cm8Planner() {
     }
     const n = scheduleReminders(plan);
     setReminderNote(n
-      ? `${n} reminders queued for the rest of today. They only fire while Ultron is open.`
+      ? `${n} reminders queued for the rest of today. They only fire while Atlas is open.`
       : 'Nothing left today to remind you about.');
   };
 

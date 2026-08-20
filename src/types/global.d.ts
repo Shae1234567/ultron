@@ -1,8 +1,9 @@
 import type {
-  Article, IndexedFile, IndexedFolder, NewsResult, OllamaStatus, Quota, Settings, ChatMessage,
+  Article, IndexedFile, IndexedFolder, NewsResult, OllamaStatus, GeminiStatus, Quota, Settings, ChatMessage,
   ResearchSource, WeatherResult, OnThisDayEvent, GitHubUser, GitHubRepo, GitHubIssue,
   NotionUser, NotionItem, DiscordWebhookInfo, VaultFolder, NoteRef,
   DiscordBotIdentity, DiscordGuild, DiscordChannel, DiscordMessage, DiscordRole, DiscordMember,
+  ToolCall,
 } from './index';
 
 export interface UltronBridge {
@@ -16,11 +17,29 @@ export interface UltronBridge {
     status(): Promise<OllamaStatus>;
     chat(p: { requestId: string; messages: ChatMessage[]; model?: string; temperature?: number }): Promise<{ started: boolean }>;
     cancel(requestId: string): Promise<void>;
+    once(p: { messages: ChatMessage[]; model?: string; temperature?: number; timeoutMs?: number; tools?: unknown[] }):
+      Promise<{ ok: true; text: string; toolCalls?: ToolCall[] } | { ok: false; error: string }>;
+    onChunk(cb: (p: { requestId: string; token: string }) => void): () => void;
+    onDone(cb: (p: { requestId: string; aborted?: boolean }) => void): () => void;
+    onError(cb: (p: { requestId: string; error: string }) => void): () => void;
+  };
+  gemini: {
+    status(): Promise<GeminiStatus>;
+    chat(p: { requestId: string; messages: ChatMessage[]; model?: string; temperature?: number }): Promise<{ started: boolean }>;
+    cancel(requestId: string): Promise<void>;
     once(p: { messages: ChatMessage[]; model?: string; temperature?: number; timeoutMs?: number }):
       Promise<{ ok: true; text: string } | { ok: false; error: string }>;
     onChunk(cb: (p: { requestId: string; token: string }) => void): () => void;
     onDone(cb: (p: { requestId: string; aborted?: boolean }) => void): () => void;
     onError(cb: (p: { requestId: string; error: string }) => void): () => void;
+  };
+  browser: {
+    search(query: string, limit?: number): Promise<{ ok: boolean; results: { title: string; url: string; snippet: string }[]; error?: string }>;
+    open(url: string): Promise<{ ok: boolean; title?: string; text?: string; url?: string; error?: string }>;
+    click(selector: string): Promise<{ ok: boolean; error?: string }>;
+    type(selector: string, text: string, submit?: boolean): Promise<{ ok: boolean; error?: string }>;
+    screenshot(): Promise<{ ok: boolean; dataUrl?: string; error?: string }>;
+    close(): Promise<void>;
   };
   news: {
     fetch(manual?: boolean): Promise<NewsResult>;

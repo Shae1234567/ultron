@@ -1,15 +1,15 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import { app } from 'electron';
 
 /**
- * Ultron's persistent memory of its operator - a single markdown file the
+ * Atlas's persistent memory of its operator - a single markdown file the
  * operator edits directly, injected into every system prompt. This is
  * separate from Settings: Settings is small structured config (location,
- * news categories, voice), memory is free-form knowledge Ultron should just
+ * news categories, voice), memory is free-form knowledge Atlas should just
  * *know* without being told again in every conversation.
  *
- * Seeded once with what is known on first run. After that, Ultron never
+ * Seeded once with what is known on first run. After that, Atlas never
  * rewrites it on its own - only the operator edits it, from the Memory panel.
  */
 
@@ -17,8 +17,8 @@ const FILE_NAME = 'memory.md';
 
 const DEFAULT_MEMORY = `# About the operator
 
-This file is Ultron's memory. Everything here is sent to the model with every
-conversation, so Ultron always has this context without being told again.
+This file is Atlas's memory. Everything here is sent to the model with every
+conversation, so Atlas always has this context without being told again.
 Edit this directly - add, correct, or remove anything. Keep it factual and
 information-dense rather than padded; every line here costs context budget.
 

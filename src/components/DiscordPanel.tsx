@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Overlay } from './Overlay';
 import { ultron } from '../services/bridge';
 import type {
@@ -448,7 +448,7 @@ function BotSection() {
                           ))}
                         </div>
                         <button className="hud-btn hud-btn--active" style={{ marginTop: 8 }} onClick={() => void summarize()} disabled={summarizing}>
-                          {summarizing ? 'Summarizing...' : 'Summarize with Ultron'}
+                          {summarizing ? 'Summarizing...' : 'Summarize with Atlas'}
                         </button>
                         {summary && <div className="step__text" style={{ marginTop: 8, color: '#c3dced' }}>{summary}</div>}
                       </>

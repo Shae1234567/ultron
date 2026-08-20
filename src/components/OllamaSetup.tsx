@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Overlay } from './Overlay';
 import { useStore } from '../state/store';
 import { ultron } from '../services/bridge';
@@ -82,7 +82,7 @@ export function OllamaSetup({ onClose }: { onClose: () => void }) {
         <span className="step__n">4</span>
         <div className="step__text">
           Come back and hit <strong style={{ color: 'var(--cyan)' }}>Re-check connection</strong>.
-          Ultron talks to Ollama over its local REST API at {status?.host ?? 'http://localhost:11434'} - nothing leaves this machine.
+          Atlas talks to Ollama over its local REST API at {status?.host ?? 'http://localhost:11434'} - nothing leaves this machine.
         </div>
       </div>
 

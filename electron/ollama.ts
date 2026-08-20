@@ -182,11 +182,21 @@ export async function chatStream(
   }
 }
 
-/** Non-streaming one-shot. Used for short background jobs like news relevance blurbs. */
+/** OpenAI-style function schema Ollama's /api/chat 'tools' param expects. */
+export interface OllamaToolSpec {
+  name: string;
+  description: string;
+  parameters: unknown;
+}
+
+export interface OllamaToolCall { name: string; arguments: Record<string, unknown> }
+
+/** Non-streaming one-shot. Used for short background jobs like news relevance blurbs,
+ *  and (when `tools` is passed) by the agentic tool-calling loop - see services/agentLoop.ts. */
 export async function chatOnce(
   messages: ChatMessage[],
-  options: { model?: string; temperature?: number; timeoutMs?: number } = {},
-): Promise<string> {
+  options: { model?: string; temperature?: number; timeoutMs?: number; tools?: OllamaToolSpec[] } = {},
+): Promise<{ text: string; toolCalls?: OllamaToolCall[] }> {
   const h = host();
   const model = options.model || activeModel();
   const ctrl = new AbortController();
@@ -201,11 +211,25 @@ export async function chatOnce(
         messages,
         stream: false,
         options: { temperature: options.temperature ?? 0.4 },
+        // Only tool-capable models (llama3.2, qwen2.5, etc.) honour this - others
+        // just ignore it and answer normally, so it's always safe to include.
+        ...(options.tools?.length
+          ? { tools: options.tools.map((tool) => ({ type: 'function', function: tool })) }
+          : {}),
       }),
     });
     if (!res.ok) throw new Error(`Ollama ${res.status}`);
-    const data = (await res.json()) as { message?: { content?: string } };
-    return (data.message?.content ?? '').trim();
+    const data = (await res.json()) as {
+      message?: { content?: string; tool_calls?: { function?: { name?: string; arguments?: Record<string, unknown> } }[] };
+    };
+    const text = (data.message?.content ?? '').trim();
+    const rawCalls = data.message?.tool_calls ?? [];
+    const toolCalls: OllamaToolCall[] | undefined = rawCalls.length
+      ? rawCalls
+          .filter((c) => c.function?.name)
+          .map((c) => ({ name: c.function!.name!, arguments: c.function!.arguments ?? {} }))
+      : undefined;
+    return { text, toolCalls };
   } finally {
     clearTimeout(t);
   }

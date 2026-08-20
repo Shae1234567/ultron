@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import { dialog, shell, BrowserWindow } from 'electron';
 import { getSettings, saveSettings } from './store';
@@ -19,7 +19,7 @@ const SKIP_DIRS = new Set([
   'AppData', '$RECYCLE.BIN', 'System Volume Information', '.venv', '__pycache__',
 ]);
 
-/** In-memory index. Rebuilt on demand - Ultron never scans anything not explicitly added. */
+/** In-memory index. Rebuilt on demand - Atlas never scans anything not explicitly added. */
 let index: IndexedFile[] = [];
 
 function walk(root: string, folderLabel: string, out: IndexedFile[], depth = 0): void {
@@ -85,7 +85,7 @@ export function searchFiles(query: string, limit = 200): IndexedFile[] {
     .slice(0, limit);
 }
 
-/** Opens the OS folder picker. The user chooses; Ultron never scans on its own. */
+/** Opens the OS folder picker. The user chooses; Atlas never scans on its own. */
 export async function addFolder(win: BrowserWindow | null): Promise<{ ok: boolean; folders: ReturnType<typeof getSettings>['folders'] }> {
   const result = win
     ? await dialog.showOpenDialog(win, { properties: ['openDirectory'] })
@@ -126,7 +126,7 @@ export function indexStats() {
 
 /* ── Mutation: organize and edit ───────────────────────────────────────
    Everything below can change what's on disk, so every entry point is
-   gated by isIndexed() first - Ultron can only touch a path that resolves
+   gated by isIndexed() first - Atlas can only touch a path that resolves
    inside a folder the operator explicitly added via the OS picker. There
    is no way to reach this from a path the operator did not opt in. */
 

@@ -1,4 +1,4 @@
-export interface SetupStep {
+﻿export interface SetupStep {
   title: string;
   detail?: string;
   code?: string;
@@ -17,7 +17,7 @@ export interface Connector {
   id: string;
   name: string;
   category: 'Mail' | 'Calendar' | 'Notes' | 'Code' | 'Music' | 'Social' | 'Data' | 'Local';
-  /** Short line describing what Ultron would do with it once wired up. */
+  /** Short line describing what Atlas would do with it once wired up. */
   summary: string;
   /** Honest description of the service's free tier, or null if there isn't one. */
   freeTier: string | null;

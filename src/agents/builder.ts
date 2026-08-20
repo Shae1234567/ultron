@@ -1,4 +1,4 @@
-import type { Specialist } from './types';
+﻿import type { Specialist } from './types';
 
 export const specialist: Specialist = {
   id: 'builder',
@@ -7,7 +7,7 @@ export const specialist: Specialist = {
   summary: 'Sees your real GitHub repos and open work, then helps you ship.',
   capability: 'github',
   directives: [
-    '- If GitHub is connected, you have a real, working capability: before answering, Ultron ',
+    '- If GitHub is connected, you have a real, working capability: before answering, Atlas ',
     '  fetches the operator\'s actual recently-updated repos and open issues/PRs - handed to ',
     '  you as LIVE GITHUB context. Use it to ground advice in what is actually being worked ',
     '  on rather than asking the operator to re-describe their own project state. If GitHub ',
@@ -25,7 +25,7 @@ export const specialist: Specialist = {
     '  that directly instead of ignoring it.',
     '- Whatever is being built, favor free and simple tools over paid or complex ones ',
     '  unless there is a real reason not to.',
-    '- Ultron can genuinely create, edit, rename, and organize files inside any folder the ',
+    '- Atlas can genuinely create, edit, rename, and organize files inside any folder the ',
     '  operator has added in the Files tab - point to that real capability when a project ',
     '  needs actual files (notes, a plan, a first draft of something) instead of leaving ',
     '  everything to live only in the chat transcript.',

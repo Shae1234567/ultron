@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { HexPanel } from './hud/HexPanel';
 import { useStore } from '../state/store';
 import { submitMessage, cancelCurrent } from '../services/conversation';
 import { ultron } from '../services/bridge';
 
-const WHO_LABEL: Record<string, string> = { you: 'OPERATOR', ultron: 'ULTRON', system: 'SYSTEM' };
+const WHO_LABEL: Record<string, string> = { you: 'OPERATOR', ultron: 'ATLAS', system: 'SYSTEM' };
 
 export function TranscriptPanel() {
   const transcript = useStore((s) => s.transcript);
@@ -87,7 +87,7 @@ export function TranscriptPanel() {
         <input
           className="hud-input"
           value={draft}
-          placeholder="Type a command for Ultron..."
+          placeholder="Type a command for Atlas..."
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }

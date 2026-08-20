@@ -1,4 +1,4 @@
-import { env } from './env';
+﻿import { env } from './env';
 
 /**
  * The GitHub connector's real implementation. Free tier: a personal access
@@ -7,7 +7,7 @@ import { env } from './env';
  * failure - never a fabricated repo list.
  */
 
-const UA = 'Ultron-Personal-Assistant/0.1 (local desktop app; no distribution)';
+const UA = 'Atlas-Personal-Assistant/0.1 (local desktop app; no distribution)';
 const TIMEOUT_MS = 10000;
 
 export interface GitHubUser {

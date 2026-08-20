@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import { app } from 'electron';
 
@@ -22,6 +22,10 @@ export interface Settings {
   };
   ollama: {
     host: string;
+    model: string;
+  };
+  brain: 'ollama' | 'gemini';
+  gemini: {
     model: string;
   };
   voice: {
@@ -51,7 +55,9 @@ const DEFAULTS: Settings = {
     country: 'ca',
   },
   ollama: { host: 'http://localhost:11434', model: 'llama3.2' },
-  // Deep and deliberate - as close to Ultron as the OS voices get.
+  brain: 'ollama',
+  gemini: { model: 'gemini-2.0-flash' },
+  // Deep and deliberate - as close to Atlas as the OS voices get.
   voice: { name: '', rate: 0.93, pitch: 0.8 },
   folders: [],
 };
@@ -94,6 +100,8 @@ export function getSettings(): Settings {
     profile: { ...DEFAULTS.profile, ...s.profile },
     news: { ...DEFAULTS.news, ...s.news },
     ollama: { ...DEFAULTS.ollama, ...s.ollama },
+    brain: s.brain === 'gemini' ? 'gemini' : 'ollama',
+    gemini: { ...DEFAULTS.gemini, ...s.gemini },
     voice: { ...DEFAULTS.voice, ...s.voice },
     folders: Array.isArray(s.folders) ? s.folders : [],
   };

@@ -125,6 +125,18 @@ export interface OllamaStatus {
   error?: string;
 }
 
+/** Same shape as OllamaStatus - Gemini is the second, hosted brain. See electron/gemini.ts. */
+export interface GeminiStatus {
+  running: boolean;
+  host: string;
+  models: string[];
+  activeModel: string;
+  modelInstalled: boolean;
+  error?: string;
+}
+
+export interface ToolCall { name: string; arguments: Record<string, unknown> }
+
 export interface IndexedFolder { path: string; addedAt: number; fileCount: number }
 
 export interface IndexedFile {
@@ -135,6 +147,9 @@ export interface Settings {
   profile: { location: string; interests: string[]; notes: string };
   news: { autoRefreshMinutes: number; dailyCap: number; categories: string[]; country: string };
   ollama: { host: string; model: string };
+  /** Which brain answers ai.ts's getAIResponse() calls - the local daemon or hosted Gemini. */
+  brain: 'ollama' | 'gemini';
+  gemini: { model: string };
   voice: { name: string; rate: number; pitch: number };
   folders: IndexedFolder[];
 }

@@ -1,4 +1,4 @@
-import { useStore, useSttStore } from '../state/store';
+﻿import { useStore, useSttStore } from '../state/store';
 import type { ChatMessage } from '../types';
 import { buildSystemPrompt, cancelAIResponse, getAIResponse, newRequestId } from './ai';
 import type { Specialist } from '../agents/types';
@@ -9,6 +9,7 @@ import { ensureModel, transcribe } from './stt';
 import { ultron } from './bridge';
 import { researchMulti, formatResearchContext } from './research';
 import type { ResearchSource } from '../types';
+import { runAgentLoop } from './agentLoop';
 
 /**
  * Conversation orchestration. Lives outside React so the push-to-talk key
@@ -16,7 +17,7 @@ import type { ResearchSource } from '../types';
  */
 
 // llama3.2's context window is 128k tokens - 12 turns was leaving most of
-// that unused. More history means Ultron actually remembers the start of a
+// that unused. More history means Atlas actually remembers the start of a
 // long conversation instead of visibly forgetting it a few exchanges in.
 const HISTORY_TURNS = 24;
 let activeRequestId: string | null = null;
@@ -67,26 +68,79 @@ export async function submitMessage(
 
   pushEntry({ who: 'you', text: trimmed });
 
-  if (!ollama?.running) {
-    pushEntry({
-      who: 'system',
-      text: 'Brain offline. Ollama is not responding on ' + (ollama?.host ?? 'localhost:11434') + '. Open SETTINGS for setup steps.',
-      error: true,
-    });
-    store.setOverlay({ kind: 'ollama' });
-    return;
-  }
-  if (!ollama.modelInstalled) {
-    pushEntry({
-      who: 'system',
-      text: `Model "${ollama.activeModel}" is not installed. Run: ollama pull ${ollama.activeModel}`,
-      error: true,
-    });
-    store.setOverlay({ kind: 'ollama' });
-    return;
+  const agent = opts.agent ?? store.activeAgent ?? undefined;
+  const usingGemini = settings?.brain === 'gemini';
+
+  // The agentic tool-calling loop (see agentLoop.ts) always drives Ollama's
+  // function-calling directly - Gemini tool-calling isn't wired up yet - so
+  // Unison/Scout/Archivist need the local daemon regardless of the brain
+  // setting. Everything else can skip the Ollama gate entirely on Gemini.
+  const needsOllama = agent?.capability === 'agentic' || !usingGemini;
+  if (needsOllama) {
+    if (!ollama?.running) {
+      pushEntry({
+        who: 'system',
+        text: 'Brain offline. Ollama is not responding on ' + (ollama?.host ?? 'localhost:11434') + '. Open SETTINGS for setup steps.',
+        error: true,
+      });
+      store.setOverlay({ kind: 'ollama' });
+      return;
+    }
+    if (!ollama.modelInstalled) {
+      pushEntry({
+        who: 'system',
+        text: `Model "${ollama.activeModel}" is not installed. Run: ollama pull ${ollama.activeModel}`,
+        error: true,
+      });
+      store.setOverlay({ kind: 'ollama' });
+      return;
+    }
   }
 
-  const agent = opts.agent ?? store.activeAgent ?? undefined;
+  if (agent?.capability === 'agentic') {
+    setCoreState('thinking');
+    setBusy(true);
+    const replyId = pushEntry({ who: 'ultron', text: '', streaming: true });
+    activeRequestId = 'agentic:' + newRequestId();
+    try {
+      const systemPrompt = buildSystemPrompt(settings, memory, agent);
+      const run = await runAgentLoop(systemPrompt, trimmed, agent.tools ?? [], {
+        model: settings?.ollama.model,
+        onStep: (step) => {
+          if (step.kind === 'tool_call') appendToEntry(replyId, '');
+        },
+      });
+      activeRequestId = null;
+      setBusy(false);
+      if (!run.ok) {
+        finishEntry(replyId, { error: true, text: `[failed] ${run.error ?? 'agent loop failed'}` });
+        setCoreState('idle');
+        return;
+      }
+      finishEntry(replyId, { text: run.text });
+      const reply = run.text.trim();
+      if (!reply || opts.speakReply === false) { setCoreState('idle'); return; }
+      setCoreState('speaking');
+      const voice = useStore.getState().settings?.voice;
+      const speakWatchdog = setTimeout(() => {
+        if (useStore.getState().coreState === 'speaking') setCoreState('idle');
+      }, Math.max(8000, reply.length * 90));
+      speak(reply, {
+        voiceName: voice?.name,
+        rate: voice?.rate,
+        pitch: voice?.pitch,
+        onEnd: () => { clearTimeout(speakWatchdog); if (useStore.getState().coreState === 'speaking') setCoreState('idle'); },
+        onError: () => { clearTimeout(speakWatchdog); setCoreState('idle'); },
+      });
+    } catch (e) {
+      activeRequestId = null;
+      setBusy(false);
+      const message = e instanceof Error ? e.message : String(e);
+      finishEntry(replyId, { error: true, text: `[failed] ${message}` });
+      setCoreState('idle');
+    }
+    return;
+  }
 
   setCoreState('thinking');
   setBusy(true);
@@ -200,6 +254,8 @@ export async function submitMessage(
     let sawFirstToken = false;
     const full = await getAIResponse(messages, {
       requestId,
+      brain: usingGemini ? 'gemini' : 'ollama',
+      model: usingGemini ? settings?.gemini.model : settings?.ollama.model,
       onToken: (token) => {
         if (!sawFirstToken) { sawFirstToken = true; }
         appendToEntry(replyId, token);

@@ -1,7 +1,7 @@
-/* ── CM8 inside ULTRON ────────────────────────────────────────────────
-   The coach app rebuilt in Ultron's language: no new colours, no new fonts,
+﻿/* ── CM8 inside ATLAS ────────────────────────────────────────────────
+   The coach app rebuilt in Atlas's language: no new colours, no new fonts,
    nothing borrowed from CM8's own styling. Every value here resolves to an
-   existing token so the module reads as part of Ultron rather than a guest. */
+   existing token so the module reads as part of Atlas rather than a guest. */
 
 .cm8 {
   display: grid;

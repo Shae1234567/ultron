@@ -1,12 +1,12 @@
-/**
+﻿/**
  * CM8's offline coach, ported.
  *
  * This is the keyword-matched knowledge base exactly as CM8 runs it: the same
  * scoring weights, the same 3.5 confidence floor, the same greeting/thanks/
  * follow-up handling, the same second-topic blending and deep dives.
  *
- * In Ultron it is the FLOOR rather than the ceiling. When the local model is
- * running, Cm8Coach sends the question to Ultron's brain with the matched topic
+ * In Atlas it is the FLOOR rather than the ceiling. When the local model is
+ * running, Cm8Coach sends the question to Atlas's brain with the matched topic
  * as grounding, and this offline answer is what gets shown if the brain is not
  * available. CM8's offline coach never needed a network and neither does this.
  */
@@ -154,7 +154,7 @@ export function offlineReply(text: string): CoachReply {
 
 /**
  * Grounding for the live model: the matched topic rendered as source material,
- * so Ultron answers from the same coaching CM8 would give rather than
+ * so Atlas answers from the same coaching CM8 would give rather than
  * improvising a different opinion.
  */
 export function groundingFor(text: string): string {

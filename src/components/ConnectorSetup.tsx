@@ -1,4 +1,4 @@
-import { Overlay } from './Overlay';
+﻿import { Overlay } from './Overlay';
 import { getConnector } from '../connectors';
 import { ultron } from '../services/bridge';
 
@@ -19,7 +19,7 @@ export function ConnectorSetup({ id, onClose }: { id: string; onClose: () => voi
     >
       <div className="alert-strip alert-strip--info" style={{ marginBottom: 14 }}>
         <span className="dot" />
-        Ultron cannot complete this connection yet - these are the real steps to wire it up.
+        Atlas cannot complete this connection yet - these are the real steps to wire it up.
       </div>
 
       <div className="field">

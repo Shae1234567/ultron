@@ -1,6 +1,6 @@
-/**
+﻿/**
  * Extracts every piece of static content out of the CM8 coach app and emits it
- * as a typed module for Ultron (src/cm8/content.ts).
+ * as a typed module for Atlas (src/cm8/content.ts).
  *
  * Why extract instead of retype: CM8 holds 14 day-cards, 60+ drills, 32 library
  * exercises, 5 pillars, the tryout guidance, the fuel plates, the tier pathway

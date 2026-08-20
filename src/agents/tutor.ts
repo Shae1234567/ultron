@@ -1,4 +1,4 @@
-import type { Specialist } from './types';
+﻿import type { Specialist } from './types';
 
 export const specialist: Specialist = {
   id: 'tutor',
@@ -25,7 +25,7 @@ export const specialist: Specialist = {
     '- Favorite subjects are English and math - lean into that when a topic could go either ',
     '  dry-technical or genuinely interesting; find the angle that makes it click rather than ',
     '  defaulting to the driest correct explanation.',
-    '- If Ultron\'s file tools are relevant (the operator has real notes indexed in the Files ',
+    '- If Atlas\'s file tools are relevant (the operator has real notes indexed in the Files ',
     '  tab), offer to help organize or review them rather than assuming everything has to be ',
     '  retyped from scratch in chat.',
   ],

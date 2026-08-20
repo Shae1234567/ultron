@@ -1,4 +1,4 @@
-import { env } from './env';
+﻿import { env } from './env';
 
 /**
  * Real Discord connector. Two independent auth modes:
@@ -23,7 +23,7 @@ import { env } from './env';
  */
 
 const TIMEOUT_MS = 10000;
-const UA = 'Ultron-Personal-Assistant/0.1 (local desktop app; no distribution)';
+const UA = 'Atlas-Personal-Assistant/0.1 (local desktop app; no distribution)';
 
 export interface DiscordWebhookInfo {
   name: string;

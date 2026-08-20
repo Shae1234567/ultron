@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Overlay } from './Overlay';
 import { useStore } from '../state/store';
 import { ultron } from '../services/bridge';
@@ -16,6 +16,8 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const [interestInput, setInterestInput] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [hasKey, setHasKey] = useState<boolean | null>(null);
+  const [geminiKey, setGeminiKey] = useState('');
+  const [hasGeminiKey, setHasGeminiKey] = useState<boolean | null>(null);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [envPath, setEnvPath] = useState('');
   const [saved, setSaved] = useState<string | null>(null);
@@ -31,6 +33,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     void ultron.news.hasKey().then(setHasKey);
     void ultron.settings.envPath().then(setEnvPath);
+    void ultron.gemini.status().then((s) => setHasGeminiKey(s.running));
   }, []);
 
   if (!draft) return null;
@@ -52,6 +55,20 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     if (res.ok) {
       setApiKey('');
       setHasKey(true);
+      setSaved(`Key written to ${res.file}`);
+      setTimeout(() => setSaved(null), 4000);
+    } else {
+      setSaved(res.error ?? 'Could not write key.');
+    }
+  };
+
+  const saveGeminiKey = async () => {
+    const value = geminiKey.trim();
+    if (!value) return;
+    const res = await ultron.settings.setEnvKey('GEMINI_API_KEY', value);
+    if (res.ok) {
+      setGeminiKey('');
+      setHasGeminiKey(true);
       setSaved(`Key written to ${res.file}`);
       setTimeout(() => setSaved(null), 4000);
     } else {
@@ -207,6 +224,68 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
       <div style={{ height: 1, background: 'var(--cyan-20)', margin: '18px 0' }} />
 
       <div className="field">
+        <span className="field__label">Brain</span>
+        <div className="tag-row">
+          <span
+            className={`chip ${draft.brain === 'ollama' ? 'chip--good' : 'chip--muted'}`}
+            onClick={() => patch((d) => ({ ...d, brain: 'ollama' }))}
+          >
+            OLLAMA (LOCAL, FREE)
+          </span>
+          <span
+            className={`chip ${draft.brain === 'gemini' ? 'chip--good' : 'chip--muted'}`}
+            onClick={() => patch((d) => ({ ...d, brain: 'gemini' }))}
+          >
+            GEMINI (HOSTED)
+          </span>
+        </div>
+        <div className="field__hint">
+          Agentic specialists (Scout, The Archivist, Unison) always run on Ollama for their
+          tool-calling loop, regardless of this setting - only plain conversation switches brains.
+        </div>
+      </div>
+
+      <div className="field">
+        <span className="field__label">Gemini API key</span>
+        {hasGeminiKey ? (
+          <div className="chip chip--good" style={{ marginBottom: 6 }}>
+            <span className="dot" /> KEY PRESENT IN .ENV
+          </div>
+        ) : (
+          <div className="chip chip--bad" style={{ marginBottom: 6 }}>
+            <span className="dot" /> NO KEY FOUND
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input
+            className="hud-input"
+            type="password"
+            placeholder={hasGeminiKey ? 'paste a new key to replace' : 'paste your Gemini API key'}
+            value={geminiKey}
+            onChange={(e) => setGeminiKey(e.target.value)}
+          />
+          <button className="hud-btn" onClick={saveGeminiKey} disabled={!geminiKey.trim()}>Write to .env</button>
+        </div>
+        <div className="field__hint">
+          Free tier available. Get one at{' '}
+          <span className="link-btn" onClick={() => void ultron.app.openExternal('https://aistudio.google.com/apikey')}>aistudio.google.com/apikey</span>
+          <br />
+          Also powers Live Voice mode. Stored in <span className="mono" style={{ color: 'var(--cyan)' }}>{envPath || '.env'}</span> - never in the source.
+        </div>
+      </div>
+
+      <div className="field">
+        <span className="field__label">Gemini model</span>
+        <input
+          className="hud-input"
+          value={draft.gemini.model}
+          onChange={(e) => patch((d) => ({ ...d, gemini: { ...d.gemini, model: e.target.value } }))}
+        />
+      </div>
+
+      <div style={{ height: 1, background: 'var(--cyan-20)', margin: '18px 0' }} />
+
+      <div className="field">
         <span className="field__label">Ollama host</span>
         <input
           className="hud-input"
@@ -230,7 +309,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
       <div style={{ height: 1, background: 'var(--cyan-20)', margin: '18px 0' }} />
 
       <div className="field">
-        <span className="field__label">Ultron&apos;s voice</span>
+        <span className="field__label">Atlas&apos;s voice</span>
         <select
           className="hud-input"
           value={draft.voice.name}
@@ -269,7 +348,7 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           <button
             className="hud-btn hud-btn--active"
             onClick={() =>
-              speak('I am Ultron. Systems online, and every module is answering.', {
+              speak('I am Atlas. Systems online, and every module is answering.', {
                 voiceName: draft.voice.name,
                 rate: draft.voice.rate,
                 pitch: draft.voice.pitch,
