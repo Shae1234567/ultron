@@ -15,7 +15,7 @@ export interface ToolDefinition {
     properties: Record<string, { type: string; description: string; enum?: string[] }>;
     required: string[];
   };
-  group: 'browser' | 'files' | 'research' | 'google' | 'system';
+  group: 'browser' | 'files' | 'research' | 'google' | 'system' | 'flights' | 'telegram' | 'vision';
 }
 
 export const TOOLS: ToolDefinition[] = [
@@ -314,6 +314,54 @@ export const TOOLS: ToolDefinition[] = [
     },
     group: 'research',
   },
+  // flights
+  {
+    name: 'find_flights',
+    description: 'Search live Google Flights results for a route and date. Best-effort text extraction, not a guaranteed structured feed.',
+    parameters: {
+      type: 'object',
+      properties: {
+        origin: { type: 'string', description: 'Origin city or airport.' },
+        destination: { type: 'string', description: 'Destination city or airport.' },
+        date: { type: 'string', description: 'Travel date, e.g. "2026-09-10".' },
+      },
+      required: ['origin', 'destination', 'date'],
+    },
+    group: 'flights',
+  },
+  // telegram
+  {
+    name: 'telegram_send',
+    description: 'Send a Telegram message via the operator\'s own bot. Fails if no bot token is configured.',
+    parameters: {
+      type: 'object',
+      properties: {
+        chatId: { type: 'string', description: 'Target chat id (from telegram_recent_chats).' },
+        text: { type: 'string', description: 'Message text.' },
+      },
+      required: ['chatId', 'text'],
+    },
+    group: 'telegram',
+  },
+  {
+    name: 'telegram_recent_chats',
+    description: 'List chats the operator\'s Telegram bot has recently seen, to find a chat id before sending.',
+    parameters: { type: 'object', properties: {}, required: [] },
+    group: 'telegram',
+  },
+  // vision
+  {
+    name: 'describe_screen',
+    description: 'Capture the operator\'s screen right now and describe what is on it, answering a specific question if given one.',
+    parameters: {
+      type: 'object',
+      properties: {
+        question: { type: 'string', description: 'What to look for or answer about the screen.' },
+      },
+      required: ['question'],
+    },
+    group: 'vision',
+  },
 ];
 
 export function toolsForGroups(groups: string[]): ToolDefinition[] {
@@ -412,6 +460,29 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
       case 'weather_lookup':
         result = await ultron.research.weather(args.place as string);
         break;
+      // flights
+      case 'find_flights':
+        result = await ultron.flights.find(args.origin as string, args.destination as string, args.date as string);
+        break;
+      // telegram
+      case 'telegram_send':
+        result = await ultron.telegram.send(args.chatId as string, args.text as string);
+        break;
+      case 'telegram_recent_chats':
+        result = await ultron.telegram.recentChats();
+        break;
+      // vision - capture happens in main (desktopCapturer), description happens
+      // here in the renderer because that's the only process already trusted
+      // with a client-side Gemini key (see liveVoiceSession.ts's identical pattern).
+      case 'describe_screen': {
+        const capture = await ultron.vision.captureScreen();
+        if (!capture.ok || !capture.dataUrl) { result = capture; break; }
+        const apiKey = await ultron.gemini.getKeyForLiveSession();
+        if (!apiKey) { result = { ok: false, error: 'No GEMINI_API_KEY configured.' }; break; }
+        const { describeImage } = await import('./vision');
+        result = await describeImage(capture.dataUrl, (args.question as string) || 'Describe what is on the screen.', apiKey);
+        break;
+      }
       default:
         return { ok: false, error: 'Unknown tool: ' + name };
     }

@@ -14,13 +14,14 @@ import {
 import { BootSequence } from './components/BootSequence';
 import { CommandPalette } from './components/CommandPalette';
 import { IdleDashboard } from './components/hud/IdleDashboard';
+import { ClipboardPanel } from './components/ClipboardPanel';
 import { useStore, useSttStore, type RightTab, type Overlay } from './state/store';
 import type { CoreState } from './types';
 import { ultron } from './services/bridge';
 import { decodeToMono16k } from './services/recorder';
 import { ensureModel, transcribe } from './services/stt';
 import { ttsSupported } from './services/speech';
-import { initProactiveGreeting } from './services/proactive';
+import { initProactiveGreeting, saveSessionSummaryNow } from './services/proactive';
 
 const CAPTION: Record<CoreState, { text: string; hint: string; color: string }> = {
   idle:      { text: 'STANDBY',   hint: 'HOLD [SPACE] TO SPEAK', color: 'var(--cyan)' },
@@ -42,6 +43,20 @@ export function App() {
   const setBootCheck = useStore((s) => s.setBootCheck);
   const announced = useRef(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [clipboardText, setClipboardText] = useState<string | null>(null);
+
+  // Clipboard Intelligence: the main process watches the OS clipboard and
+  // pushes new text here - the panel only ever appears if the operator
+  // actually copies something while Atlas is running, never proactively.
+  useEffect(() => ultron.clipboard.onNewText((text) => setClipboardText(text)), []);
+
+  // Best-effort - fire-and-forget, closing the window is not the moment to
+  // risk hanging on a brain call. See saveSessionSummaryNow's own doc comment.
+  useEffect(() => {
+    const onUnload = () => { void saveSessionSummaryNow(); };
+    window.addEventListener('beforeunload', onUnload);
+    return () => window.removeEventListener('beforeunload', onUnload);
+  }, []);
 
   // Ctrl+K / Cmd+K opens the command palette from anywhere in the app.
   useEffect(() => {
@@ -192,6 +207,8 @@ export function App() {
       </OverlaySuspense>
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+
+      {clipboardText && <ClipboardPanel text={clipboardText} onClose={() => setClipboardText(null)} />}
 
       <BootSequence />
     </>

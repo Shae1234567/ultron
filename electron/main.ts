@@ -20,6 +20,16 @@ import * as googleDrive from './googleDrive';
 import * as systemControl from './systemControl';
 import * as notifications from './notifications';
 import * as backup from './backup';
+import * as vision from './vision';
+import * as sessionMemory from './sessionMemory';
+import * as backgroundMonitor from './backgroundMonitor';
+import * as reminders from './reminders';
+import * as flightFinder from './flightFinder';
+import * as gameUpdater from './gameUpdater';
+import * as remoteServer from './remoteServer';
+import * as clipboardWatch from './clipboardWatch';
+import * as telegram from './telegram';
+import { getHardwareStats } from './hardwareStats';
 import { setupTray, isAutoLaunchEnabled, setAutoLaunch } from './tray';
 
 process.env.DIST = path.join(__dirname, '../dist');
@@ -125,7 +135,7 @@ app.on('window-all-closed', () => {
 
 // Scout's headless Chromium instance is a real OS process - leaving it running
 // after the HUD closes would silently leak a browser in the background.
-app.on('before-quit', () => { void browserAgent.closeBrowser(); });
+app.on('before-quit', () => { void browserAgent.closeBrowser(); remoteServer.stopRemoteServer(); });
 
 /* ── IPC: window chrome ─────────────────────────────────────────────── */
 
@@ -154,6 +164,80 @@ ipcMain.handle('notify:show', (_e, title: unknown, body: unknown) => {
 
 ipcMain.handle('backup:export', () => backup.exportBackup(win));
 ipcMain.handle('backup:import', () => backup.importBackup(win));
+
+/* ── IPC: vision (real screen capture, piped to Gemini for description) ── */
+
+ipcMain.handle('vision:captureScreen', () => vision.captureScreen());
+ipcMain.handle('vision:listScreenSources', () => vision.listScreenSources());
+
+/* ── IPC: session memory (yesterday's recap, consumed once) ───────────── */
+
+ipcMain.handle('sessionMemory:getPending', () => sessionMemory.getPendingSessionSummary());
+ipcMain.handle('sessionMemory:save', (_e, text: unknown) =>
+  typeof text === 'string' ? sessionMemory.saveSessionSummary(text) : undefined);
+ipcMain.handle('sessionMemory:consume', () => sessionMemory.consumeSessionSummary());
+
+/* ── IPC: background topic monitoring (opt-in, never crypto/financial) ── */
+
+ipcMain.handle('monitor:list', () => backgroundMonitor.listMonitoredTopics());
+ipcMain.handle('monitor:add', (_e, query: unknown) =>
+  typeof query === 'string' ? backgroundMonitor.addMonitoredTopic(query) : { ok: false, error: 'Bad query' });
+ipcMain.handle('monitor:remove', (_e, id: unknown) => {
+  if (typeof id === 'string') backgroundMonitor.removeMonitoredTopic(id);
+});
+ipcMain.handle('monitor:checkAll', () => backgroundMonitor.checkAllTopics());
+
+/* ── IPC: smart reminders ──────────────────────────────────────────────── */
+
+ipcMain.handle('reminders:list', () => reminders.listReminders());
+ipcMain.handle('reminders:schedule', (_e, text: unknown, whenISO: unknown) =>
+  typeof text === 'string' && typeof whenISO === 'string'
+    ? reminders.scheduleReminder(text, whenISO)
+    : { ok: false, error: 'Bad payload' });
+ipcMain.handle('reminders:cancel', (_e, id: unknown) =>
+  typeof id === 'string' ? reminders.cancelReminder(id) : { ok: false, error: 'Bad id' });
+
+/* ── IPC: flight finder / game updater ─────────────────────────────────── */
+
+ipcMain.handle('flights:find', (_e, origin: unknown, destination: unknown, date: unknown) =>
+  typeof origin === 'string' && typeof destination === 'string' && typeof date === 'string'
+    ? flightFinder.findFlights(origin, destination, date)
+    : { ok: false, results: [], error: 'Bad payload' });
+
+ipcMain.handle('games:detect', () => gameUpdater.detectGameLaunchers());
+ipcMain.handle('games:updateSteam', () => gameUpdater.triggerSteamUpdateCheck());
+ipcMain.handle('games:updateEpic', () => gameUpdater.triggerEpicUpdateCheck());
+
+/* ── IPC: remote phone dashboard (LAN-only, opt-in, QR pairing) ────────── */
+
+ipcMain.handle('remote:start', async () => remoteServer.startRemoteServer((cmd) => {
+  // Commands from the paired phone are treated exactly like a typed message
+  // from the operator - never auto-executed as a privileged action.
+  if (cmd.type === 'message' && win && !win.isDestroyed()) {
+    win.webContents.send('remote:command', cmd);
+  }
+}));
+ipcMain.handle('remote:stop', () => remoteServer.stopRemoteServer());
+ipcMain.handle('remote:status', () => remoteServer.getRemoteServerStatus());
+
+/* ── IPC: Telegram (real Bot API, opt-in) ───────────────────────────────── */
+
+ipcMain.handle('telegram:hasToken', () => telegram.hasToken());
+ipcMain.handle('telegram:verify', () => telegram.verify());
+ipcMain.handle('telegram:send', (_e, chatId: unknown, text: unknown) =>
+  typeof chatId === 'string' && typeof text === 'string'
+    ? telegram.sendMessage(chatId, text)
+    : { ok: false, error: 'Bad payload' });
+ipcMain.handle('telegram:recentChats', () => telegram.getRecentChats());
+
+ipcMain.handle('system:hardwareStats', () => getHardwareStats());
+
+/* ── Clipboard Intelligence: watched from boot, opt-in via a Settings toggle
+   handled entirely on the renderer side (it just ignores the events if the
+   panel is disabled) - the watcher itself is cheap enough to always run. ── */
+clipboardWatch.startClipboardWatch((text) => {
+  if (win && !win.isDestroyed()) win.webContents.send('clipboard:newText', text);
+});
 
 /* ── IPC: brain (Ollama) ────────────────────────────────────────────── */
 
@@ -326,7 +410,7 @@ ipcMain.handle('env:setKey', (_e, payload: unknown) => {
   const allowed = [
     'GNEWS_API_KEY', 'OLLAMA_HOST', 'OLLAMA_MODEL', 'GITHUB_TOKEN', 'NOTION_TOKEN',
     'DISCORD_WEBHOOK_URL', 'DISCORD_BOT_TOKEN', 'GEMINI_API_KEY', 'GEMINI_MODEL',
-    'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET',
+    'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'TELEGRAM_BOT_TOKEN',
   ];
   if (!allowed.includes(key)) return { ok: false, error: 'Key not allowed' };
   // Newlines in the value would let a value smuggle in an extra "KEY=..."

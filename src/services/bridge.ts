@@ -29,6 +29,49 @@ const nullBridge: UltronBridge = {
     export: async () => ({ ok: false, error: unavailable('Backup') }),
     import: async () => ({ ok: false, error: unavailable('Backup') }),
   },
+  vision: {
+    captureScreen: async () => ({ ok: false, error: unavailable('Vision') }),
+    listScreenSources: async () => ({ ok: false, sources: [], error: unavailable('Vision') }),
+  },
+  sessionMemory: {
+    getPending: async () => null,
+    save: async () => {},
+    consume: async () => null,
+  },
+  monitor: {
+    list: async () => [],
+    add: async () => ({ ok: false, error: unavailable('Background monitoring') }),
+    remove: async () => {},
+    checkAll: async () => [],
+  },
+  reminders: {
+    list: async () => [],
+    schedule: async () => ({ ok: false, error: unavailable('Reminders') }),
+    cancel: async () => ({ ok: false, error: unavailable('Reminders') }),
+  },
+  flights: {
+    find: async () => ({ ok: false, results: [], error: unavailable('Flight finder') }),
+  },
+  games: {
+    detect: async () => ({ steamInstalled: false, epicInstalled: false }),
+    updateSteam: async () => ({ ok: false, error: unavailable('Game updater') }),
+    updateEpic: async () => ({ ok: false, error: unavailable('Game updater') }),
+  },
+  remote: {
+    start: async () => ({ running: false, error: unavailable('Remote dashboard') }),
+    stop: async () => {},
+    status: async () => ({ running: false }),
+    onCommand: () => () => {},
+  },
+  telegram: {
+    hasToken: async () => false,
+    verify: async () => ({ ok: false, error: unavailable('Telegram') }),
+    send: async () => ({ ok: false, error: unavailable('Telegram') }),
+    recentChats: async () => ({ ok: false, chats: [], error: unavailable('Telegram') }),
+  },
+  clipboard: {
+    onNewText: () => () => {},
+  },
   tray: {
     isAutoLaunchEnabled: async () => false,
     setAutoLaunch: async () => {},
@@ -74,6 +117,7 @@ const nullBridge: UltronBridge = {
     lock: async () => ({ ok: false, error: unavailable('System control') }),
     sleep: async () => ({ ok: false, error: unavailable('System control') }),
     openExplorer: async () => ({ ok: false, error: unavailable('System control') }),
+    hardwareStats: async () => ({ cpuPercent: 0, ramPercent: 0, ramUsedGB: 0, ramTotalGB: 0 }),
   },
   google: {
     hasCredentials: async () => false,

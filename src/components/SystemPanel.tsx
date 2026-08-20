@@ -9,6 +9,7 @@ import { useStore, type RightTab } from '../state/store';
 import { connectors } from '../connectors';
 import { specialists } from '../agents';
 import { ultron } from '../services/bridge';
+import { checkHardwareThresholds } from '../services/hardwareAlerts';
 
 const TABS: { id: RightTab; label: string }[] = [
   { id: 'system', label: 'System' },
@@ -50,11 +51,26 @@ function SystemStatus() {
   const [versions, setVersions] = useState<{ electron: string; chrome: string; node: string; platform: string } | null>(null);
   const [envPath, setEnvPath] = useState('');
   const [uptime, setUptime] = useState(0);
+  const [hw, setHw] = useState<{ cpuPercent: number; ramPercent: number; ramUsedGB: number; ramTotalGB: number } | null>(null);
 
   useEffect(() => {
     void ultron.app.versions().then(setVersions);
     void ultron.settings.envPath().then(setEnvPath);
     const id = setInterval(() => setUptime(Math.floor((Date.now() - APP_STARTED) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Real CPU/RAM telemetry (electron/hardwareStats.ts), polled every 5s -
+  // frequent enough to catch a sustained spike, cheap enough not to matter.
+  useEffect(() => {
+    const poll = () => {
+      void ultron.system.hardwareStats().then((s) => {
+        setHw(s);
+        checkHardwareThresholds({ cpuPercent: s.cpuPercent, ramPercent: s.ramPercent });
+      });
+    };
+    poll();
+    const id = setInterval(poll, 5000);
     return () => clearInterval(id);
   }, []);
 
@@ -75,6 +91,12 @@ function SystemStatus() {
                   readout={`${quota?.used ?? 0}`} label="API/DAY" />
         <ArcMeter value={Math.min(1, folders.length / 5)} size={68}
                   readout={`${folders.length}`} label="FOLDERS" />
+        <ArcMeter value={(hw?.cpuPercent ?? 0) / 100} size={68}
+                  readout={hw ? `${hw.cpuPercent}` : '--'} label="CPU"
+                  color={hw && hw.cpuPercent >= 90 ? 'var(--red)' : undefined} />
+        <ArcMeter value={(hw?.ramPercent ?? 0) / 100} size={68}
+                  readout={hw ? `${hw.ramPercent}` : '--'} label="RAM"
+                  color={hw && hw.ramPercent >= 90 ? 'var(--red)' : undefined} />
       </div>
 
       <div style={{ padding: '8px 12px 2px', flex: '0 0 auto' }}>
@@ -99,6 +121,13 @@ function SystemStatus() {
         <Row label="Connectors" value={`${connectors.length} scaffolded, 0 connected`} />
         <Row label="Specialists" value={`${specialists.length} available`} />
         <Row label="Uptime" value={`${hh}:${mm}:${ss}`} />
+        {hw && (
+          <Row
+            label="Memory"
+            value={`${hw.ramUsedGB} GB / ${hw.ramTotalGB} GB used`}
+            tone={hw.ramPercent >= 90 ? 'bad' : undefined}
+          />
+        )}
         {versions && <Row label="Runtime" value={`Electron ${versions.electron} / Chromium ${versions.chrome} / Node ${versions.node}`} />}
         <Row label="Env file" value={envPath || 'resolving...'} />
         <div style={{ padding: '10px 12px', display: 'flex', gap: 6 }}>

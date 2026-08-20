@@ -16,10 +16,12 @@
   },
   "dependencies": {
     "@google/genai": "^1.5.0",
+    "@types/qrcode": "^1.5.6",
     "@xenova/transformers": "^2.17.2",
     "d3-geo": "^3.1.1",
     "framer-motion": "^11.11.17",
     "playwright": "^1.49.0",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "topojson-client": "^3.1.0",
@@ -49,7 +51,10 @@
       "dist-electron/**/*"
     ],
     "extraResources": [
-      { "from": "build-assets/icon.ico", "to": "icon.ico" }
+      {
+        "from": "build-assets/icon.ico",
+        "to": "icon.ico"
+      }
     ],
     "directories": {
       "output": "release"

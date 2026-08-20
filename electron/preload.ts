@@ -26,6 +26,66 @@ const api = {
     import: () => ipcRenderer.invoke('backup:import'),
   },
 
+  vision: {
+    captureScreen: () => ipcRenderer.invoke('vision:captureScreen'),
+    listScreenSources: () => ipcRenderer.invoke('vision:listScreenSources'),
+  },
+
+  sessionMemory: {
+    getPending: () => ipcRenderer.invoke('sessionMemory:getPending'),
+    save: (text: string) => ipcRenderer.invoke('sessionMemory:save', text),
+    consume: () => ipcRenderer.invoke('sessionMemory:consume'),
+  },
+
+  monitor: {
+    list: () => ipcRenderer.invoke('monitor:list'),
+    add: (query: string) => ipcRenderer.invoke('monitor:add', query),
+    remove: (id: string) => ipcRenderer.invoke('monitor:remove', id),
+    checkAll: () => ipcRenderer.invoke('monitor:checkAll'),
+  },
+
+  reminders: {
+    list: () => ipcRenderer.invoke('reminders:list'),
+    schedule: (text: string, whenISO: string) => ipcRenderer.invoke('reminders:schedule', text, whenISO),
+    cancel: (id: string) => ipcRenderer.invoke('reminders:cancel', id),
+  },
+
+  flights: {
+    find: (origin: string, destination: string, date: string) => ipcRenderer.invoke('flights:find', origin, destination, date),
+  },
+
+  games: {
+    detect: () => ipcRenderer.invoke('games:detect'),
+    updateSteam: () => ipcRenderer.invoke('games:updateSteam'),
+    updateEpic: () => ipcRenderer.invoke('games:updateEpic'),
+  },
+
+  remote: {
+    start: () => ipcRenderer.invoke('remote:start'),
+    stop: () => ipcRenderer.invoke('remote:stop'),
+    status: () => ipcRenderer.invoke('remote:status'),
+    onCommand: (cb: (cmd: { type: string; payload?: unknown }) => void) => {
+      const handler = (_e: unknown, cmd: { type: string; payload?: unknown }) => cb(cmd);
+      ipcRenderer.on('remote:command', handler);
+      return () => ipcRenderer.off('remote:command', handler);
+    },
+  },
+
+  telegram: {
+    hasToken: () => ipcRenderer.invoke('telegram:hasToken'),
+    verify: () => ipcRenderer.invoke('telegram:verify'),
+    send: (chatId: string, text: string) => ipcRenderer.invoke('telegram:send', chatId, text),
+    recentChats: () => ipcRenderer.invoke('telegram:recentChats'),
+  },
+
+  clipboard: {
+    onNewText: (cb: (text: string) => void) => {
+      const handler = (_e: unknown, text: string) => cb(text);
+      ipcRenderer.on('clipboard:newText', handler);
+      return () => ipcRenderer.off('clipboard:newText', handler);
+    },
+  },
+
   ollama: {
     status: () => ipcRenderer.invoke('ollama:status'),
     chat: (payload: { requestId: string; messages: unknown[]; model?: string; temperature?: number }) =>
@@ -97,6 +157,7 @@ const api = {
     lock: () => ipcRenderer.invoke('system:lock'),
     sleep: () => ipcRenderer.invoke('system:sleep'),
     openExplorer: (path?: string) => ipcRenderer.invoke('system:openExplorer', path),
+    hardwareStats: () => ipcRenderer.invoke('system:hardwareStats'),
   },
 
   google: {

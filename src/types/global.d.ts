@@ -21,6 +21,49 @@ export interface UltronBridge {
     export(): Promise<{ ok: boolean; path?: string; error?: string }>;
     import(): Promise<{ ok: boolean; error?: string }>;
   };
+  vision: {
+    captureScreen(): Promise<{ ok: boolean; dataUrl?: string; error?: string }>;
+    listScreenSources(): Promise<{ ok: boolean; sources: { id: string; name: string }[]; error?: string }>;
+  };
+  sessionMemory: {
+    getPending(): Promise<{ text: string; savedAt: number } | null>;
+    save(text: string): Promise<void>;
+    consume(): Promise<{ text: string; savedAt: number } | null>;
+  };
+  monitor: {
+    list(): Promise<{ id: string; query: string; addedAt: number; lastHeadline?: string; lastCheckedAt?: number }[]>;
+    add(query: string): Promise<{ ok: boolean; topic?: { id: string; query: string; addedAt: number }; error?: string }>;
+    remove(id: string): Promise<void>;
+    checkAll(): Promise<{ id: string; changed: boolean; headline?: string }[]>;
+  };
+  reminders: {
+    list(): Promise<{ id: string; text: string; whenISO: string; createdAt: number }[]>;
+    schedule(text: string, whenISO: string): Promise<{ ok: boolean; reminder?: { id: string; text: string; whenISO: string; createdAt: number }; error?: string }>;
+    cancel(id: string): Promise<{ ok: boolean; error?: string }>;
+  };
+  flights: {
+    find(origin: string, destination: string, date: string): Promise<{ ok: boolean; results: { airline?: string; price?: string; duration?: string; stops?: string; raw: string }[]; error?: string }>;
+  };
+  games: {
+    detect(): Promise<{ steamInstalled: boolean; epicInstalled: boolean }>;
+    updateSteam(): Promise<{ ok: boolean; error?: string }>;
+    updateEpic(): Promise<{ ok: boolean; error?: string }>;
+  };
+  remote: {
+    start(): Promise<{ running: boolean; url?: string; qrDataUrl?: string; error?: string }>;
+    stop(): Promise<void>;
+    status(): Promise<{ running: boolean; url?: string; qrDataUrl?: string; error?: string }>;
+    onCommand(cb: (cmd: { type: string; payload?: unknown }) => void): () => void;
+  };
+  telegram: {
+    hasToken(): Promise<boolean>;
+    verify(): Promise<{ ok: boolean; botUsername?: string; error?: string }>;
+    send(chatId: string, text: string): Promise<{ ok: boolean; error?: string }>;
+    recentChats(): Promise<{ ok: boolean; chats: { id: string; name: string; lastMessage?: string }[]; error?: string }>;
+  };
+  clipboard: {
+    onNewText(cb: (text: string) => void): () => void;
+  };
   tray: {
     isAutoLaunchEnabled(): Promise<boolean>;
     setAutoLaunch(enabled: boolean): Promise<void>;
@@ -62,6 +105,7 @@ export interface UltronBridge {
     lock(): Promise<{ ok: boolean; error?: string }>;
     sleep(): Promise<{ ok: boolean; error?: string }>;
     openExplorer(path?: string): Promise<{ ok: boolean; error?: string }>;
+    hardwareStats(): Promise<{ cpuPercent: number; ramPercent: number; ramUsedGB: number; ramTotalGB: number }>;
   };
   google: {
     hasCredentials(): Promise<boolean>;

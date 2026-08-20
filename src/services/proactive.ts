@@ -108,17 +108,23 @@ export function initProactiveGreeting(): void {
 
       const { settings, memory } = useStore.getState();
       const tod = timeOfDay();
+      // Consumed once - if a previous session left a summary, fold it in and
+      // it will never surface again after this (see sessionMemory.ts).
+      const pending = await ultron.sessionMemory.consume().catch(() => null);
       const instructions = [
         'PROACTIVE GREETING MODE - you are speaking FIRST, unprompted, at app boot.',
         'This is not a reply to anything the operator said - it is your own voice opening the session.',
         `It is currently ${tod} for the operator. Greet them naturally for that time of day.`,
+        pending
+          ? `Yesterday's session, in your own words: "${pending.text}". Mention this briefly and naturally as part of the greeting - do not just recite it verbatim, weave it in.`
+          : '',
         'Keep the entire greeting under 30 words.',
         'End with exactly ONE natural, specific question inviting the operator to say what they want ' +
           'to work on or ask about right now. Do not use a generic "how can I help you today" - make it ' +
           'feel like a specific opener, grounded in whatever you actually know about them from memory or ' +
           'settings if relevant, but never invent specifics you do not have.',
         'Output only the greeting itself - no labels, no quotation marks, no stage directions.',
-      ].join('\n');
+      ].filter(Boolean).join('\n');
 
       const messages: ChatMessage[] = [
         { role: 'system', content: `${buildSystemPrompt(settings, memory)}\n\n${instructions}` },
@@ -229,5 +235,43 @@ async function attemptCheckIn(intervalMs: number): Promise<void> {
   } catch (e) {
     // Fail silently - see file header. A missed check-in is simply skipped.
     console.warn('[proactive] check-in failed, staying quiet:', e);
+  }
+}
+
+/**
+ * Best-effort session summary, meant to be called from a `beforeunload`
+ * handler as the window closes. Not awaited/blocking by the caller - a
+ * window closing is not the moment to risk hanging on a brain call. Only
+ * writes a summary if the session actually had a real exchange (an empty
+ * or you-never-said-anything session has nothing worth recapping tomorrow).
+ */
+export async function saveSessionSummaryNow(): Promise<void> {
+  try {
+    if (!brainReady()) return;
+    const { settings, memory, transcript } = useStore.getState();
+    const hadRealExchange = transcript.some((t) => t.who === 'you' && t.text.trim());
+    if (!hadRealExchange) return;
+
+    const recent = transcript
+      .filter((t) => (t.who === 'you' || t.who === 'ultron') && !t.error && t.text.trim())
+      .slice(-16)
+      .map((t) => `${t.who === 'you' ? 'Operator' : 'Atlas'}: ${t.text}`)
+      .join('\n');
+
+    const instructions = [
+      'Summarise this conversation in exactly 1-2 short sentences, third person, ' +
+        'for Atlas to mention naturally tomorrow morning (e.g. "yesterday you were working on X").',
+      'Output only the summary - no labels, no quotation marks.',
+    ].join('\n');
+
+    const messages: ChatMessage[] = [
+      { role: 'system', content: `${buildSystemPrompt(settings, memory)}\n\n${instructions}` },
+      { role: 'user', content: recent },
+    ];
+
+    const text = await getAIResponseOnce(messages, { model: settings?.ollama.model, temperature: 0.4, timeoutMs: 8000 });
+    if (text.trim()) await ultron.sessionMemory.save(text.trim());
+  } catch (e) {
+    console.warn('[proactive] session summary failed, skipping:', e);
   }
 }
