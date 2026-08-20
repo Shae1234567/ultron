@@ -11,7 +11,12 @@ export interface UltronBridge {
     minimize(): Promise<void>;
     maximize(): Promise<boolean>;
     close(): Promise<void>;
+    show(): Promise<void>;
     onState(cb: (s: { maximized: boolean }) => void): () => void;
+  };
+  tray: {
+    isAutoLaunchEnabled(): Promise<boolean>;
+    setAutoLaunch(enabled: boolean): Promise<void>;
   };
   ollama: {
     status(): Promise<OllamaStatus>;
@@ -42,6 +47,14 @@ export interface UltronBridge {
     type(selector: string, text: string, submit?: boolean): Promise<{ ok: boolean; error?: string }>;
     screenshot(): Promise<{ ok: boolean; dataUrl?: string; error?: string }>;
     close(): Promise<void>;
+  };
+  system: {
+    openApp(name: string): Promise<{ ok: boolean; error?: string }>;
+    openGoogleService(service: string): Promise<{ ok: boolean; url?: string; error?: string }>;
+    setVolume(direction: 'up' | 'down' | 'mute'): Promise<{ ok: boolean; error?: string }>;
+    lock(): Promise<{ ok: boolean; error?: string }>;
+    sleep(): Promise<{ ok: boolean; error?: string }>;
+    openExplorer(path?: string): Promise<{ ok: boolean; error?: string }>;
   };
   google: {
     hasCredentials(): Promise<boolean>;

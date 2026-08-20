@@ -137,6 +137,42 @@ export function initProactiveGreeting(): void {
 }
 
 /**
+ * Same greeting as initProactiveGreeting(), but callable repeatedly - used
+ * when the wake word ("atlas") brings the window forward from the tray, since
+ * that should greet the operator again each time, not just once per process
+ * lifetime. Still backs off if the operator is already mid-conversation.
+ */
+export function greetNow(): void {
+  void (async () => {
+    try {
+      if (!brainReady()) return;
+      if (operatorAlreadyEngaged()) return;
+
+      const { settings, memory } = useStore.getState();
+      const tod = timeOfDay();
+      const instructions = [
+        'PROACTIVE GREETING MODE - you are speaking FIRST, unprompted. The operator just said your ' +
+          'wake word ("Atlas") to summon you - greet them like you just walked in, briefly.',
+        `It is currently ${tod} for the operator.`,
+        'Keep the entire greeting under 20 words.',
+        'End with one short, natural question inviting them to say what they need.',
+        'Output only the greeting itself - no labels, no quotation marks, no stage directions.',
+      ].join('\n');
+
+      const messages: ChatMessage[] = [
+        { role: 'system', content: `${buildSystemPrompt(settings, memory)}\n\n${instructions}` },
+      ];
+
+      const text = await getAIResponseOnce(messages, { model: settings?.ollama.model, temperature: 0.8 });
+      if (operatorAlreadyEngaged()) return;
+      sayProactively(text);
+    } catch (e) {
+      console.warn('[proactive] wake-word greeting failed, staying quiet:', e);
+    }
+  })();
+}
+
+/**
  * Starts a recurring idle check-in every `intervalMinutes` (default 20).
  * Returns a stop function that clears the interval - call it on unmount.
  */

@@ -19,7 +19,12 @@ const nullBridge: UltronBridge = {
     minimize: async () => {},
     maximize: async () => false,
     close: async () => {},
+    show: async () => {},
     onState: () => () => {},
+  },
+  tray: {
+    isAutoLaunchEnabled: async () => false,
+    setAutoLaunch: async () => {},
   },
   ollama: {
     status: async () => ({
@@ -54,6 +59,14 @@ const nullBridge: UltronBridge = {
     type: async () => ({ ok: false, error: unavailable('Browser') }),
     screenshot: async () => ({ ok: false, error: unavailable('Browser') }),
     close: async () => {},
+  },
+  system: {
+    openApp: async () => ({ ok: false, error: unavailable('System control') }),
+    openGoogleService: async () => ({ ok: false, error: unavailable('System control') }),
+    setVolume: async () => ({ ok: false, error: unavailable('System control') }),
+    lock: async () => ({ ok: false, error: unavailable('System control') }),
+    sleep: async () => ({ ok: false, error: unavailable('System control') }),
+    openExplorer: async () => ({ ok: false, error: unavailable('System control') }),
   },
   google: {
     hasCredentials: async () => false,

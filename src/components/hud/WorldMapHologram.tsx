@@ -1,49 +1,86 @@
 import { useMemo, useState } from 'react';
+import { geoNaturalEarth1, geoPath, geoGraticule } from 'd3-geo';
+import { feature } from 'topojson-client';
+import worldTopologyJson from 'world-atlas/countries-110m.json';
 import { HexPanel } from './HexPanel';
-import { REGION_COORDS } from './regionCoords';
+import { MAJOR_CITIES, REGION_BEACON_CITY } from './majorCities';
 import { useStore } from '../../state/store';
 import { ALL_REGIONS } from '../../types';
 import type { Region } from '../../types';
 
 /**
- * Holographic world map: a stylized wireframe globe with a pulsing beacon
- * for every Region that currently has at least one article in the store.
- * Continents are hand-drawn low-poly SVG silhouettes (not a real basemap -
- * this is a HUD schematic, not a map service). Coordinates are projected
- * with a plain equirectangular transform against a 1000x500 viewBox:
- *   x = (lon + 180) / 360 * 1000,  y = (90 - lat) / 180 * 500
- * GLOBAL has no single coordinate (see regionCoords.ts) and is surfaced as
- * a small unmapped counter instead of a beacon. Clicking a beacon narrows
- * the shared region filter and opens a floating detail card sourced only
- * from articles already in the store - no fetching happens here.
+ * Holographic world map, now built from real geographic data instead of
+ * hand-drawn blobs:
+ *
+ *  - Country outlines come from `world-atlas`'s countries-110m topology
+ *    (a real, if simplified, boundary dataset), converted to GeoJSON with
+ *    `topojson-client` and drawn with a `d3-geo` path generator - so every
+ *    country is its own individually-outlined, recognizable shape.
+ *  - A curated list of ~200 major world cities (majorCities.ts) is
+ *    projected with the *same* d3-geo projection and rendered as small
+ *    ambient dots - real cities in their real positions, independent of
+ *    whether the news feed has an article touching that place yet.
+ *  - The interactive region beacons (the actual click-to-filter behavior)
+ *    are unchanged in spirit from the previous version: one pulsing,
+ *    clickable beacon per `Region` with at least one article, positioned
+ *    at a real representative city's coordinates rather than an abstract
+ *    centroid, opening a small card of that region's most recent articles.
+ *
+ * All topology parsing, the projection, country path strings, and city
+ * projections are computed once at module load (not per render / per
+ * store update) since none of it depends on component state.
  */
 
 const VIEW_W = 1000;
 const VIEW_H = 500;
 
-function project(lat: number, lon: number): { x: number; y: number } {
-  return { x: ((lon + 180) / 360) * VIEW_W, y: ((90 - lat) / 180) * VIEW_H };
-}
+// world-atlas ships a plain JSON TopoJSON topology; topojson-client and
+// d3-geo don't ship types that line up perfectly with a raw JSON import,
+// so we cross the untyped boundary once here (via `any`) and work with a
+// well-typed local shape (CountryPath / ProjectedCity) from this point on.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const worldTopology: any = worldTopologyJson;
 
-// Hand-drawn low-poly continent silhouettes against the 1000x500 viewBox.
-const CONTINENTS: string[] = [
-  // North America
-  'M150,68 L232,58 L272,92 L262,142 L232,160 L242,190 L200,232 L160,220 L120,190 L88,158 L70,110 Z',
-  // South America
-  'M262,270 L302,258 L322,300 L312,362 L292,422 L260,432 L240,380 L230,320 Z',
-  // Europe
-  'M470,80 L522,68 L562,90 L552,120 L530,142 L500,152 L474,130 L458,100 Z',
-  // Africa
-  'M492,160 L552,150 L582,190 L572,252 L550,312 L520,352 L500,320 L480,262 L468,200 Z',
-  // Asia
-  'M562,90 L622,48 L702,54 L782,70 L852,90 L882,132 L860,172 L800,192 L750,222 L700,252 L648,230 L598,200 L570,150 Z',
-  // Australia
-  'M790,330 L852,320 L900,342 L890,382 L840,402 L800,380 L780,352 Z',
-];
+const countriesGeoJson = feature(worldTopology, worldTopology.objects.countries) as unknown as {
+  type: 'FeatureCollection';
+  features: Array<{ id?: string; properties?: { name?: string }; geometry: unknown }>;
+};
 
-// Latitude/longitude wireframe guide lines, purely decorative.
-const GRID_LINES_LAT = [-60, -30, 0, 30, 60];
-const GRID_LINES_LON = [-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150];
+// Natural Earth reads as more "planet-like" than a flat equirectangular
+// grid for a HUD globe schematic, and its curvature makes the graticule
+// lines below feel like a real projection rather than a plain grid.
+const projection = geoNaturalEarth1().fitSize([VIEW_W, VIEW_H], countriesGeoJson as any);
+const pathGenerator = geoPath(projection);
+
+interface CountryPath { id: string; name: string; d: string }
+
+const COUNTRY_PATHS: CountryPath[] = countriesGeoJson.features
+  .map((f) => ({
+    id: String(f.id ?? ''),
+    name: f.properties?.name ?? 'Unknown territory',
+    d: pathGenerator(f as any) ?? '',
+  }))
+  .filter((c) => c.d.length > 0);
+
+// Sparse decorative graticule (30° spacing) - just enough curvature to read
+// as "real projection", not so dense it fights the country outlines.
+const GRATICULE_D = pathGenerator(geoGraticule().step([30, 30])() as any) ?? '';
+
+interface ProjectedCity { name: string; country: string; region: Exclude<Region, 'GLOBAL'>; x: number; y: number }
+
+const CITY_POINTS: ProjectedCity[] = MAJOR_CITIES.map((c) => {
+  const p = projection([c.lon, c.lat]);
+  return p ? { name: c.name, country: c.country, region: c.region, x: p[0], y: p[1] } : null;
+}).filter((c): c is ProjectedCity => c !== null);
+
+const REGION_BEACON_POINT: Record<Exclude<Region, 'GLOBAL'>, { x: number; y: number }> = Object.fromEntries(
+  (Object.entries(REGION_BEACON_CITY) as [Exclude<Region, 'GLOBAL'>, (typeof REGION_BEACON_CITY)[Exclude<Region, 'GLOBAL'>]][]).map(
+    ([region, city]) => {
+      const p = projection([city.lon, city.lat]) ?? [VIEW_W / 2, VIEW_H / 2];
+      return [region, { x: p[0], y: p[1] }];
+    },
+  ),
+) as Record<Exclude<Region, 'GLOBAL'>, { x: number; y: number }>;
 
 interface Pin {
   region: Exclude<Region, 'GLOBAL'>;
@@ -65,8 +102,7 @@ export function WorldMapHologram() {
       .filter((r): r is Exclude<Region, 'GLOBAL'> => r !== 'GLOBAL')
       .filter((r) => (counts.get(r) ?? 0) > 0)
       .map((r) => {
-        const { lat, lon } = REGION_COORDS[r];
-        const { x, y } = project(lat, lon);
+        const { x, y } = REGION_BEACON_POINT[r];
         return { region: r, x, y, count: counts.get(r) ?? 0 };
       });
 
@@ -104,18 +140,24 @@ export function WorldMapHologram() {
               var(--panel-solid);
           }
           .wmh-svg { position: relative; width: 100%; height: 100%; display: block; z-index: 1; }
-          .wmh-continent {
-            fill: rgba(0,217,255,0.08);
+          .wmh-graticule { fill: none; stroke: var(--cyan-20); stroke-width: 0.5; }
+          .wmh-countries { filter: url(#wmh-country-glow); }
+          .wmh-country {
+            fill: rgba(0,217,255,0.06);
             stroke: var(--cyan);
-            stroke-width: 1.1;
-            filter: drop-shadow(0 0 4px var(--cyan-35));
-            animation: wmh-continent-pulse 5s ease-in-out infinite;
+            stroke-width: 0.6;
+            vector-effect: non-scaling-stroke;
+            animation: wmh-continent-pulse 6s ease-in-out infinite;
           }
           @keyframes wmh-continent-pulse {
-            0%, 100% { stroke-opacity: 0.55; fill-opacity: 1; }
-            50%      { stroke-opacity: 1;    fill-opacity: 1.6; }
+            0%, 100% { stroke-opacity: 0.5; fill-opacity: 1; }
+            50%      { stroke-opacity: 0.95; fill-opacity: 1.6; }
           }
-          .wmh-grid { stroke: var(--cyan-20); stroke-width: 0.6; }
+          .wmh-city {
+            fill: var(--cyan-soft);
+            opacity: 0.55;
+            filter: drop-shadow(0 0 1.5px var(--cyan-55));
+          }
           .wmh-frame { fill: none; stroke: var(--cyan-35); stroke-width: 1; }
           .wmh-sweep {
             fill: url(#wmh-sweep-gradient);
@@ -126,6 +168,16 @@ export function WorldMapHologram() {
             from { transform: translateX(-120%); }
             to   { transform: translateX(120%); }
           }
+          .wmh-compass {
+            transform-origin: center;
+            animation: wmh-compass-spin 40s linear infinite;
+            opacity: 0.5;
+          }
+          @keyframes wmh-compass-spin {
+            to { transform: rotate(360deg); }
+          }
+          .wmh-compass-ring { fill: none; stroke: var(--cyan-35); stroke-width: 0.8; }
+          .wmh-compass-tick { stroke: var(--cyan-55); stroke-width: 1; }
           .wmh-pin { cursor: pointer; opacity: 0; animation: wmh-pin-in 0.5s ease-out forwards; }
           @keyframes wmh-pin-in {
             from { opacity: 0; transform: scale(0.3); }
@@ -157,6 +209,18 @@ export function WorldMapHologram() {
             text-anchor: middle;
             dominant-baseline: middle;
           }
+          .wmh-readout {
+            position: absolute;
+            z-index: 2;
+            font-family: var(--font-mono);
+            font-size: 8.5px;
+            letter-spacing: 0.08em;
+            color: var(--dim);
+            pointer-events: none;
+            text-shadow: 0 0 6px rgba(0,217,255,0.25);
+          }
+          .wmh-readout--tl { left: 10px; top: 8px; }
+          .wmh-readout--tr { right: 10px; top: 8px; text-align: right; }
           .wmh-global-note {
             position: absolute;
             left: 10px;
@@ -214,28 +278,50 @@ export function WorldMapHologram() {
               <stop offset="50%" stopColor="rgba(0,217,255,0.16)" />
               <stop offset="100%" stopColor="rgba(0,217,255,0)" />
             </linearGradient>
+            <filter id="wmh-country-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="1.1" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
 
-          {/* lat/lon wireframe */}
-          {GRID_LINES_LAT.map((lat) => {
-            const { y } = project(lat, 0);
-            return <line key={`lat${lat}`} className="wmh-grid" x1={0} y1={y} x2={VIEW_W} y2={y} />;
-          })}
-          {GRID_LINES_LON.map((lon) => {
-            const { x } = project(0, lon);
-            return <line key={`lon${lon}`} className="wmh-grid" x1={x} y1={0} x2={x} y2={VIEW_H} />;
-          })}
+          {/* decorative projection graticule */}
+          <path className="wmh-graticule" d={GRATICULE_D} />
 
-          {/* continents */}
-          {CONTINENTS.map((d, i) => (
-            <path key={i} className="wmh-continent" d={d} style={{ animationDelay: `${i * 260}ms` }} />
-          ))}
+          {/* real country borders */}
+          <g className="wmh-countries">
+            {COUNTRY_PATHS.map((c) => (
+              <path key={c.id} className="wmh-country" d={c.d}>
+                <title>{c.name}</title>
+              </path>
+            ))}
+          </g>
+
+          {/* ambient major-city dots */}
+          <g className="wmh-cities">
+            {CITY_POINTS.map((c) => (
+              <circle key={`${c.name}-${c.country}`} className="wmh-city" cx={c.x} cy={c.y} r={0.9}>
+                <title>{c.name}, {c.country}</title>
+              </circle>
+            ))}
+          </g>
 
           {/* animated scan sweep */}
           <rect className="wmh-sweep" x={0} y={0} width={VIEW_W * 0.28} height={VIEW_H} />
 
           {/* outer frame */}
           <rect className="wmh-frame" x={2} y={2} width={VIEW_W - 4} height={VIEW_H - 4} />
+
+          {/* slow-rotating corner compass, purely decorative */}
+          <g className="wmh-compass" transform={`translate(${VIEW_W - 34},34)`}>
+            <circle className="wmh-compass-ring" r={16} />
+            <line className="wmh-compass-tick" x1={0} y1={-16} x2={0} y2={-11} />
+            <line className="wmh-compass-tick" x1={0} y1={16} x2={0} y2={11} />
+            <line className="wmh-compass-tick" x1={-16} y1={0} x2={-11} y2={0} />
+            <line className="wmh-compass-tick" x1={16} y1={0} x2={11} y2={0} />
+          </g>
 
           {/* region beacons */}
           {pins.map((p, i) => (
@@ -253,6 +339,12 @@ export function WorldMapHologram() {
             </g>
           ))}
         </svg>
+
+        <div className="wmh-readout wmh-readout--tl">NATURAL EARTH PROJECTION</div>
+        <div className="wmh-readout wmh-readout--tr">
+          TRACKING {pins.length} BEACON{pins.length === 1 ? '' : 'S'}<br />
+          {CITY_POINTS.length} CITIES CHARTED
+        </div>
 
         {globalCount > 0 && (
           <div className="wmh-global-note">GLOBAL {globalCount} - not regionally mapped</div>

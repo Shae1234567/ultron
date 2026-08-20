@@ -15,7 +15,7 @@ export interface ToolDefinition {
     properties: Record<string, { type: string; description: string; enum?: string[] }>;
     required: string[];
   };
-  group: 'browser' | 'files' | 'research' | 'google';
+  group: 'browser' | 'files' | 'research' | 'google' | 'system';
 }
 
 export const TOOLS: ToolDefinition[] = [
@@ -254,6 +254,41 @@ export const TOOLS: ToolDefinition[] = [
     },
     group: 'google',
   },
+  // system - real OS control on the operator's own machine (never shutdown/restart)
+  {
+    name: 'open_app',
+    description: 'Launch an application on the operator\'s computer by name (e.g. "notepad", "chrome", "calc").',
+    parameters: { type: 'object', properties: { name: { type: 'string', description: 'App name or path.' } }, required: ['name'] },
+    group: 'system',
+  },
+  {
+    name: 'open_google_service',
+    description: 'Open a specific Google service in the browser (gmail, compose, calendar, drive, docs, sheets, slides, maps, photos, translate, youtube, search).',
+    parameters: { type: 'object', properties: { service: { type: 'string', description: 'Which Google service to open.' } }, required: ['service'] },
+    group: 'system',
+  },
+  {
+    name: 'set_volume',
+    description: 'Adjust the operator\'s system volume.',
+    parameters: {
+      type: 'object',
+      properties: { direction: { type: 'string', enum: ['up', 'down', 'mute'], description: 'Volume direction.' } },
+      required: ['direction'],
+    },
+    group: 'system',
+  },
+  {
+    name: 'lock_computer',
+    description: 'Lock the operator\'s computer (returns to the Windows lock screen). Only do this if explicitly asked.',
+    parameters: { type: 'object', properties: {}, required: [] },
+    group: 'system',
+  },
+  {
+    name: 'open_file_explorer',
+    description: 'Open Windows File Explorer at a given folder path, or the user folder if none given.',
+    parameters: { type: 'object', properties: { path: { type: 'string', description: 'Folder path to open.' } }, required: [] },
+    group: 'system',
+  },
   // research
   {
     name: 'wikipedia_lookup',
@@ -353,6 +388,22 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
         break;
       case 'drive_search':
         result = await ultron.google.driveSearch(args.query as string, args.limit as number | undefined);
+        break;
+      // system
+      case 'open_app':
+        result = await ultron.system.openApp(args.name as string);
+        break;
+      case 'open_google_service':
+        result = await ultron.system.openGoogleService(args.service as string);
+        break;
+      case 'set_volume':
+        result = await ultron.system.setVolume(args.direction as 'up' | 'down' | 'mute');
+        break;
+      case 'lock_computer':
+        result = await ultron.system.lock();
+        break;
+      case 'open_file_explorer':
+        result = await ultron.system.openExplorer(args.path as string | undefined);
         break;
       // research
       case 'wikipedia_lookup':

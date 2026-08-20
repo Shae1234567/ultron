@@ -19,12 +19,12 @@ type WebviewEl = HTMLElement & {
   getTitle: () => string;
 };
 
-const DEFAULT_URL = 'https://duckduckgo.com';
+const DEFAULT_URL = 'https://www.google.com';
 
 /**
  * Turns whatever the operator typed in the address bar into a navigable URL.
  * A bare domain-looking string gets `https://` prefixed; anything else is
- * treated as a search query.
+ * treated as a Google search query.
  */
 function normalizeUrl(input: string): string {
   const trimmed = input.trim();
@@ -35,7 +35,7 @@ function normalizeUrl(input: string): string {
   const looksLikeDomain = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?([/?#].*)?$/i.test(trimmed);
   if (looksLikeDomain) return `https://${trimmed}`;
 
-  return `https://duckduckgo.com/?q=${encodeURIComponent(trimmed)}`;
+  return `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`;
 }
 
 export function BrowserPanel({ onClose }: { onClose: () => void }) {
@@ -135,7 +135,13 @@ export function BrowserPanel({ onClose }: { onClose: () => void }) {
           />
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, position: 'relative', border: '1px solid var(--cyan-20)' }}>
+        {loading && (
+          <div className="browser-loadbar" aria-hidden="true">
+            <div className="browser-loadbar__fill holo-border-anim" />
+          </div>
+        )}
+
+        <div className="holo-panel" style={{ flex: 1, minHeight: 0, position: 'relative', border: '1px solid var(--cyan-20)', overflow: 'hidden' }}>
           {/* webviewTag: true must be set in electron/main.ts's webPreferences
               for this element to actually render a browser frame - if the
               panel is blank, check that flag first. */}
@@ -144,6 +150,12 @@ export function BrowserPanel({ onClose }: { onClose: () => void }) {
             src={DEFAULT_URL}
             style={{ width: '100%', height: '100%', display: 'flex' }}
           />
+          {loading && (
+            <div className="browser-scanning" aria-hidden="true">
+              <div className="browser-scanning__ring" />
+              <div className="browser-scanning__label mono">FETCHING SIGNAL...</div>
+            </div>
+          )}
         </div>
       </div>
     </Overlay>

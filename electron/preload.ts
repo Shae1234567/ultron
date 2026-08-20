@@ -9,6 +9,7 @@ const api = {
     minimize: () => ipcRenderer.invoke('win:minimize'),
     maximize: () => ipcRenderer.invoke('win:maximize'),
     close: () => ipcRenderer.invoke('win:close'),
+    show: () => ipcRenderer.invoke('win:show'),
     onState: (cb: (s: { maximized: boolean }) => void) => {
       const handler = (_e: unknown, s: { maximized: boolean }) => cb(s);
       ipcRenderer.on('win:state', handler);
@@ -73,6 +74,20 @@ const api = {
     type: (selector: string, text: string, submit?: boolean) => ipcRenderer.invoke('browser:type', selector, text, submit),
     screenshot: () => ipcRenderer.invoke('browser:screenshot'),
     close: () => ipcRenderer.invoke('browser:close'),
+  },
+
+  tray: {
+    isAutoLaunchEnabled: () => ipcRenderer.invoke('tray:isAutoLaunchEnabled'),
+    setAutoLaunch: (enabled: boolean) => ipcRenderer.invoke('tray:setAutoLaunch', enabled),
+  },
+
+  system: {
+    openApp: (name: string) => ipcRenderer.invoke('system:openApp', name),
+    openGoogleService: (service: string) => ipcRenderer.invoke('system:openGoogleService', service),
+    setVolume: (direction: 'up' | 'down' | 'mute') => ipcRenderer.invoke('system:setVolume', direction),
+    lock: () => ipcRenderer.invoke('system:lock'),
+    sleep: () => ipcRenderer.invoke('system:sleep'),
+    openExplorer: (path?: string) => ipcRenderer.invoke('system:openExplorer', path),
   },
 
   google: {

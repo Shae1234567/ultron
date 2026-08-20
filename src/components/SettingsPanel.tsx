@@ -4,6 +4,8 @@ import { useStore } from '../state/store';
 import { ultron } from '../services/bridge';
 import type { Settings } from '../types';
 import { listVoices, primeVoices, speak, VOICE_DEFAULTS } from '../services/speech';
+import { startWakeWordListening, stopWakeWordListening, isWakeWordActive, type WakeWordStatus } from '../services/wakeWord';
+import { greetNow } from '../services/proactive';
 
 const NEWS_CATEGORIES = ['world', 'nation', 'business', 'technology', 'science', 'sports', 'health'];
 
@@ -18,6 +20,9 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   const [hasKey, setHasKey] = useState<boolean | null>(null);
   const [geminiKey, setGeminiKey] = useState('');
   const [hasGeminiKey, setHasGeminiKey] = useState<boolean | null>(null);
+  const [wakeStatus, setWakeStatus] = useState<WakeWordStatus>(isWakeWordActive() ? 'listening' : 'off');
+  const [wakeError, setWakeError] = useState<string | null>(null);
+  const [autoLaunch, setAutoLaunchState] = useState<boolean | null>(null);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [envPath, setEnvPath] = useState('');
   const [saved, setSaved] = useState<string | null>(null);
@@ -34,7 +39,28 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
     void ultron.news.hasKey().then(setHasKey);
     void ultron.settings.envPath().then(setEnvPath);
     void ultron.gemini.status().then((s) => setHasGeminiKey(s.running));
+    void ultron.tray.isAutoLaunchEnabled().then(setAutoLaunchState);
   }, []);
+
+  const toggleWakeWord = async () => {
+    if (wakeStatus === 'listening') {
+      stopWakeWordListening();
+      setWakeStatus('off');
+      return;
+    }
+    setWakeError(null);
+    const res = await startWakeWordListening(
+      () => { void ultron.win.show(); greetNow(); },
+      setWakeStatus,
+    );
+    if (!res.ok) setWakeError(res.error ?? 'Could not start listening.');
+  };
+
+  const toggleAutoLaunch = async () => {
+    const next = !autoLaunch;
+    await ultron.tray.setAutoLaunch(next);
+    setAutoLaunchState(next);
+  };
 
   if (!draft) return null;
 
@@ -281,6 +307,41 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           value={draft.gemini.model}
           onChange={(e) => patch((d) => ({ ...d, gemini: { ...d.gemini, model: e.target.value } }))}
         />
+      </div>
+
+      <div style={{ height: 1, background: 'var(--cyan-20)', margin: '18px 0' }} />
+
+      <div className="field">
+        <span className="field__label">Wake word</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            className={`hud-btn ${wakeStatus === 'listening' ? 'hud-btn--active' : ''}`}
+            onClick={() => void toggleWakeWord()}
+          >
+            {wakeStatus === 'listening' ? 'Listening for "Atlas" - ON' : 'Enable "Atlas" wake word'}
+          </button>
+          {wakeStatus === 'unavailable' && <span className="chip chip--bad">UNAVAILABLE</span>}
+        </div>
+        {wakeError && <div className="mono" style={{ fontSize: 10, color: 'var(--red)', marginTop: 5 }}>{wakeError}</div>}
+        <div className="field__hint">
+          Say &quot;Atlas&quot; anytime and it brings the window forward and greets you - runs local
+          Whisper continuously in the background, so it uses real CPU while on. Combine with
+          &quot;Start with Windows&quot; below so it's always listening once your PC is on.
+        </div>
+      </div>
+
+      <div className="field">
+        <span className="field__label">Background &amp; startup</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button className={`hud-btn ${autoLaunch ? 'hud-btn--active' : ''}`} onClick={() => void toggleAutoLaunch()} disabled={autoLaunch === null}>
+            {autoLaunch ? 'Starts with Windows - ON' : 'Start with Windows'}
+          </button>
+        </div>
+        <div className="field__hint">
+          Closing the window (the &times;) now minimizes Atlas to the system tray instead of quitting
+          - right-click the tray icon to fully quit. This is what lets the wake word keep working
+          even when the HUD isn't open.
+        </div>
       </div>
 
       <div style={{ height: 1, background: 'var(--cyan-20)', margin: '18px 0' }} />

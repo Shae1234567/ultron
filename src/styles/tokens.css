@@ -27,7 +27,10 @@
   --green: #00ff9d;
 
   /* Type */
-  --font-display: 'Orbitron', 'Segoe UI', sans-serif;
+  /* Michroma is the closest free Google Font to the Jarvis HUD lettering
+     (wide, geometric, all-caps friendly) - Orbitron stays as the fallback
+     for anywhere Michroma's lack of a bold/italic weight would be awkward. */
+  --font-display: 'Michroma', 'Orbitron', 'Segoe UI', sans-serif;
   --font-ui: 'Rajdhani', 'Segoe UI', sans-serif;
   --font-mono: 'Share Tech Mono', 'Consolas', monospace;
 

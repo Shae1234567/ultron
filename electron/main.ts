@@ -17,6 +17,8 @@ import * as googleAuth from './googleAuth';
 import * as googleGmail from './googleGmail';
 import * as googleCalendarReal from './googleCalendarReal';
 import * as googleDrive from './googleDrive';
+import * as systemControl from './systemControl';
+import { setupTray, isAutoLaunchEnabled, setAutoLaunch } from './tray';
 
 process.env.DIST = path.join(__dirname, '../dist');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
@@ -58,6 +60,7 @@ function createWindow(): void {
   });
 
   win.once('ready-to-show', () => win?.show());
+  setupTray(win, path.join(__dirname, '../build-assets/icon.ico'));
 
   // External links open in the real browser, never inside the HUD.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -132,6 +135,7 @@ ipcMain.handle('win:maximize', () => {
   return win.isMaximized();
 });
 ipcMain.handle('win:close', () => win?.close());
+ipcMain.handle('win:show', () => { win?.show(); win?.focus(); });
 
 /* ── IPC: brain (Ollama) ────────────────────────────────────────────── */
 
@@ -249,6 +253,29 @@ ipcMain.handle('google:calendar:createEvent', (_e, title: unknown, start: unknow
 ipcMain.handle('google:drive:listRecent', (_e, limit?: number) => googleDrive.listRecent(limit));
 ipcMain.handle('google:drive:search', (_e, query: unknown, limit?: number) =>
   typeof query === 'string' ? googleDrive.searchFiles(query, limit) : { ok: false, error: 'Bad query' });
+
+/* ── IPC: tray / auto-launch ────────────────────────────────────────── */
+
+ipcMain.handle('tray:isAutoLaunchEnabled', () => isAutoLaunchEnabled());
+ipcMain.handle('tray:setAutoLaunch', (_e, enabled: unknown) => setAutoLaunch(Boolean(enabled)));
+
+/* ── IPC: system control - real OS integration on the operator's own machine ── */
+
+ipcMain.handle('system:openApp', (_e, name: unknown) =>
+  typeof name === 'string' ? systemControl.openApp(name) : { ok: false, error: 'Bad payload' });
+ipcMain.handle('system:openGoogleService', (_e, service: unknown) =>
+  typeof service === 'string' ? systemControl.openGoogleService(service) : { ok: false, error: 'Bad payload' });
+ipcMain.handle('system:setVolume', (_e, direction: unknown) =>
+  direction === 'up' || direction === 'down' || direction === 'mute'
+    ? systemControl.setVolume(direction)
+    : { ok: false, error: 'Bad direction' });
+ipcMain.handle('system:lock', () => systemControl.lockComputer());
+ipcMain.handle('system:sleep', () => systemControl.sleepComputer());
+ipcMain.handle('system:openExplorer', (_e, path: unknown) =>
+  systemControl.openFileExplorer(typeof path === 'string' ? path : undefined));
+// Shutdown/restart are deliberately NOT exposed here without a dedicated,
+// explicitly-confirmed channel - see the comments on those two functions in
+// systemControl.ts. No IPC handler for them at all yet, by design.
 
 /* ── IPC: news ──────────────────────────────────────────────────────── */
 
