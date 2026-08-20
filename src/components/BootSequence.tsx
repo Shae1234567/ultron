@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../state/store';
+import { GlitchText } from './hud/GlitchText';
 
 const CHECK_LABEL: Record<string, string> = {
   memory: 'MEMORY',
@@ -84,7 +85,7 @@ export function BootSequence() {
         </svg>
       </div>
 
-      <div className="boot__wordmark">ATLAS</div>
+      <div className="boot__wordmark"><GlitchText>ATLAS</GlitchText></div>
       <div className="boot__subtitle">COMMAND CENTER — INITIALIZING</div>
 
       <div className="boot__checks">

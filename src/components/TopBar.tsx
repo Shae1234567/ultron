@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { useStore } from '../state/store';
 import { ultron } from '../services/bridge';
+import { GlitchText } from './hud/GlitchText';
 
 function Clock() {
   const [now, setNow] = useState(() => new Date());
@@ -53,7 +54,7 @@ export function TopBar() {
     <div className="topbar">
       <div className="topbar__drag">
         <div>
-          <div className="brand">ATLAS</div>
+          <div className="brand"><GlitchText>ATLAS</GlitchText></div>
           <div className="brand__sub">COMMAND CENTER v0.1</div>
         </div>
 
@@ -83,6 +84,9 @@ export function TopBar() {
       </div>
 
       <div className="topbar__nodrag">
+        <button className="hud-btn" onClick={() => setOverlay({ kind: 'worldmap' })}>Global Theater</button>
+        <button className="hud-btn" onClick={() => setOverlay({ kind: 'browser' })}>Browser</button>
+        <button className="hud-btn" onClick={() => setOverlay({ kind: 'google' })}>Google</button>
         <button className="hud-btn" onClick={() => setOverlay({ kind: 'cm8' })}>CM8</button>
         <button className="hud-btn" onClick={() => setOverlay({ kind: 'memory' })}>Memory</button>
         <button className="hud-btn" onClick={() => setOverlay({ kind: 'settings' })}>Settings</button>

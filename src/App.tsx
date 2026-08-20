@@ -17,12 +17,16 @@ import { DiscordPanel } from './components/DiscordPanel';
 import { ObsidianPanel } from './components/ObsidianPanel';
 import { Cm8Panel } from './components/cm8/Cm8Panel';
 import { BootSequence } from './components/BootSequence';
+import { BrowserPanel } from './components/BrowserPanel';
+import { GooglePanel } from './components/GooglePanel';
+import { WorldMapHologram } from './components/hud/WorldMapHologram';
 import { useStore, useSttStore, type RightTab, type Overlay } from './state/store';
 import type { CoreState } from './types';
 import { ultron } from './services/bridge';
 import { decodeToMono16k } from './services/recorder';
 import { ensureModel, transcribe } from './services/stt';
 import { ttsSupported } from './services/speech';
+import { initProactiveGreeting } from './services/proactive';
 
 const CAPTION: Record<CoreState, { text: string; hint: string; color: string }> = {
   idle:      { text: 'STANDBY',   hint: 'HOLD [SPACE] TO SPEAK', color: 'var(--cyan)' },
@@ -84,6 +88,10 @@ export function App() {
     const id = setInterval(() => { void ultron.ollama.status().then(setOllama); }, 20000);
     return () => clearInterval(id);
   }, [setOllama]);
+
+  // Speaks first, once, as soon as the brain is actually ready - never
+  // interrupts if the operator has already started talking. See proactive.ts.
+  useEffect(() => { initProactiveGreeting(); }, []);
 
   // Dev hooks used by the ULTRON_CAPTURE screenshot utility.
   useEffect(() => {
@@ -153,6 +161,25 @@ export function App() {
       {overlay?.kind === 'discord' && <DiscordPanel onClose={() => setOverlay(null)} />}
       {overlay?.kind === 'obsidian' && <ObsidianPanel onClose={() => setOverlay(null)} />}
       {overlay?.kind === 'cm8' && <Cm8Panel onClose={() => setOverlay(null)} />}
+      {overlay?.kind === 'browser' && <BrowserPanel onClose={() => setOverlay(null)} />}
+      {overlay?.kind === 'google' && <GooglePanel onClose={() => setOverlay(null)} />}
+      {overlay?.kind === 'worldmap' && (
+        <div
+          className="overlay"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setOverlay(null); }}
+        >
+          <div style={{ width: 'min(1100px, 92vw)', height: 'min(640px, 84vh)', position: 'relative' }}>
+            <button
+              className="hud-btn"
+              style={{ position: 'absolute', top: -38, right: 0, zIndex: 1 }}
+              onClick={() => setOverlay(null)}
+            >
+              Close
+            </button>
+            <WorldMapHologram />
+          </div>
+        </div>
+      )}
 
       <BootSequence />
     </>

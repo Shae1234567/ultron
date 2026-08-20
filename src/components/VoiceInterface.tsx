@@ -5,6 +5,10 @@ import { BarSpectrum } from './hud/BarSpectrum';
 import { useStore, useSttStore } from '../state/store';
 import { beginPushToTalk, endPushToTalk, cancelCurrent, preloadSpeechModel } from '../services/conversation';
 import { ttsSupported, primeVoices, pickVoice } from '../services/speech';
+import {
+  startLiveVoiceSession, stopLiveVoiceSession, onLiveVoiceState, getLiveVoiceState, type LiveVoiceState,
+} from '../services/liveVoiceSession';
+import { isLiveVoiceSupported } from '../services/liveVoice';
 
 const isTypingTarget = (el: EventTarget | null): boolean => {
   const node = el as HTMLElement | null;
@@ -17,6 +21,25 @@ export function VoiceInterface() {
   const coreState = useStore((s) => s.coreState);
   const [voiceName, setVoiceName] = useState<string | null>(null);
   const held = useRef(false);
+  const [liveState, setLiveState] = useState<LiveVoiceState>(getLiveVoiceState());
+  const [liveError, setLiveError] = useState<string | null>(null);
+  const pushEntry = useStore((s) => s.pushEntry);
+
+  useEffect(() => onLiveVoiceState(setLiveState), []);
+  useEffect(() => () => stopLiveVoiceSession(), []); // never leave a mic stream open behind a closed HUD
+
+  const toggleLiveVoice = async () => {
+    if (liveState === 'live' || liveState === 'connecting') {
+      stopLiveVoiceSession();
+      return;
+    }
+    setLiveError(null);
+    const res = await startLiveVoiceSession({
+      onTranscript: (text) => pushEntry({ who: 'ultron', text }),
+      onError: (message) => setLiveError(message),
+    });
+    if (!res.ok) setLiveError(res.error ?? 'Could not start Live Voice.');
+  };
 
   useEffect(() => {
     primeVoices();
@@ -112,7 +135,20 @@ export function VoiceInterface() {
             {(busy || coreState === 'listening' || coreState === 'speaking') && (
               <button className="hud-btn hud-btn--danger" onClick={cancelCurrent}>Abort</button>
             )}
+            {isLiveVoiceSupported() && (
+              <button
+                className={`hud-btn ${liveState === 'live' ? 'hud-btn--active' : ''}`}
+                onClick={() => void toggleLiveVoice()}
+                disabled={liveState === 'connecting'}
+                title="Real-time spoken conversation via Gemini Live - needs a Gemini API key in Settings"
+              >
+                {liveState === 'live' ? 'Live Voice: ON' : liveState === 'connecting' ? 'Connecting...' : 'Live Voice'}
+              </button>
+            )}
           </div>
+          {liveError && (
+            <div className="mono" style={{ fontSize: 10, color: 'var(--red)', marginTop: 5 }}>{liveError}</div>
+          )}
           {stt === 'loading' && (
             <div style={{ marginTop: 7 }}>
               <div style={{ height: 3, background: 'var(--cyan-12)', overflow: 'hidden' }}>

@@ -1,6 +1,6 @@
 ﻿import fs from 'node:fs';
 import path from 'node:path';
-import { dialog, shell, BrowserWindow } from 'electron';
+import { app, dialog, shell, BrowserWindow } from 'electron';
 import { getSettings, saveSettings } from './store';
 
 export interface IndexedFile {
@@ -85,11 +85,18 @@ export function searchFiles(query: string, limit = 200): IndexedFile[] {
     .slice(0, limit);
 }
 
-/** Opens the OS folder picker. The user chooses; Atlas never scans on its own. */
-export async function addFolder(win: BrowserWindow | null): Promise<{ ok: boolean; folders: ReturnType<typeof getSettings>['folders'] }> {
+/** Opens the OS folder picker. The user chooses; Atlas never scans on its own.
+ *  `defaultPath` just pre-navigates the dialog (e.g. to the home folder for
+ *  "grant full access") - the user still has to click Select Folder themselves,
+ *  same consent gate as any other folder. */
+export async function addFolder(
+  win: BrowserWindow | null,
+  defaultPath?: string,
+): Promise<{ ok: boolean; folders: ReturnType<typeof getSettings>['folders'] }> {
+  const opts = { properties: ['openDirectory'] as ('openDirectory')[], defaultPath: defaultPath || app.getPath('home') };
   const result = win
-    ? await dialog.showOpenDialog(win, { properties: ['openDirectory'] })
-    : await dialog.showOpenDialog({ properties: ['openDirectory'] });
+    ? await dialog.showOpenDialog(win, opts)
+    : await dialog.showOpenDialog(opts);
 
   const settings = getSettings();
   if (result.canceled || result.filePaths.length === 0) {

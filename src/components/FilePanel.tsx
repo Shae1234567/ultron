@@ -108,7 +108,7 @@ export function FilePanel() {
   return (
     <>
       <div style={{ display: 'flex', gap: 6, padding: '10px 12px', borderBottom: '1px solid var(--cyan-20)', flex: '0 0 auto' }}>
-        <button className="hud-btn" onClick={addFolder} disabled={busy}>
+        <button className="hud-btn" onClick={addFolder} disabled={busy} title="Opens at your user folder - pick it, or any subfolder, or navigate up to a whole drive for full access">
           {busy ? 'Indexing' : '+ Add folder'}
         </button>
         <button className="hud-btn" onClick={() => void ultron.files.rebuild().then(reload)} disabled={!folders.length}>
@@ -121,7 +121,9 @@ export function FilePanel() {
           No folders indexed. Atlas can only see folders you add here explicitly -
           it has no access to the rest of the drive. Once added, Atlas can also
           create, edit, rename, move, and delete (to the Recycle Bin) files inside
-          them.
+          them. For full access to everything, click "+ Add folder" and select
+          your whole user folder (or navigate up to the drive root, e.g. C:\) -
+          the picker opens there by default.
         </div>
       ) : (
         <>

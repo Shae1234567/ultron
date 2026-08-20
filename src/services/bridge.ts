@@ -44,14 +44,28 @@ const nullBridge: UltronBridge = {
     onChunk: () => () => {},
     onDone: () => () => {},
     onError: () => () => {},
+    getKeyForLiveSession: async () => '',
   },
   browser: {
     search: async () => ({ ok: false, results: [], error: unavailable('Browser') }),
+    youtubeSearch: async () => ({ ok: false, results: [], error: unavailable('Browser') }),
     open: async () => ({ ok: false, error: unavailable('Browser') }),
     click: async () => ({ ok: false, error: unavailable('Browser') }),
     type: async () => ({ ok: false, error: unavailable('Browser') }),
     screenshot: async () => ({ ok: false, error: unavailable('Browser') }),
     close: async () => {},
+  },
+  google: {
+    hasCredentials: async () => false,
+    isConnected: async () => false,
+    connect: async () => ({ ok: false, error: unavailable('Google') }),
+    disconnect: async () => {},
+    gmailListUnread: async () => ({ ok: false, error: unavailable('Gmail') }),
+    gmailSend: async () => ({ ok: false, error: unavailable('Gmail') }),
+    calendarListUpcoming: async () => ({ ok: false, error: unavailable('Calendar') }),
+    calendarCreateEvent: async () => ({ ok: false, error: unavailable('Calendar') }),
+    driveListRecent: async () => ({ ok: false, error: unavailable('Drive') }),
+    driveSearch: async () => ({ ok: false, error: unavailable('Drive') }),
   },
   news: {
     fetch: async () => ({

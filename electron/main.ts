@@ -1,6 +1,6 @@
 ﻿import { app, BrowserWindow, ipcMain, screen, shell } from 'electron';
 import path from 'node:path';
-import { loadEnv, setEnvKey, writableEnvPath } from './env';
+import { env, loadEnv, setEnvKey, writableEnvPath } from './env';
 import { getSettings, saveSettings } from './store';
 import * as ollama from './ollama';
 import * as news from './news';
@@ -13,6 +13,10 @@ import * as discord from './discord';
 import * as obsidian from './obsidian';
 import * as gemini from './gemini';
 import * as browserAgent from './browser';
+import * as googleAuth from './googleAuth';
+import * as googleGmail from './googleGmail';
+import * as googleCalendarReal from './googleCalendarReal';
+import * as googleDrive from './googleDrive';
 
 process.env.DIST = path.join(__dirname, '../dist');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
@@ -41,6 +45,10 @@ function createWindow(): void {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      // Powers BrowserPanel.tsx's <webview> - the "side tab" real browser.
+      // Each <webview> is its own separate renderer process/origin, so it does
+      // not inherit this window's preload API or Node access.
+      webviewTag: true,
       // preload.ts only imports 'electron' (contextBridge, ipcRenderer), both
       // available under the sandbox - this is the real containment boundary
       // if a renderer-side dependency is ever compromised, and there was no
@@ -179,6 +187,17 @@ ipcMain.handle('gemini:chat', (event, payload: {
 
 ipcMain.handle('gemini:cancel', (_e, requestId: string) => gemini.cancel(requestId));
 
+// Live Voice (services/liveVoiceSession.ts) connects directly from the
+// renderer to Google's Live API over its own WebSocket - unlike every other
+// call in this app, there is no way to proxy that through the main process,
+// so the renderer needs the raw key. This is the one deliberate exception to
+// "secrets never leave the main process" in this codebase: acceptable for a
+// personal local app using the operator's own key for their own use.
+// Hardening note: Google's Live API supports short-lived ephemeral tokens
+// for exactly this situation - minting one here instead of returning the
+// long-lived key would be the next step for anything beyond personal use.
+ipcMain.handle('gemini:getKeyForLiveSession', () => env('GEMINI_API_KEY'));
+
 ipcMain.handle('gemini:once', async (_e, payload: {
   messages: gemini.ChatMessage[];
   model?: string;
@@ -205,8 +224,31 @@ ipcMain.handle('browser:type', (_e, selector: unknown, text: unknown, submit?: b
   typeof selector === 'string' && typeof text === 'string'
     ? browserAgent.typeOnPage(selector, text, Boolean(submit))
     : { ok: false, error: 'Bad payload' });
+ipcMain.handle('browser:youtubeSearch', (_e, query: unknown, limit?: number) =>
+  typeof query === 'string' ? browserAgent.youtubeSearch(query, limit) : { ok: false, results: [], error: 'Bad query' });
 ipcMain.handle('browser:screenshot', () => browserAgent.screenshotPage());
 ipcMain.handle('browser:close', () => browserAgent.closeBrowser());
+
+/* ── IPC: Google (Drive/Gmail/Calendar) - real OAuth, operator's own account ── */
+
+ipcMain.handle('google:hasCredentials', () => googleAuth.hasCredentials());
+ipcMain.handle('google:isConnected', () => googleAuth.isConnected());
+ipcMain.handle('google:connect', (_e, scopes: unknown) =>
+  Array.isArray(scopes) ? googleAuth.connect(scopes as string[]) : { ok: false, error: 'Bad scopes' });
+ipcMain.handle('google:disconnect', () => googleAuth.disconnect());
+ipcMain.handle('google:gmail:listUnread', (_e, limit?: number) => googleGmail.listUnread(limit));
+ipcMain.handle('google:gmail:send', (_e, to: unknown, subject: unknown, body: unknown) =>
+  typeof to === 'string' && typeof subject === 'string' && typeof body === 'string'
+    ? googleGmail.sendMessage(to, subject, body)
+    : { ok: false, error: 'Bad payload' });
+ipcMain.handle('google:calendar:listUpcoming', (_e, limit?: number) => googleCalendarReal.listUpcoming(limit));
+ipcMain.handle('google:calendar:createEvent', (_e, title: unknown, start: unknown, end: unknown, desc?: unknown) =>
+  typeof title === 'string' && typeof start === 'string' && typeof end === 'string'
+    ? googleCalendarReal.createEvent(title, start, end, typeof desc === 'string' ? desc : undefined)
+    : { ok: false, error: 'Bad payload' });
+ipcMain.handle('google:drive:listRecent', (_e, limit?: number) => googleDrive.listRecent(limit));
+ipcMain.handle('google:drive:search', (_e, query: unknown, limit?: number) =>
+  typeof query === 'string' ? googleDrive.searchFiles(query, limit) : { ok: false, error: 'Bad query' });
 
 /* ── IPC: news ──────────────────────────────────────────────────────── */
 
@@ -239,6 +281,7 @@ ipcMain.handle('env:setKey', (_e, payload: unknown) => {
   const allowed = [
     'GNEWS_API_KEY', 'OLLAMA_HOST', 'OLLAMA_MODEL', 'GITHUB_TOKEN', 'NOTION_TOKEN',
     'DISCORD_WEBHOOK_URL', 'DISCORD_BOT_TOKEN', 'GEMINI_API_KEY', 'GEMINI_MODEL',
+    'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET',
   ];
   if (!allowed.includes(key)) return { ok: false, error: 'Key not allowed' };
   // Newlines in the value would let a value smuggle in an extra "KEY=..."

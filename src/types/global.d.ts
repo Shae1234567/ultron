@@ -32,14 +32,28 @@ export interface UltronBridge {
     onChunk(cb: (p: { requestId: string; token: string }) => void): () => void;
     onDone(cb: (p: { requestId: string; aborted?: boolean }) => void): () => void;
     onError(cb: (p: { requestId: string; error: string }) => void): () => void;
+    getKeyForLiveSession(): Promise<string>;
   };
   browser: {
     search(query: string, limit?: number): Promise<{ ok: boolean; results: { title: string; url: string; snippet: string }[]; error?: string }>;
+    youtubeSearch(query: string, limit?: number): Promise<{ ok: boolean; results: { title: string; url: string; channel: string; duration?: string }[]; error?: string }>;
     open(url: string): Promise<{ ok: boolean; title?: string; text?: string; url?: string; error?: string }>;
     click(selector: string): Promise<{ ok: boolean; error?: string }>;
     type(selector: string, text: string, submit?: boolean): Promise<{ ok: boolean; error?: string }>;
     screenshot(): Promise<{ ok: boolean; dataUrl?: string; error?: string }>;
     close(): Promise<void>;
+  };
+  google: {
+    hasCredentials(): Promise<boolean>;
+    isConnected(): Promise<boolean>;
+    connect(scopes: string[]): Promise<{ ok: boolean; error?: string }>;
+    disconnect(): Promise<void>;
+    gmailListUnread(limit?: number): Promise<{ ok: boolean; messages?: { id: string; from: string; subject: string; snippet: string; date: string; unread: boolean }[]; error?: string }>;
+    gmailSend(to: string, subject: string, body: string): Promise<{ ok: boolean; error?: string }>;
+    calendarListUpcoming(limit?: number): Promise<{ ok: boolean; events?: { id: string; title: string; start: string; end: string; location?: string }[]; error?: string }>;
+    calendarCreateEvent(title: string, start: string, end: string, description?: string): Promise<{ ok: boolean; error?: string }>;
+    driveListRecent(limit?: number): Promise<{ ok: boolean; files?: { id: string; name: string; mimeType: string; modifiedTime: string; webViewLink?: string }[]; error?: string }>;
+    driveSearch(query: string, limit?: number): Promise<{ ok: boolean; files?: { id: string; name: string; mimeType: string; modifiedTime: string; webViewLink?: string }[]; error?: string }>;
   };
   news: {
     fetch(manual?: boolean): Promise<NewsResult>;

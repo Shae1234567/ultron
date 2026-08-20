@@ -16,7 +16,10 @@ export type Overlay =
   | { kind: 'notion' }
   | { kind: 'discord' }
   | { kind: 'obsidian' }
-  | { kind: 'cm8' };
+  | { kind: 'cm8' }
+  | { kind: 'browser' }
+  | { kind: 'worldmap' }
+  | { kind: 'google' };
 
 interface UltronState {
   /* core */

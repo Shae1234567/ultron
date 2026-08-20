@@ -15,7 +15,7 @@ export interface ToolDefinition {
     properties: Record<string, { type: string; description: string; enum?: string[] }>;
     required: string[];
   };
-  group: 'browser' | 'files' | 'research';
+  group: 'browser' | 'files' | 'research' | 'google';
 }
 
 export const TOOLS: ToolDefinition[] = [
@@ -42,6 +42,19 @@ export const TOOLS: ToolDefinition[] = [
         url: { type: 'string', description: 'The URL to open.' },
       },
       required: ['url'],
+    },
+    group: 'browser',
+  },
+  {
+    name: 'youtube_search',
+    description: 'Search YouTube directly and return real video results (title, url, channel) - use this instead of web_search when the operator wants a video.',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'What to search for on YouTube.' },
+        limit: { type: 'number', description: 'Maximum number of results to return.' },
+      },
+      required: ['query'],
     },
     group: 'browser',
   },
@@ -186,6 +199,61 @@ export const TOOLS: ToolDefinition[] = [
     },
     group: 'files',
   },
+  // google - operator's own connected Gmail/Calendar/Drive (see GooglePanel.tsx)
+  {
+    name: 'gmail_list_unread',
+    description: 'List the operator\'s unread Gmail messages. Fails if Google is not connected.',
+    parameters: { type: 'object', properties: { limit: { type: 'number', description: 'Max messages.' } }, required: [] },
+    group: 'google',
+  },
+  {
+    name: 'gmail_send',
+    description: 'Send an email from the operator\'s own Gmail account. Fails if Google is not connected.',
+    parameters: {
+      type: 'object',
+      properties: {
+        to: { type: 'string', description: 'Recipient email address.' },
+        subject: { type: 'string', description: 'Email subject.' },
+        body: { type: 'string', description: 'Plain-text email body.' },
+      },
+      required: ['to', 'subject', 'body'],
+    },
+    group: 'google',
+  },
+  {
+    name: 'calendar_list_upcoming',
+    description: 'List the operator\'s upcoming Google Calendar events. Fails if Google is not connected.',
+    parameters: { type: 'object', properties: { limit: { type: 'number', description: 'Max events.' } }, required: [] },
+    group: 'google',
+  },
+  {
+    name: 'calendar_create_event',
+    description: 'Create a Google Calendar event for the operator. Fails if Google is not connected.',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Event title.' },
+        start: { type: 'string', description: 'Start time, ISO 8601.' },
+        end: { type: 'string', description: 'End time, ISO 8601.' },
+        description: { type: 'string', description: 'Optional event description.' },
+      },
+      required: ['title', 'start', 'end'],
+    },
+    group: 'google',
+  },
+  {
+    name: 'drive_search',
+    description: 'Search the operator\'s Google Drive by file name. Fails if Google is not connected.',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Text to search for in file names.' },
+        limit: { type: 'number', description: 'Max results.' },
+      },
+      required: ['query'],
+    },
+    group: 'google',
+  },
   // research
   {
     name: 'wikipedia_lookup',
@@ -231,6 +299,9 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
       case 'open_url':
         result = await (ultron as any).browser.open(args.url as string);
         break;
+      case 'youtube_search':
+        result = await ultron.browser.youtubeSearch(args.query as string, args.limit as number | undefined);
+        break;
       case 'click_element':
         result = await (ultron as any).browser.click(args.selector as string);
         break;
@@ -264,6 +335,24 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
         break;
       case 'create_folder':
         result = await ultron.files.createFolder(args.folder as string, args.name as string);
+        break;
+      // google
+      case 'gmail_list_unread':
+        result = await ultron.google.gmailListUnread(args.limit as number | undefined);
+        break;
+      case 'gmail_send':
+        result = await ultron.google.gmailSend(args.to as string, args.subject as string, args.body as string);
+        break;
+      case 'calendar_list_upcoming':
+        result = await ultron.google.calendarListUpcoming(args.limit as number | undefined);
+        break;
+      case 'calendar_create_event':
+        result = await ultron.google.calendarCreateEvent(
+          args.title as string, args.start as string, args.end as string, args.description as string | undefined,
+        );
+        break;
+      case 'drive_search':
+        result = await ultron.google.driveSearch(args.query as string, args.limit as number | undefined);
         break;
       // research
       case 'wikipedia_lookup':

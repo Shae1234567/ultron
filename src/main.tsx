@@ -6,6 +6,7 @@ import './styles/hud.css';
 import './styles/core.css';
 import './styles/app.css';
 import './styles/boot.css';
+import './styles/hologram.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -20,13 +20,18 @@ TTS) — Gemini and the browsing agent are optional, opt-in upgrades on top of t
 | Local LLM brain via Ollama, streaming into the transcript | Working |
 | **Second brain: Google Gemini**, switchable in Settings | Working (needs a free key) |
 | Text-to-speech (Atlas talks back) | Working |
-| **Live Voice** — real-time spoken conversation via the Gemini Live API | Backend built; needs UI wiring + your own key/mic to try |
+| **Live Voice** — real-time spoken conversation via the Gemini Live API | Wired end-to-end (button in Voice Interface); unverified against the real API - needs your own key + mic to confirm |
 | Speech-to-text (push-to-talk) via local Whisper | Working |
 | **Real autonomous web browsing** via a headless Chromium (Playwright) | Working |
 | **Agentic specialists** — Scout, The Archivist, Unison — call real tools in a loop | Working (needs a tool-capable Ollama model, e.g. `llama3.2`) |
 | **File organization** — read, write, rename, move, delete, create, all agent-callable | Working (strictly inside folders you add) |
 | GNews feed with regions + AI relevance blurbs | Working (needs a free key) |
-| File panel — index folders you explicitly add, list + search | Working |
+| **World map hologram** — animated wireframe globe, live news beacons per region | Working |
+| **Holographic UI layer** — scanlines, glitch text, animated energy borders, ambient particles | Working (`src/styles/hologram.css` + `src/components/hud/`) |
+| **Embedded browser side-tab** — real interactive `<webview>`, back/forward/address bar | Working |
+| **Atlas speaks first** — greets you unprompted at boot once the brain is ready, asks what you want to work on | Working |
+| **Google Drive/Gmail/Calendar** — real OAuth2 to your own account, agent-callable | Working (needs a one-time free Google Cloud OAuth client - see Settings → Google) |
+| File panel — index folders you explicitly add, list + search | Working (defaults the picker to your user folder for full-access setup) |
 | Memory — a file Atlas always knows about you, editable in-app | Working |
 | 10 specialist agents (7 personas + 3 agentic), several with real live capability | Working |
 | Connectors panel — 8 services scaffolded | Scaffolding only, by design |
@@ -196,14 +201,56 @@ page for a "tools" badge before relying on it for Scout/Archivist/Unison).
 
 `src/services/liveVoice.ts` wraps the Gemini Live API for full-duplex spoken
 conversation — the same real-time audio streaming Jarvis (Mark L) used, ported to
-TypeScript. The module is complete and typechecks clean, but **wiring it into the HUD
-(mic streaming in, audio playback out) is not done in this pass** — there's no way to
-test live audio I/O against the real API in the environment that built this. Next step:
-capture mic audio as 16kHz PCM16 chunks (extend `services/recorder.ts`), feed them to
-`startLiveVoice(...).sendAudioChunk(...)`, and play `onModelAudioChunk` output back
-through Web Audio at 24kHz — then verify with your own Gemini key and a real microphone.
+TypeScript. `src/services/liveVoiceSession.ts` wires it to a real microphone (captured,
+resampled to 16kHz PCM16, base64-encoded, streamed in) and real speaker output (24kHz
+PCM16 chunks scheduled back-to-back through Web Audio) - click **Live Voice** in the
+Voice Interface panel to start/stop a session. This needs `GEMINI_API_KEY` set in
+Settings. **Not verified against the real API** - there's no mic/API key available in
+the environment that built this, so the wiring follows the documented contract exactly
+but the first real use is the actual test. If audio sounds wrong, the PCM sample rates
+(16kHz in, 24kHz out) are the first thing to check - see the comments in both files.
 
 ---
+
+## Holograms, the world map, and the embedded browser
+
+- **Global Theater** (button in the top bar) — an animated wireframe world map with a
+  pulsing beacon over every region that currently has news. Click a beacon to see that
+  region's top headlines and narrow the news feed to it. Pure client-side visualization
+  of data already in the store - nothing new is fetched when you open it.
+- **Holographic layer** (`src/styles/hologram.css`, `src/components/hud/{ScanLines,GlitchText,HoloFrame}.tsx`)
+  - reusable scanline sweeps, glitch-text readouts, and animated energy borders, applied
+  so far to the boot sequence, the top bar brand, and the ambient background. All
+  CSS-driven (transform/opacity only, no per-frame JS), so it costs nothing at idle.
+- **Browser** (button in the top bar) — a real, interactive embedded browser tab
+  (Electron's native `<webview>`, not a screenshot feed) with back/forward/reload and an
+  address bar. This is separate from Scout's headless Playwright instance: the Browser
+  panel is for *you* to drive directly; Scout drives its own headless one autonomously.
+
+## Atlas speaks first
+
+At boot, once the brain is actually ready (and only if you haven't already started
+typing/talking), Atlas greets you unprompted with a short, time-of-day-aware line and
+asks what you want to work on - see `src/services/proactive.ts`. It also runs a
+low-frequency idle check-in (default every 20 minutes, only when the app has genuinely
+been silent that long) so it never talks over you.
+
+## Google Drive, Gmail, Calendar (Settings → Google)
+
+Real access to your own Google account via the standard OAuth2 "installed app" flow
+(PKCE + a local loopback redirect - see `electron/googleAuth.ts`). You approve access on
+Google's real sign-in page in your own browser; nothing happens without you clicking
+Allow there, and the resulting tokens live only in a local file this app created.
+
+**One manual step Atlas cannot do for you:** Google requires every app to register its
+own OAuth client. The Google panel walks through it (free, ~5 minutes): create a Google
+Cloud project, enable the Gmail/Calendar/Drive APIs, create a Desktop-app OAuth Client
+ID, and paste the client ID/secret into Settings or `.env` (`GOOGLE_CLIENT_ID` /
+`GOOGLE_CLIENT_SECRET`). After that, "Connect Google account" just works.
+
+Once connected: unread mail, upcoming events, and recent Drive files show in the panel,
+and Unison (and any agentic specialist given the `google` tool group) can genuinely list
+unread mail, send an email, list/create calendar events, and search Drive mid-conversation.
 
 ## Real web browsing (Scout)
 
@@ -228,9 +275,9 @@ model can call a tool, see the result, and decide to call another before answeri
 
 | Specialist | Tools | What it's for |
 |---|---|---|
-| **Scout** | web browsing | Search and read the live web, cite real URLs, never invent one |
+| **Scout** | web + YouTube browsing | Search and read the live web (or search YouTube directly and return real video results), cite real URLs, never invent one |
 | **The Archivist** | files | List, search, read, create, edit, rename, move, delete — strictly inside folders added in the Files tab |
-| **Unison** | browsing + files + research | The orchestrator — plans a multi-step task out loud, then actually executes each step with real tools, reporting as it goes |
+| **Unison** | browsing + files + research + Google | The orchestrator — plans a multi-step task out loud, then actually executes each step with real tools (including Gmail/Calendar/Drive once Google is connected), reporting as it goes |
 
 Every tool call and result is real and visible — nothing here is simulated, and a
 failed tool call is reported plainly rather than papered over. See `services/tools.ts`

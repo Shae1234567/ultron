@@ -62,15 +62,31 @@ const api = {
       ipcRenderer.on('gemini:error', handler);
       return () => ipcRenderer.off('gemini:error', handler);
     },
+    getKeyForLiveSession: () => ipcRenderer.invoke('gemini:getKeyForLiveSession'),
   },
 
   browser: {
     search: (query: string, limit?: number) => ipcRenderer.invoke('browser:search', query, limit),
+    youtubeSearch: (query: string, limit?: number) => ipcRenderer.invoke('browser:youtubeSearch', query, limit),
     open: (url: string) => ipcRenderer.invoke('browser:open', url),
     click: (selector: string) => ipcRenderer.invoke('browser:click', selector),
     type: (selector: string, text: string, submit?: boolean) => ipcRenderer.invoke('browser:type', selector, text, submit),
     screenshot: () => ipcRenderer.invoke('browser:screenshot'),
     close: () => ipcRenderer.invoke('browser:close'),
+  },
+
+  google: {
+    hasCredentials: () => ipcRenderer.invoke('google:hasCredentials'),
+    isConnected: () => ipcRenderer.invoke('google:isConnected'),
+    connect: (scopes: string[]) => ipcRenderer.invoke('google:connect', scopes),
+    disconnect: () => ipcRenderer.invoke('google:disconnect'),
+    gmailListUnread: (limit?: number) => ipcRenderer.invoke('google:gmail:listUnread', limit),
+    gmailSend: (to: string, subject: string, body: string) => ipcRenderer.invoke('google:gmail:send', to, subject, body),
+    calendarListUpcoming: (limit?: number) => ipcRenderer.invoke('google:calendar:listUpcoming', limit),
+    calendarCreateEvent: (title: string, start: string, end: string, description?: string) =>
+      ipcRenderer.invoke('google:calendar:createEvent', title, start, end, description),
+    driveListRecent: (limit?: number) => ipcRenderer.invoke('google:drive:listRecent', limit),
+    driveSearch: (query: string, limit?: number) => ipcRenderer.invoke('google:drive:search', query, limit),
   },
 
   news: {

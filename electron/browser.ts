@@ -80,6 +80,48 @@ export async function openPage(url: string): Promise<{ ok: boolean; title?: stri
   }
 }
 
+export interface YouTubeResult { title: string; url: string; channel: string; duration?: string }
+
+/** Dedicated YouTube search - DDG's general results rarely surface real watch
+ *  links cleanly, so this scrapes YouTube's own results page directly instead. */
+export async function youtubeSearch(query: string, limit = 8): Promise<{ ok: boolean; results: YouTubeResult[]; error?: string }> {
+  try {
+    const p = await getPage();
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+    await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    // Give the results grid a moment to hydrate - it's client-rendered.
+    await p.waitForSelector('a#video-title, a.yt-lockup-metadata-view-model-wiz__title', { timeout: 8000 }).catch(() => {});
+
+    const results = await p.evaluate((max) => {
+      const out: { title: string; url: string; channel: string; duration?: string }[] = [];
+      const seen = new Set<string>();
+      const links = Array.from(
+        document.querySelectorAll('a#video-title, a.yt-lockup-metadata-view-model-wiz__title'),
+      );
+      for (const el of links) {
+        if (out.length >= max) break;
+        const a = el as HTMLAnchorElement;
+        const href = a.getAttribute('href') || '';
+        if (!href.startsWith('/watch')) continue;
+        const url = 'https://www.youtube.com' + href;
+        if (seen.has(url)) continue;
+        seen.add(url);
+        const title = (a.getAttribute('title') || a.textContent || '').trim();
+        if (!title) continue;
+        const container = a.closest('ytd-video-renderer, ytd-compact-video-renderer, yt-lockup-view-model');
+        const channel = (container?.querySelector('ytd-channel-name a, ytd-channel-name #text, .yt-content-metadata-view-model-wiz__metadata-text')?.textContent || '').trim();
+        out.push({ title, url, channel });
+      }
+      return out;
+    }, limit);
+
+    return { ok: true, results };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    return { ok: false, results: [], error: message };
+  }
+}
+
 export async function clickOnPage(selector: string): Promise<{ ok: boolean; error?: string }> {
   try {
     const p = await getPage();
