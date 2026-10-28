@@ -1,0 +1,546 @@
+{
+  "summary": {
+    "workflow": "v2",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "ranAt": "2026-09-29T23:31:33.260Z",
+    "passed": 18,
+    "total": 20,
+    "medianSeconds": 6,
+    "meanCalls": 4,
+    "meanTokens": 15250
+  },
+  "results": [
+    {
+      "id": "quiz-average",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 13000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Your current average is exactly 80. You need a 90 on the next quiz to bring your average up to exactly 82. That's a solid goal—aim for it.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (13 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 13k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "savings-weeks",
+      "split": "opt",
+      "category": "calculation",
+      "pass": false,
+      "missing": [
+        "\\b24\\b"
+      ],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Twenty-four weeks. That's about six months of weekly $15 deposits to get you from $40 to $400.",
+      "log": [
+        "calc (400 - 40) / 15",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "discount-tax",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The final price is $66.15. The jersey was discounted to $63, then the 5% GST brought it up to $66.15.",
+      "log": [
+        "remembered: new note \"School\", new note \"Goals\"",
+        "calc (84 * (1 - 0.25)) * 1.05",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "field-feet",
+      "split": "opt",
+      "category": "units",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "That's 344.5 feet.",
+      "log": [
+        "calc 105 meters to feet",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "days-until",
+      "split": "opt",
+      "category": "dates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 13000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "There are 81 days from September 29, 2026 to December 19, 2026.",
+      "log": [
+        "calc days between 2026-09-29 and 2026-12-19",
+        "failed: Error: Undefined symbol between (line 1)",
+        "run code (6 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 13k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "solve-linear",
+      "split": "opt",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 12,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "x = 19. Here's the work: distribute the 3 on the left side to get 3x - 12, then subtract 2x from both sides to isolate the x term, leaving you with x - 12 = 7. Add 12 to both sides and you get your answer.",
+      "log": [
+        "remembered: new note \"Savings Goal\", new note \"Financial Habits\"",
+        "run code (1 line)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 11 s"
+      ]
+    },
+    {
+      "id": "bike-speed",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Your average speed is 18 km/h. Not bad for a Grade 9 kid.",
+      "log": [
+        "calc (12 / (40/60))",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "bat-and-ball",
+      "split": "opt",
+      "category": "reasoning",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 11,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 14000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The math checks out: a ball costs $0.05 and a bat costs $1.05. For 3 balls and 2 bats, you're spending exactly $2.25.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (18 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 14k tokens · 10 s"
+      ]
+    },
+    {
+      "id": "read-long-rules",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 14000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "There is no arithmetic to compute here; the league rules explicitly state that U15 teams may dress up to seven substitutes. The number 7 was read directly from the text on your local server, not calculated.",
+      "log": [
+        "read 127.0.0.1:64435/league-rules.html",
+        "verify: those numbers were not computed - working them out with code first",
+        "cost: 3 model calls · 14k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "abstain-coach",
+      "split": "opt",
+      "category": "abstention",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [],
+      "tools": [
+        "recall"
+      ],
+      "answer": "I don't have a record of that conversation. Since I don't know your coach's name or any specific details about what you told me, I can't retrieve it. Try mentioning the coach's name or a specific topic discussed (like your position or a goal).",
+      "log": [
+        "recall \"coach practice Tuesday conversation dialogue words\"",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "test-needed",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You need a 99 on the fourth test to average exactly 85. That's a big jump from your last score—pretty steep for one grade-9 science test. Keep that in mind for studying.",
+      "log": [
+        "remembered: new note \"Shae's Cycling Stats\", new note \"Shae's School Year\"",
+        "calc (72 + 88 + 81 + x) / 4 = 85 for x",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "compound-interest",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You'll have $562.43 after 3 years with that savings plan.",
+      "log": [
+        "calc 500 * (1 + 0.04)^3",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "fahrenheit",
+      "split": "holdout",
+      "category": "units",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "72 degrees Fahrenheit is 22.2 degrees Celsius.",
+      "log": [
+        "remembered: new note \"U15 League Rules\", new note \"Ultron Capabilities\"",
+        "calc (72 - 32) * 5/9",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "practice-hours",
+      "split": "holdout",
+      "category": "dates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "That's about 4 hours and 45 minutes of practice per week. Pretty solid commitment for a Grade 9 player.",
+      "log": [
+        "calc (8.33 - 6.75) * 3",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "ratio-split",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You get $100. Your brother gets $80.",
+      "log": [
+        "remembered: new note \"Science Tests\"",
+        "calc 180 * 5 / (5 + 4) and 180 * 4 / (5 + 4)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "solve-linear-2",
+      "split": "holdout",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "x = 5",
+      "log": [
+        "run code (1 line)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "sprint-percent",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Your time dropped by approximately 4.8 percent. That's a solid improvement!",
+      "log": [
+        "calc ((6.2 - 5.9) / 6.2) * 100",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "read-long-news",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "Tier 3 tryout results will be posted on October 4, 2026. Every player who tried out will be emailed by the technical director the same evening, before anything goes online.",
+      "log": [
+        "remembered: new note \"Shae's Practice Schedule\"",
+        "read 127.0.0.1:64435/club-news.html",
+        "cost: 2 model calls · 9k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "read-long-calendar",
+      "split": "holdout",
+      "category": "research-reading",
+      "pass": false,
+      "missing": [
+        "November 18|Nov\\.? 18|18 November"
+      ],
+      "wrong": [],
+      "seconds": 15,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 25000,
+      "verified": [],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The code failed to run because your local environment doesn't support `fetch` or `require`. I cannot access the school calendar directly through these methods right now. Since this is a local file and I can't read it without the right tools, I don't know when the Grade 9 science fair is. You'll have to check the browser yourself or tell me what you see there.",
+      "log": [
+        "remembered: new note \"Preferences\", new note \"Other\"",
+        "open 127.0.0.1:64435/school-calendar.html",
+        "run code (1 line)",
+        "failed: SyntaxError: return not in a function (line 1)",
+        "run code (1 line)",
+        "failed: SyntaxError: expecting ';' (line 1)",
+        "run code (1 line)",
+        "failed: ReferenceError: 'fetch' is not defined (line 1)",
+        "run code (2 lines)",
+        "failed: ReferenceError: 'require' is not defined (line 1)",
+        "cost: 6 model calls · 25k tokens · 15 s"
+      ]
+    },
+    {
+      "id": "abstain-quiz",
+      "split": "holdout",
+      "category": "abstention",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 259,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 24,
+      "tokens": 100000,
+      "verified": [],
+      "tools": [
+        "recall",
+        "search",
+        "read"
+      ],
+      "answer": "The grade isn't in your vault or on your desktop. The search teams checked everything you asked, from Obsidian notes to your local folders, and found nothing specific about that September 3 science quiz score. The only relevant file found was a general Grade 9 course deadlines list; it didn't contain that actual mark. This strongly suggests the data lives directly in your D2L portal and hasn't been copied anywhere yet. Since you are a minor, you likely need to log into that school account yourself to view or download the report. I can help you draft a script to query the API later if you prefer, but right now it's not sitting in any file we can read.",
+      "log": [
+        "recall \"September 3 science quiz mark grade\"",
+        "recall \"Shae September 3 science quiz grade mark\"",
+        "search Shae September 3 science quiz in ~",
+        "recall \"September 3 quiz grade\"",
+        "search September 3 in ~",
+        "recall \"science quiz grade Shae\"",
+        "search science quiz in ~",
+        "recall \"grades marks scores September 3\"",
+        "recall \"school grades Shae September\"",
+        "search quiz in ~",
+        "recall \"D2L Blackboard assignments\"",
+        "list C:\\Users\\shaeg\\Ultron Vault",
+        "recall \"September 3 science quiz\"",
+        "list C:\\Users\\shaeg\\Ultron Vault\\Journal\\2026",
+        "recall \"Science quiz September 3\"",
+        "read 2026-09-27.md",
+        "cost: 24 model calls · 100k tokens · 259 s"
+      ]
+    }
+  ]
+}

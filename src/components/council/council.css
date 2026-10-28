@@ -1,0 +1,177 @@
+/* The council chamber - ported from the approved preview (projects/ultron-council/preview.html). */
+.council-root, .council-launch { --council-ease: cubic-bezier(0.23, 1, 0.32, 1); --font-greek: 'GFS Didot', Georgia, serif; }
+
+/* ── The council launcher, top of the Systems sidebar ───────────── */
+.council-launch { padding: 10px 12px 12px; border-bottom: 1px solid var(--cyan-20); flex: 0 0 auto; }
+.cl-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.cl-head .label-xs { color: var(--cyan); }
+.cl-intel { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+.cl-intel b { color: var(--white); font-weight: 400; }
+.cl-mini {
+  position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; margin: 8px 0 9px; padding: 0;
+  border: 1px solid var(--cyan-20); background: #050c16; overflow: hidden; transition: border-color 0.16s; cursor: pointer;
+}
+.cl-mini canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; object-fit: cover; }
+@media (hover: hover) and (pointer: fine) { .cl-mini:hover { border-color: var(--cyan-55); } }
+.cl-mini:focus-visible { outline: 1px solid var(--white); outline-offset: 2px; }
+.cl-actions { display: flex; gap: 6px; }
+.cl-actions .hud-btn:first-child { flex: 1; }
+
+/* ── The chamber overlay ─────────────────────────────────────────── */
+.council-root { position: fixed; inset: 0; z-index: 60; padding: 22px; display: grid; background: rgba(2, 5, 11, 0); transition: background 260ms ease; }
+.council-root.is-open { background: rgba(2, 5, 11, 0.72); }
+.council-root > .hud-panel { opacity: 0; transform: scale(0.98); transition: opacity 300ms var(--council-ease), transform 300ms var(--council-ease); }
+.council-root.is-open > .hud-panel { opacity: 1; transform: none; }
+.council-root.is-closing > .hud-panel { transition-duration: 170ms; }
+.council-root > .hud-panel > .hud-panel__inner { background: rgba(7, 13, 23, 0.98); }
+.council-root .panel-head { gap: 10px; }
+.chamber-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 352px; }
+.stage-wrap { position: relative; min-width: 0; min-height: 0; background: #050c16; }
+.stage-wrap canvas, .stage-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.stage-wrap canvas { object-fit: contain; image-rendering: pixelated; }
+.stage-hint { position: absolute; left: 14px; bottom: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--dimmer); pointer-events: none; }
+
+/* Names and click targets sit over the pixels as real text, in Ultron's own lettering. */
+.px-name { font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.12em; fill: var(--white); text-anchor: middle; }
+.px-dept { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; fill: #8fb0c8; text-anchor: middle; }
+.px-soon { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; fill: #4f6d85; text-anchor: middle; }
+.px-label { font-family: var(--font-display); font-size: 8px; letter-spacing: 0.22em; fill: #6b8ba4; }
+.px-team { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; fill: #4f6d85; text-anchor: middle; transition: fill 150ms ease; }
+.px-team.on { fill: var(--cyan); }
+.px-name-bg { fill: var(--cyan); opacity: 0; }
+.px-seat { cursor: pointer; outline: none; }
+.px-seat.is-selected .px-name-bg { opacity: 1; }
+.px-seat.is-selected .px-name { fill: #050c16; }
+.px-seat.is-unbuilt .px-name { fill: #6b8ba4; }
+.px-seat:focus-visible .px-name { text-decoration: underline; }
+.px-hit { fill: transparent; }
+.px-helios { cursor: pointer; outline: none; }
+
+/* ── The side panel: a character sheet in Ultron's lettering, framed in pixels like the room ── */
+.council-panel {
+  border-left: 1px solid var(--cyan-20); padding: 16px 16px 14px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px;
+  background: linear-gradient(180deg, rgba(0, 217, 255, 0.045), transparent 32%), #07101b;
+}
+.council-panel .st { animation: council-rise 280ms var(--council-ease) backwards; animation-delay: calc(var(--k, 0) * 45ms); }
+@keyframes council-rise { from { opacity: 0; transform: translateY(4px); } }
+
+/* Section labels: Ultron's Michroma caps, trailing off in a hairline. */
+.council-panel .sec {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  font-family: var(--font-display); font-size: 8.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim);
+}
+.council-panel .sec::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--cyan-35), transparent); }
+.council-panel .sec b { color: var(--void); background: var(--cyan); font-weight: 700; padding: 1px 5px; letter-spacing: 0.14em; }
+
+/* Portrait and name. The frame is a pixel border: corners left open, like the room's sprites. */
+.who-head { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 14px; align-items: center; }
+.who-head--sm { grid-template-columns: 76px minmax(0, 1fr); }
+.council-panel .frame {
+  margin: 3px; background: #050c16; line-height: 0;
+  box-shadow: 0 -3px 0 #0891b2, 0 3px 0 #0891b2, -3px 0 0 #0891b2, 3px 0 0 #0891b2;
+}
+.council-panel .frame--lit { box-shadow: 0 -3px 0 var(--cyan), 0 3px 0 var(--cyan), -3px 0 0 var(--cyan), 3px 0 0 var(--cyan), 0 0 22px rgba(0, 217, 255, 0.22); }
+.council-panel .frame canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.seatline { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 8.5px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+.seatno { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--void); background: var(--cyan); padding: 1px 5px; }
+.seatno--dim { background: var(--dimmer); }
+.council-panel .name {
+  font-family: var(--font-display); font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--white); text-shadow: 0 0 12px var(--cyan-55), 0 0 2px var(--cyan); margin: 8px 0 3px; line-height: 1.2;
+}
+.epithet { font-family: var(--font-mono); font-size: 12.5px; color: var(--cyan-soft); }
+.greek { margin-top: 9px; font-size: 13.5px; font-weight: 600; line-height: 1.35; color: var(--dim); }
+.greek i { font-family: var(--font-greek); font-style: normal; font-size: 15px; color: var(--cyan); }
+.unbuilt-plate { display: inline-block; margin-top: 8px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--dim); border: 1px dashed var(--dimmer); padding: 2px 7px; }
+
+/* What they say, in a pixel speech box with a stepped tail pointing back at the portrait. */
+.say {
+  position: relative; margin: 3px 3px 3px 15px; padding: 10px 13px 11px;
+  background: #0b1828; color: #dff2fb; font-family: var(--font-ui); font-weight: 600; font-size: 15.5px; line-height: 1.38;
+  box-shadow: 0 -3px 0 #0891b2, 0 3px 0 #0891b2, -3px 0 0 #0891b2, 3px 0 0 #0891b2;
+}
+.say::before {
+  content: ''; position: absolute; left: -15px; top: 9px; width: 12px; height: 12px; background: #0891b2;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 75% 100%, 75% 75%, 50% 75%, 50% 50%, 25% 50%, 25% 25%, 0 25%);
+}
+.say::after {
+  content: ''; position: absolute; left: -9px; top: 12px; width: 9px; height: 6px; background: #0b1828;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 66% 100%, 66% 50%, 0 50%);
+}
+.say .by { display: block; font-family: var(--font-display); font-size: 8px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cyan); margin-bottom: 4px; }
+.say--ultron { background: #0d2033; box-shadow: 0 -3px 0 var(--cyan), 0 3px 0 var(--cyan), -3px 0 0 var(--cyan), 3px 0 0 var(--cyan); }
+.say--ultron::before { background: var(--cyan); }
+.say--ultron::after { background: #0d2033; }
+.say--sm { font-size: 14.5px; padding: 8px 11px 9px; }
+.say--quiet { color: var(--dim); }
+
+/* Readouts: Ultron's glowing mono numbers. */
+.readout { display: flex; align-items: baseline; gap: 10px; }
+.readout b { font-family: var(--font-mono); font-weight: 400; font-size: 30px; line-height: 1; color: var(--cyan); text-shadow: var(--text-glow); }
+.readout span { font-family: var(--font-display); font-size: 8.5px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); line-height: 1.5; }
+
+/* Sleep as stacked pixel blocks, one column a night. They charge up from the bottom. */
+.blocks { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 13px; }
+.blocks .stack { display: grid; grid-template-rows: repeat(10, 6px); gap: 2px; }
+.blk { background: rgba(0, 217, 255, 0.07); }
+.blk.goal { box-shadow: inset 0 2px 0 rgba(234, 247, 255, 0.75); }
+.blk.on { background: var(--cyan); box-shadow: 0 0 6px rgba(0, 217, 255, 0.3); animation: council-charge 1ms steps(1) backwards; animation-delay: calc(var(--i) * 26ms + 160ms); }
+.blk.low { background: #0a5a78; animation: council-charge 1ms steps(1) backwards; animation-delay: calc(var(--i) * 26ms + 160ms); }
+@keyframes council-charge { from { background: rgba(0, 217, 255, 0.07); box-shadow: none; } }
+.day { display: block; text-align: center; margin-top: 6px; font-family: var(--font-display); font-size: 7.5px; font-weight: 700; color: var(--dimmer); }
+.legend { margin-top: 9px; font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+.legend i { display: inline-block; width: 9px; height: 5px; margin-right: 5px; vertical-align: middle; }
+
+/* People: a pixel face, a name in Michroma, what they do, and whether they're on it right now. */
+.council-panel .row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(0, 217, 255, 0.07); }
+.council-panel .row:last-child { border-bottom: 0; }
+.council-panel .row canvas { width: 48px; height: 48px; image-rendering: pixelated; box-shadow: 0 0 0 1px rgba(0, 217, 255, 0.22); }
+.council-panel .row .nm { display: flex; align-items: center; gap: 7px; font-family: var(--font-display); font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--white); }
+.council-panel .row .num { font-family: var(--font-mono); font-size: 10.5px; color: var(--dimmer); letter-spacing: 0; }
+.council-panel .row .rl { font-size: 14px; font-weight: 600; color: var(--dim); line-height: 1.25; margin-top: 3px; }
+.council-panel .row .doing { font-family: var(--font-mono); font-size: 11.5px; color: var(--cyan-soft); margin-top: 3px; }
+.council-panel .row .stt { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dimmer); white-space: nowrap; }
+.council-panel .row .stt.on { color: var(--cyan); }
+.council-panel .row.go { cursor: pointer; transition: background 0.15s; }
+@media (hover: hover) and (pointer: fine) { .council-panel .row.go:hover { background: rgba(0, 217, 255, 0.06); } }
+.council-panel .row.is-dim { opacity: 0.55; }
+.mt { text-align: right; max-width: 110px; }
+.mt b { display: block; font-family: var(--font-mono); font-weight: 400; font-size: 17px; color: var(--cyan); text-shadow: var(--text-glow); }
+.mt span { display: block; font-family: var(--font-display); font-size: 7px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); line-height: 1.4; margin-top: 2px; }
+.dot--live { animation: council-pulse 1.6s ease-in-out infinite; }
+@keyframes council-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+/* The team members a seat borrows, as their little busts from the room. */
+.borrow { display: flex; gap: 22px; flex-wrap: wrap; }
+.borrow figure { display: grid; grid-template-columns: 32px auto; gap: 10px; align-items: end; margin: 0; }
+.borrow canvas { width: 32px; height: 50px; image-rendering: pixelated; }
+.borrow b { display: block; font-family: var(--font-display); font-size: 9.5px; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; color: var(--white); }
+.borrow span { display: block; font-size: 13.5px; font-weight: 600; color: var(--dim); margin-top: 2px; }
+
+/* Helios: the day's AI budget as 40 pixel segments, and his log. */
+.budget { display: grid; grid-template-columns: repeat(40, 1fr); gap: 2px; margin-top: 10px; }
+.budget i { height: 8px; background: rgba(0, 217, 255, 0.08); }
+.budget i.on { background: #ffd36b; box-shadow: 0 0 4px rgba(255, 211, 107, 0.4); }
+.hlog { list-style: none; display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; }
+.hlog li { font-family: var(--font-mono); font-size: 12px; line-height: 1.45; color: #cfe3ee; }
+.hlog b { font-weight: 400; color: var(--cyan); margin-right: 8px; }
+
+/* A note from its own brain, and the phone link. */
+.memo { margin-top: 11px; padding: 9px 12px; border-left: 3px solid #0891b2; background: rgba(0, 217, 255, 0.045); font-family: var(--font-mono); font-size: 12.5px; line-height: 1.5; color: #cfe3ee; }
+.memo small { display: block; font-size: 10.5px; color: var(--dimmer); letter-spacing: 0.06em; margin-bottom: 3px; text-transform: uppercase; }
+.memo code { color: var(--cyan); font-family: var(--font-mono); font-size: 14px; }
+.council-flags { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.council-flags li { font-size: 14px; font-weight: 600; color: #dff2fb; padding-left: 12px; border-left: 2px solid var(--cyan); }
+
+.bf { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 10px; align-items: start; }
+.bf canvas { width: 48px; height: 48px; image-rendering: pixelated; box-shadow: 0 0 0 1px rgba(0, 217, 255, 0.22); }
+.np-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+.np-note { font-family: var(--font-mono); font-size: 11.5px; color: var(--dim); min-height: 15px; margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .council-panel .st { animation-name: council-fade; }
+  .blk.on, .blk.low, .dot--live { animation: none; }
+  .council-root > .hud-panel { transform: none !important; }
+}
+@keyframes council-fade { from { opacity: 0; } }

@@ -1,0 +1,69 @@
+{
+  "summary": {
+    "workflow": "v2",
+    "split": "opt",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "ranAt": "2026-09-29T23:16:58.228Z",
+    "passed": 2,
+    "total": 2,
+    "medianSeconds": 8,
+    "meanCalls": 3,
+    "meanTokens": 14000
+  },
+  "results": [
+    {
+      "id": "read-long-rules",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 19000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "read",
+        "run code"
+      ],
+      "answer": "A U15 team can dress up to seven substitutes for a league game. The rule is explicitly stated in the rules I read - no calculation was needed, just direct information extraction from the document.",
+      "log": [
+        "read 127.0.0.1:54244/league-rules.html",
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (2 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 19k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "read-long-news",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "Tier 3 tryout results will be posted on October 4, 2026. Every player who tried out will be emailed by the technical director that evening—before anything goes live on the website. So email is your primary notification channel; the site update is a backup.",
+      "log": [
+        "read 127.0.0.1:54244/club-news.html",
+        "cost: 2 model calls · 9k tokens · 4 s"
+      ]
+    }
+  ]
+}

@@ -10,7 +10,7 @@ interface Props {
 }
 
 const GLYPH: Record<CoreState, string> = {
-  idle: 'ATLAS',
+  idle: 'ULTRON',
   listening: 'LISTENING',
   thinking: 'PROCESSING',
   speaking: 'RESPONDING',

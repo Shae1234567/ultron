@@ -1,0 +1,384 @@
+{
+  "summary": {
+    "workflow": "v1",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard-tasks.json",
+    "ranAt": "2026-09-30T04:31:03.469Z",
+    "passed": 13,
+    "total": 16,
+    "medianSeconds": 6,
+    "meanCalls": 2,
+    "meanTokens": 7875
+  },
+  "results": [
+    {
+      "id": "trains-meet",
+      "split": "opt",
+      "category": "multi-step",
+      "pass": false,
+      "missing": [
+        "\\b4:0[12]\\b"
+      ],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 11000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "They meet in 90 minutes. Since the first train leaves at 2:15 pm, they cross paths at 3:45 pm.",
+      "log": [
+        "calc t = (300) / (90 + 110) for t in hours, then 2:15 + t in minutes",
+        "failed: Invalid expression.",
+        "calc 300 / (90 + 110) * 60",
+        "cost: 3 model calls · 11k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "ages",
+      "split": "opt",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "Let x be your age and y be your cousin's age. We know: 1. $x = 3y$ (You are three times as old as your cousin) 2. $x + 10 = 2(y + 10)$ (In 10 years, you will be twice as old as your cousin) Substitute the first equation into the second: $3y + 10 = 2(y + 10)$ Solve for y: $3y + 10 = 2y + 20$ $3y - 2y = 20 - 10$ $y = 10$ Now find x using the first equation: $x = 3(10) = 30$ You are **30 years old**.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "jerseys",
+      "split": "opt",
+      "category": "logic",
+      "pass": false,
+      "missing": [
+        "Bo\\D{0,25}\\b4\\b",
+        "Cy\\D{0,25}\\b3\\b",
+        "Di\\D{0,25}\\b2\\b"
+      ],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "Bo wears 2, Cy wears 1, Ana wears 3, and Di wears 4. Here’s why: Since Bo is one more than Cy and both numbers are under 5, only (Cy=1, Bo=2) works without exceeding the jersey limit. Ana must be odd but not 1, so she takes 3 or 5. Di is greater than Ana, which forces Ana to 3 and Di to 4. This satisfies all constraints.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "not-enough-time",
+      "split": "opt",
+      "category": "trap",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Shae, you've got a -5 minute margin. That means your schedule is already overbooked by 5 minutes. You need to cut somewhere if you want that gaming time, or accept that there's no room left.",
+      "log": [
+        "calc 180 - 75 - 90 - 20",
+        "cost: 2 model calls · 7k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "up-down-percent",
+      "split": "opt",
+      "category": "trap",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The final price is $48, which is lower than the original $50. Here's why: The jacket goes up to $60 (a 20% increase), but when you take 20% off that new price of $60, you're only taking away $12, bringing it back down to $48. The percentage change is based on a different starting point each time.",
+      "log": [
+        "calc (50 * 1.2) * 0.8",
+        "cost: 2 model calls · 7k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "dice-8",
+      "split": "opt",
+      "category": "probability",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 15,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 18000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The chance you roll an eight is five thirty-sixths. Out of thirty-six total combinations, only five add up to eight: two plus six, three plus five, four plus four, five plus three, and six plus two. That fraction cannot be simplified further because five has no common factors with thirty-six.",
+      "log": [
+        "calc sum([1,2,3,4,5,6],[1,2,3,4,5,6]) == 8",
+        "failed: Invalid expression.",
+        "calc fraction(sum([1,2,3,4,5,6],[1,2,3,4,5,6]) == 8) / sum(1 for _ in [1,2,3,4,5,6] for _ in [1,2,3,4,5,6])",
+        "failed: Invalid expression.",
+        "calc \"sum of two dice\"",
+        "failed: Invalid expression.",
+        "cost: 6 model calls · 18k tokens · 15 s"
+      ]
+    },
+    {
+      "id": "clean-together",
+      "split": "opt",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "You finish in about 2 hours and 8 minutes. Here's why: your rate is one-third of a garage per hour, your brother's is one-sixth. Together you do five-sixths an hour, so the garage takes twelve-fifths of an hour. That's 2.4 hours.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "fuel-cost",
+      "split": "opt",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The gas for that trip will be $41.91 to the cent.",
+      "log": [
+        "remembered: new note \"Free Time Allocation\", new note \"After School Schedule\"",
+        "calc (8.5 / 100) * 340 * 1.45",
+        "cost: 2 model calls · 7k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "average-speed",
+      "split": "holdout",
+      "category": "trap",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Your average speed is 45 km/h. You covered 60 km in 2 hours at the slower pace and another 60 km in 4/3 of an hour (about 1 hour 20 minutes) at the faster pace. That's a total trip time of 3 hours and 20 minutes for 120 km total. Average speed = total distance ÷ total time, which gives you 45 km/h.",
+      "log": [
+        "calc (60/30 + 60/90) / (60/30 + 60/90) * 60",
+        "cost: 2 model calls · 7k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "christmas-day",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "December 25, 2026 will be a Friday. That’s four weeks and three days after the end of September, which puts it squarely in the middle of winter.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "committees",
+      "split": "holdout",
+      "category": "combinatorics",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 15000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You can form 56 different 3-person committees from a class of 8 students. That's C(8,3) = 8! / (3! * 5!) = 56. Simple combinatorics: you're picking order doesn't matter, so divide the number of ways to pick three people in order by the number of ways to arrange those three people.",
+      "log": [
+        "remembered: new note \"Garage Cleaning\", new note \"Work Preferences\"",
+        "calc combination(8, 3)",
+        "failed: Invalid expression.",
+        "calc factorial(8) / (factorial(3) * factorial(5))",
+        "failed: Invalid expression.",
+        "calc 8 * 7 * 6 / (3 * 2 * 1)",
+        "cost: 4 model calls · 15k tokens · 9 s"
+      ]
+    },
+    {
+      "id": "paycheck",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You have $39.69 left for spending money after savings and that $40 expense.",
+      "log": [
+        "calc (12.50 * (3.5 + 4)) * 0.85 - 40",
+        "cost: 2 model calls · 7k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "sequence",
+      "split": "holdout",
+      "category": "pattern",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "The pattern here is adding consecutive even numbers: +4, +6, +8, +10. So the next step is +12. That means the next number is 30 + 12 = 42.",
+      "log": [
+        "remembered: new note \"Preferences\", new note \"Other\"",
+        "cost: 1 model call · 4k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "rectangle-area",
+      "split": "holdout",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "Perimeter = 2(length + width). If length is twice the width, then 2(2w + w) = 54. That's 6w = 54, so w = 9 cm. Length is 18 cm. Area = 18 * 9 = 162 square cm.",
+      "log": [
+        "remembered: new note \"# Sports\"",
+        "cost: 1 model call · 4k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "clock-angle",
+      "split": "holdout",
+      "category": "geometry",
+      "pass": false,
+      "missing": [
+        "\\b130\\b"
+      ],
+      "wrong": [],
+      "seconds": 12,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 19000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Done.",
+      "log": [
+        "calc hour_angle = (3 * 60 + 40) / 2 - 3 * 30; minute_angle = 40 * 6; smaller_angle = abs(minute_angle - hour_angle); min(smaller_angle, 360 - smaller_angle)",
+        "failed: Invalid expression.",
+        "calc hour_angle = (3 * 60 + 40) / 12 - 3 * 5; minute_angle = 40 * 30/60; diff = abs(minute_angle - hour_angle); min(diff, 360 - diff)",
+        "failed: Invalid expression.",
+        "calc hour_angle = (3 + 40/60) * 30; minute_angle = 40 * 30/2; diff = abs(minute_angle - hour_angle); min(diff, 360 - diff)",
+        "failed: Invalid expression.",
+        "calc hour_angle = (3 + 40/60) * 30; minute_angle = 40 * 6 - 360; diff = abs(minute_angle - hour_angle); min(diff, 360 - diff)",
+        "failed: Invalid expression.",
+        "calc hour_angle = (3 + 40/60) * 30; minute_angle = 40 * 6 - 360; diff = abs(minute_angle - hour_angle); min(diff, 360 - diff)",
+        "failed: Invalid expression.",
+        "cost: 5 model calls · 19k tokens · 12 s"
+      ]
+    },
+    {
+      "id": "lockers",
+      "split": "holdout",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 11,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "Kai has locker 10 because it's the only even option left after ruling out 12 for Max. Since Lea is right next to Kai, she must have locker 11. That leaves Max with locker 12... wait, no, Max can't have 12. Let me recalculate: Kai has to be 10 or 12 (even). If Kai is 12, then Max can't be there either. So Kai must be 10. Lea is next to Kai, so 11. Max takes 12... but the problem says Max isn't 12. That's a contradiction unless I misread. Let me check: lockers 10, 11, 12. Kai even: 10 or 12. Lea next to Kai. Max not 12. If Kai is 12, no one can be next to him except 11, but then Max would have to be 10, which works. But if Kai is 10, Lea is 11, Max is 12 - contradiction. So Kai must be 12, Lea is 11, Max is 10. That's the only solution.",
+      "log": [
+        "recalled: Operator",
+        "cost: 1 model call · 4k tokens · 9 s"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { openPage } from './browser';
+import { pageText } from './browser';
 
 /** Real flight lookups via Google Flights - there is no free flight-price API
  *  without an account/key, so this drives the existing headless-Chromium
@@ -22,14 +22,14 @@ export async function findFlights(
   try {
     const query = `Flights from ${origin} to ${destination} on ${date}`;
     const url = `https://www.google.com/travel/flights?q=${encodeURIComponent(query)}`;
-    const page = await openPage(url);
+    const page = await pageText(url);
     if (!page.ok) {
       return { ok: false, results: [], error: page.error || 'Failed to open Google Flights.' };
     }
 
     const text = page.text || '';
     // Google Flights' real DOM is heavily JS-rendered and restructures often,
-    // and openPage only exposes visible body text (not markup), so this is
+    // and pageText only exposes visible body text (not markup), so this is
     // deliberately a best-effort regex scan over that text rather than a
     // structured scrape. Lines that look like they contain a price, duration,
     // or stop count are treated as candidate flight rows; the full line is

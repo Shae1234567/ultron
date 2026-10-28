@@ -44,7 +44,15 @@
   margin-left: -0.42em;
 }
 
-.readout { display: flex; align-items: center; gap: 7px; white-space: nowrap; min-width: 0; flex-shrink: 1; }
+.readout { display: flex; align-items: center; gap: 7px; white-space: nowrap; min-width: 0; flex-shrink: 1; overflow: hidden; }
+/* The top bar by priority (10 Oct 2026 - sections spilled over each other at ~1600 px): the clock and the
+   link never shrink, the model name gives way with "...", and the module chips - shown elsewhere too -
+   are the first to go when there isn't room. Nothing ever draws over its neighbour. */
+.readout--clock, .readout--link { flex-shrink: 0; }
+.readout--model { flex-shrink: 2; }
+.readout--modules { flex-shrink: 4; }
+@media (max-width: 1760px) { .readout--modules { display: none; } }
+@media (max-width: 1180px) { .readout--model { display: none; } }
 .readout__label { font-family: var(--font-display); font-size: 8px; font-weight: 700; letter-spacing: 0.2em; color: var(--dimmer); flex-shrink: 0; }
 .readout__value {
   font-family: var(--font-mono); font-size: 12px; color: var(--cyan); text-shadow: var(--text-glow);
@@ -290,6 +298,7 @@
 }
 
 .overlay__card { width: min(760px, 100%); max-height: 86vh; display: flex; flex-direction: column; }
+.overlay__card--wide { width: min(1180px, 100%); max-height: 92vh; }
 
 .overlay__body { padding: 16px 20px 20px; overflow-y: auto; }
 
@@ -495,3 +504,91 @@
   color: var(--dimmer);
   margin-bottom: 3px;
 }
+
+/* ── Free AI services (Settings → Brain) ──────────────────────────────── */
+
+.cloud-row {
+  margin-top: 8px;
+  padding: 8px 9px;
+  border: 1px solid rgba(0, 217, 255, 0.14);
+  background: rgba(0, 217, 255, 0.03);
+  clip-path: polygon(0 6px, 6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+.cloud-row__head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.cloud-row__name { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.14em; color: var(--white); }
+.cloud-row__model { font-size: 9.5px; color: var(--dim); margin-left: auto; overflow: hidden; text-overflow: ellipsis; max-width: 45%; white-space: nowrap; }
+
+/* ── What Ultron has learned (Memory panel) ───────────────────────────── */
+
+.learn-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 6px 0 10px; }
+.learn-stat {
+  padding: 7px 8px;
+  border: 1px solid rgba(0, 217, 255, 0.16);
+  background: rgba(0, 217, 255, 0.04);
+  clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+}
+.learn-stat__n { font-family: var(--font-display); font-size: 16px; color: var(--white); text-shadow: 0 0 10px var(--cyan-55); line-height: 1.1; }
+.learn-stat__k { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.12em; color: var(--dim); }
+.learn-list { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+.learn-item {
+  display: flex; gap: 7px; align-items: baseline;
+  padding: 4px 7px;
+  border-left: 1px solid var(--cyan-35);
+  background: rgba(0, 217, 255, 0.03);
+  font-size: 11.5px;
+  animation: life-fade-in 0.35s ease-out both;
+  animation-delay: calc(var(--i) * 40ms);
+}
+.learn-item__kind { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.1em; color: var(--cyan-soft); flex: 0 0 auto; }
+.learn-src { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 10px; padding: 2px 6px; margin: 0 4px 4px 0; border: 1px solid rgba(0, 217, 255, 0.2); }
+.learn-src--good { color: var(--green); border-color: rgba(0, 255, 157, 0.3); }
+.learn-src--bad { color: var(--red); border-color: rgba(255, 59, 78, 0.3); }
+
+/* ── Focus session chip (top bar) ─────────────────────────────────────── */
+
+.focus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--cyan-55);
+  background: rgba(0, 217, 255, 0.1);
+  clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+  animation: life-rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.focus-chip:hover { background: var(--cyan-35); box-shadow: var(--glow-sm); }
+.focus-chip__dot { width: 6px; height: 6px; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse-soft 2.2s ease-in-out infinite; }
+.focus-chip__time { font-family: var(--font-display); font-size: 10px; color: var(--white); letter-spacing: 0.08em; }
+.focus-chip__what { font-family: var(--font-mono); font-size: 9.5px; color: var(--cyan-soft); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.learn-score { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; padding: 6px 9px; border-left: 2px solid var(--cyan); background: rgba(0, 217, 255, 0.05); }
+.learn-score__n { font-family: var(--font-display); font-size: 15px; color: var(--white); text-shadow: 0 0 10px var(--cyan-55); }
+.learn-score__k { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; color: var(--dim); }
+
+/* A refused key: the service's own answer and the three-step fix (10 Oct 2026). */
+/* Settings -> what Ultron is really using, in order (10 Oct 2026). */
+.brain-use { margin-top: 6px; padding: 10px 12px; border: 1px solid var(--cyan-20); background: var(--cyan-12); }
+.brain-use__head { display: flex; align-items: baseline; gap: 10px; font-family: var(--font-display); font-size: 10px; letter-spacing: 0.16em; color: var(--white); }
+.brain-use__meta { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0; color: var(--cyan); }
+.brain-use__list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.brain-use__row { display: grid; grid-template-columns: 18px minmax(90px, 1fr) minmax(0, 1.3fr); grid-template-areas: 'n name model' 'n count tags'; column-gap: 10px; row-gap: 2px; align-items: center; padding: 6px 8px; border-left: 2px solid rgba(107, 139, 164, 0.35); background: rgba(3, 12, 20, 0.45); }
+.brain-use__row--last { border-left-color: var(--cyan); }
+.brain-use__n { grid-area: n; align-self: start; font-family: var(--font-display); font-size: 11px; color: var(--cyan); }
+.brain-use__name { grid-area: name; font-family: var(--font-display); font-size: 10px; letter-spacing: 0.12em; color: var(--white); }
+.brain-use__name em { font-style: normal; color: var(--dim); letter-spacing: 0.04em; }
+.brain-use__model { grid-area: model; font-size: 10px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.brain-use__count { grid-area: count; font-size: 10.5px; color: #cfe3ee; }
+.brain-use__tags { grid-area: tags; display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap; }
+.brain-use__tags .chip { font-size: 8.5px; padding: 1px 6px; }
+.brain-use__empty { margin-top: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--red); }
+.brain-use__hint { margin-top: 8px; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.5; color: var(--dim); }
+.brain-use__not { margin-top: 4px; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.5; color: var(--dim); }
+.brain-use__not span { color: #cfe3ee; }
+
+.cloud-fix { margin-top: 6px; padding: 9px 11px; border-left: 3px solid var(--red); background: rgba(255, 59, 78, 0.06); font-size: 13.5px; line-height: 1.4; color: #e9f4fa; display: flex; flex-direction: column; gap: 6px; }
+.cloud-fix strong { color: #ffd2d7; }
+.cloud-fix__hint { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+.cloud-fix ol { margin: 2px 0 0 18px; display: flex; flex-direction: column; gap: 5px; }
+.cloud-fix li { font-family: var(--font-mono); font-size: 11.5px; color: #cfe3ee; }

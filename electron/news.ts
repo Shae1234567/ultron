@@ -1,4 +1,4 @@
-import { env } from './env';
+import { getSecret } from './secrets';
 import { getSettings, getQuota, reserveQuota, releaseQuota, getNewsCache, saveNewsCache } from './store';
 
 export type Region =
@@ -159,7 +159,7 @@ async function fetchHackerNews(limit = 12): Promise<Article[]> {
 }
 
 export function hasApiKey(): boolean {
-  return Boolean(env('GNEWS_API_KEY'));
+  return Boolean(getSecret('GNEWS_API_KEY'));
 }
 
 export function quotaSnapshot() {
@@ -173,7 +173,7 @@ export function quotaSnapshot() {
  */
 export async function fetchNews(manual = false): Promise<NewsResult> {
   const settings = getSettings();
-  const key = env('GNEWS_API_KEY');
+  const key = getSecret('GNEWS_API_KEY');
   const cap = settings.news.dailyCap;
 
   const categories = settings.news.categories.length ? settings.news.categories : ['world'];
@@ -248,7 +248,10 @@ export async function fetchNews(manual = false): Promise<NewsResult> {
   // eat the reservation - counted here and given back at the end.
   let authFailedCount = 0;
 
-  for (const category of categories) {
+  for (const [i, category] of categories.entries()) {
+    // The free tier also caps requests per second - back-to-back category
+    // requests got the second one refused as "too many requests in a short period".
+    if (i > 0) await new Promise((r) => setTimeout(r, 1200));
     const url = new URL('https://gnews.io/api/v4/top-headlines');
     url.searchParams.set('category', category);
     url.searchParams.set('lang', 'en');
@@ -278,7 +281,7 @@ export async function fetchNews(manual = false): Promise<NewsResult> {
         }
 
         if (res.status === 401 || res.status === 403) {
-          error = detail || 'GNews refused the request. Check GNEWS_API_KEY in .env.';
+          error = detail || 'GNews refused the request. Check the GNews key in Settings.';
           authFailed = true;
           authFailedCount += 1;
         } else if (res.status === 429) {

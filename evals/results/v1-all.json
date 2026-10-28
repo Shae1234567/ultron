@@ -1,0 +1,403 @@
+{
+  "summary": {
+    "workflow": "v1",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "ranAt": "2026-09-29T23:03:50.500Z",
+    "passed": 10,
+    "total": 17,
+    "medianSeconds": 3,
+    "meanCalls": 2,
+    "meanTokens": 7118
+  },
+  "results": [
+    {
+      "id": "quiz-average",
+      "split": "opt",
+      "category": "calculation",
+      "pass": false,
+      "missing": [
+        "\\b90\\b"
+      ],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "Your current average is 80. You need a 94 on the next quiz to bring your average up to exactly 82. That's a solid score for a Grade 9 math student, but not quite enough to pull you over the hump yet. Keep it up though.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "savings-weeks",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You'll have $400 in about 24 weeks. That's roughly six months if you stick to it.",
+      "log": [
+        "remembered: new note \"School\", new note \"Goals\"",
+        "calc (400 - 40) / 15",
+        "cost: 2 model calls · 7k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "discount-tax",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The final price is $66.15. The jersey goes from $84 down to $63 after the discount, then the GST pushes it up to $66.15.",
+      "log": [
+        "calc (84 * 0.75) * 1.05",
+        "cost: 2 model calls · 7k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "field-feet",
+      "split": "opt",
+      "category": "units",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "That's 344.5 feet long.",
+      "log": [
+        "remembered: new note \"Savings Goal\", new note \"Financial Habits\"",
+        "calc 105 * 3.28084",
+        "cost: 2 model calls · 7k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "days-until",
+      "split": "opt",
+      "category": "dates",
+      "pass": false,
+      "missing": [
+        "\\b81\\b"
+      ],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "There are 112 days from September 29, 2026 to December 19, 2026.",
+      "log": [
+        "calc (31-29) + 30 + 31 + 30 + 19",
+        "cost: 2 model calls · 7k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "solve-linear",
+      "split": "opt",
+      "category": "algebra",
+      "pass": false,
+      "missing": [
+        "x\\s*(=|is)\\s*19\\b"
+      ],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "Let's solve this step by step. First, distribute the 3 on the left side: that gives you 3x minus 12 equals 2x plus 7. Next, subtract 2x from both sides to get all the x terms on one side, which leaves you with -x minus 12 equals 7. Then, add 12 to both sides to isolate the x term: that gets you -x equals 19. Finally, multiply both sides by negative 1 to solve for x, so x is negative 19.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "bike-speed",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Your average speed is 18 km/h. That's a decent pace for a bike ride.",
+      "log": [
+        "calc (12 / (40/60))",
+        "cost: 2 model calls · 7k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "bat-and-ball",
+      "split": "opt",
+      "category": "reasoning",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "The ball is 5 cents, the bat is $1.05. You're buying three balls at 5 cents each ($0.15) and two bats at $1.05 each ($2.10). Your total comes to $2.25.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "abstain-coach",
+      "split": "opt",
+      "category": "abstention",
+      "pass": false,
+      "missing": [
+        "(don't|do not|can't|cannot|couldn't|no) (know|have|find|record|access|information|way)|not sure|wasn't there|no record|isn't (in|something)|don't see"
+      ],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "recall"
+      ],
+      "answer": "Coach didn't leave a detailed transcript, Shae. But I can ask Argus to dig up audio logs from the practice app or search your team's shared notes for anything specific they talked about last Tuesday. Want me to check those sources?",
+      "log": [
+        "remembered: new note \"Health\", new note \"Preferences\"",
+        "recall \"coach said practice Tuesday conversation\"",
+        "cost: 2 model calls · 7k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "test-needed",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "You're at 241 points total from three tests. To average exactly 85 across four tests, you need 340 points overall—that means your fourth score has to be 99. That's a solid B+ territory, so if you nail it, you've got an A in the set.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "compound-interest",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": false,
+      "missing": [
+        "562\\.43"
+      ],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "You'll have $565.51 after three years. Here's the math: your $500 grows by 4% each year without you touching a thing, so it ends up at $520 in year one, then $540.80 in year two, and finally $565.51 in year three.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "fahrenheit",
+      "split": "holdout",
+      "category": "units",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "72 degrees Fahrenheit is 22.2 degrees Celsius.",
+      "log": [
+        "calc (72 - 32) * 5/9",
+        "cost: 2 model calls · 7k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "practice-hours",
+      "split": "holdout",
+      "category": "dates",
+      "pass": false,
+      "missing": [
+        "4\\.75|4 hours (and )?45|4 h 45|4:45"
+      ],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "That's 4.74 hours of practice a week, or about 4 hours and 44 minutes.",
+      "log": [
+        "remembered: new note \"Science Tests\", new note \"Science Test Goal\"",
+        "calc (8.33 - 6.75) * 3",
+        "cost: 2 model calls · 7k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "ratio-split",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": false,
+      "missing": [
+        "\\b100\\b",
+        "\\b80\\b"
+      ],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 18000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Done.",
+      "log": [
+        "calc (180 * 5) / 9 and (180 * 4) / 9",
+        "failed: Invalid expression.",
+        "calc 180 / 9 * 5 and 180 / 9 * 4",
+        "failed: Invalid expression.",
+        "calc (180 * 5) / (4 + 5) and (180 * 4) / (4 + 5)",
+        "failed: Invalid expression.",
+        "calc 180 * 5 / 9",
+        "calc 180 * 4 / 9",
+        "cost: 5 model calls · 18k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "solve-linear-2",
+      "split": "holdout",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "To solve $5x + 3 = 2(x + 9)$, expand the right side to get $5x + 3 = 2x + 18$. Subtract $2x$ from both sides: $3x + 3 = 18$. Subtract 3 from both sides: $3x = 15$. Divide by 3: $x = 5$. The answer is 5.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "sprint-percent",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 3000,
+      "verified": [],
+      "tools": [],
+      "answer": "Your time dropped by approximately 4.8%. That's a solid improvement for a 40-yard dash. Keep pushing it.",
+      "log": [
+        "remembered: new note \"Shae's Practice Schedule\", new note \"Shae's Training Goals\"",
+        "cost: 1 model call · 3k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "abstain-quiz",
+      "split": "holdout",
+      "category": "abstention",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 17,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 9,
+      "tokens": 20000,
+      "verified": [],
+      "tools": [
+        "recall"
+      ],
+      "answer": "Shae, I do not know your grade because no one has ever told me it. My memory vault is empty on that specific quiz, and I cannot invent a number out of thin air. Since you are a minor, the only people who actually know this fact are your teachers or parents who might have recorded it somewhere. Go check your official report card, ask your science teacher directly, or look at your parent's phone for any saved screenshots they might have taken. I can help you study for the next one if you want, but I cannot provide a fake past result.",
+      "log": [
+        "recall \"September 3 science quiz grade mark\"",
+        "recall \"Shae September 3 science quiz grade mark\"",
+        "recall \"science quiz grade September\"",
+        "recall \"grades marks scores Shae school\"",
+        "recall \"D2L school portal grades records\"",
+        "cost: 9 model calls · 20k tokens · 16 s"
+      ]
+    }
+  ]
+}

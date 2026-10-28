@@ -1,0 +1,91 @@
+/* The Memory tab's mind sphere (MindSphere.tsx). Ultron's HUD: cyan on near-black, Michroma
+   for names, Share Tech Mono for readouts, open corner brackets, nothing rounded. */
+
+.mind {
+  position: relative;
+  height: 540px;
+  margin: 0 0 16px;
+  border: 1px solid var(--cyan-20);
+  background:
+    radial-gradient(ellipse 55% 60% at 42% 50%, rgba(0, 217, 255, 0.07), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(0, 217, 255, 0.025) 0 1px, transparent 1px 4px),
+    #02080d;
+  overflow: hidden;
+  animation: mind-warm 0.9s ease-out both;
+}
+.mind__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+
+.mind__corner { position: absolute; width: 14px; height: 14px; border: 0 solid var(--cyan); opacity: 0.8; pointer-events: none; }
+.mind__corner--tl { top: 6px; left: 6px; border-top-width: 2px; border-left-width: 2px; }
+.mind__corner--tr { top: 6px; right: 6px; border-top-width: 2px; border-right-width: 2px; }
+.mind__corner--bl { bottom: 6px; left: 6px; border-bottom-width: 2px; border-left-width: 2px; }
+.mind__corner--br { bottom: 6px; right: 6px; border-bottom-width: 2px; border-right-width: 2px; }
+
+.mind__top { position: absolute; top: 14px; left: 18px; display: flex; align-items: center; gap: 14px; animation: mind-in 0.6s 0.5s ease-out both; }
+.mind__title { font-family: var(--font-display); font-size: 11px; letter-spacing: 0.22em; color: var(--white); display: flex; align-items: center; gap: 8px; text-shadow: 0 0 10px rgba(0, 217, 255, 0.6); }
+.mind__found { font-family: var(--font-mono); font-size: 10.5px; color: var(--cyan); }
+.mind__found--none { color: var(--dim); }
+.mind__search { width: 210px; padding: 5px 9px; font-size: 11.5px; background: rgba(2, 10, 16, 0.7); }
+
+.mind__empty { position: absolute; left: 0; right: 290px; top: 50%; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
+
+.mind__tip {
+  position: absolute; pointer-events: none; z-index: 2; max-width: 260px;
+  padding: 6px 9px; background: rgba(2, 12, 20, 0.92); border: 1px solid var(--cyan-20); border-left: 2px solid var(--cyan);
+  display: flex; flex-direction: column; gap: 2px; font-family: var(--font-mono);
+}
+.mind__tip b { font-weight: 400; font-size: 12px; color: #e9fbff; }
+.mind__tip span { font-size: 10px; color: var(--dim); }
+
+.mind__panel {
+  position: absolute; top: 12px; right: 12px; bottom: 34px; width: 272px;
+  padding: 14px 14px 12px; overflow-y: auto;
+  background: linear-gradient(180deg, rgba(2, 14, 22, 0.88), rgba(2, 10, 16, 0.8));
+  border: 1px solid var(--cyan-20); border-top: 2px solid var(--cyan);
+  animation: mind-in 0.6s 0.35s ease-out both;
+}
+.mind__kicker { font-family: var(--font-display); font-size: 9.5px; letter-spacing: 0.2em; color: var(--g, var(--cyan)); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mind__kicker::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--g, var(--cyan)), transparent); opacity: 0.5; }
+.mind__name { margin: 0 0 6px; font-family: var(--font-display); font-weight: 400; font-size: 12.5px; letter-spacing: 0.06em; line-height: 1.45; color: var(--white); word-break: break-word; }
+.mind__meta { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.6; color: var(--dim); margin-bottom: 10px; }
+
+.mind__stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; margin-bottom: 14px; }
+.mind__stats div { display: flex; flex-direction: column; gap: 2px; padding-left: 8px; border-left: 2px solid rgba(0, 217, 255, 0.35); }
+.mind__stats b { font-family: var(--font-mono); font-weight: 400; font-size: 17px; color: var(--cyan); text-shadow: 0 0 8px rgba(0, 217, 255, 0.55); }
+.mind__stats span { font-family: var(--font-display); font-size: 7.5px; letter-spacing: 0.16em; color: var(--dim); }
+
+.mind__legend { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.mind__chip, .mind__link {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px; cursor: pointer;
+  font-family: var(--font-mono); font-size: 10px; color: #cfe3ee;
+  background: rgba(0, 217, 255, 0.05); border: 1px solid rgba(0, 217, 255, 0.16);
+  transition: background 0.15s, border-color 0.15s;
+}
+.mind__chip i { width: 7px; height: 4px; background: var(--g); box-shadow: 0 0 6px var(--g); }
+.mind__chip em { font-style: normal; color: var(--dim); }
+.mind__chip:hover, .mind__link:hover { border-color: var(--g, var(--cyan)); background: rgba(0, 217, 255, 0.1); }
+.mind__chip--on { border-color: var(--g); background: rgba(0, 217, 255, 0.14); color: #fff; }
+.mind__links { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.mind__link { border-left: 2px solid var(--g); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mind__more { font-family: var(--font-mono); font-size: 10px; color: var(--dim); align-self: center; }
+.mind__preview {
+  margin: 0 0 10px; padding: 8px 9px; max-height: 170px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+  font-family: var(--font-mono); font-size: 10.5px; line-height: 1.55; color: #bcd6e2;
+  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(0, 217, 255, 0.12);
+}
+.mind__actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.mind__note { margin-top: 8px; font-family: var(--font-mono); font-size: 10.5px; color: var(--cyan); line-height: 1.5; }
+.mind__help { font-family: var(--font-mono); font-size: 10px; line-height: 1.55; color: var(--dim); }
+
+.mind__hint { position: absolute; left: 18px; bottom: 11px; font-family: var(--font-display); font-size: 7.5px; letter-spacing: 0.2em; color: rgba(140, 200, 220, 0.55); pointer-events: none; animation: mind-in 0.6s 1.4s ease-out both; }
+
+@keyframes mind-warm { from { filter: brightness(0.2) saturate(0); } to { filter: none; } }
+@keyframes mind-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mind, .mind__top, .mind__panel, .mind__hint { animation: none; }
+}
+@media (max-width: 760px) {
+  .mind { height: 620px; }
+  .mind__panel { top: auto; left: 12px; right: 12px; width: auto; height: 220px; bottom: 30px; }
+}

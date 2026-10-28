@@ -1,0 +1,452 @@
+{
+  "summary": {
+    "workflow": "v2",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard-tasks.json",
+    "ranAt": "2026-09-30T04:35:35.999Z",
+    "passed": 15,
+    "total": 16,
+    "medianSeconds": 11,
+    "meanCalls": 3,
+    "meanTokens": 16000
+  },
+  "results": [
+    {
+      "id": "trains-meet",
+      "split": "opt",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 49,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 19000,
+      "verified": [
+        "numbers computed with code, not estimated · 1 worked calculation in the answer re-checked - correct"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "They meet at approximately **4:02 PM**. Let me double-check my math: - Train A leaves Calgary at 2:15 PM, traveling at 90 km/h - Train B leaves Edmonton at 2:45 PM (30 minutes later), traveling at 110 km/h - Total distance between them: 300 km At 4:02 PM: - Train A has traveled for about 1 hour and 47 minutes (167 minutes or ~2.78 hours) - Distance covered by Train A: 90 × 2.78 ≈ 159.75 km - Train B has traveled for about 1 hour and 17 minutes (117 minutes or ~1.95 hours) - Distance covered by Train B: 110 × 1.95 ≈ 140.25 km - Total: 159.75 + 140.25 = 300 km ✓ The trains meet at **4:02 PM**.",
+      "log": [
+        "run code (51 lines)",
+        "failed: SyntaxError: missing initializer for const variable (line 1)",
+        "run code (38 lines)",
+        "verified: numbers computed with code, not estimated · 1 worked calculation in the answer re-checked - correct",
+        "cost: 3 model calls · 19k tokens · 48 s"
+      ]
+    },
+    {
+      "id": "ages",
+      "split": "opt",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 17,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 22000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "You're 30. That means your cousin is 10. In ten years you'll be 40 and she'll be 20—exactly twice as old. Simple algebra, no tricks needed.",
+      "log": [
+        "calc Let s = your age and c = cousin's age. s = 3c, and s + 10 = 2(c + 10). Solve for s.",
+        "failed: SyntaxError: Invalid left hand side of assignment operator = (char 7) (line 1)",
+        "run code (9 lines)",
+        "failed: SyntaxError: expecting ';' (line 1)",
+        "run code (9 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 22k tokens · 16 s"
+      ]
+    },
+    {
+      "id": "jerseys",
+      "split": "opt",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 44,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 33000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Ana wears 1, Bo wears 4, Cy wears 3, and Di wears 2. Here's the check: Ana is odd (1), Bo is even (4) and one more than Cy (3), Cy isn't 1, and Di (2) is greater than Ana (1). Wait, that fails because Di must be greater than Ana, but 2 is not greater than 1? No, 2 > 1 is true. Let me re-verify the constraints against this result. Ana=1 (odd ✓), Bo=4 (even ✓, one more than Cy's 3 ✓), Cy=3 (not 1 ✓), Di=2 (greater than Ana's 1? Yes, 2 > 1 ✓). This works. My previous manual check had a brain fart on the inequality direction or logic flow. The code confirms this is the only valid solution.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (24 lines)",
+        "failed: SyntaxError: invalid first character of private name (line 1) - this sandbox runs JavaScript, not Python. Use let/const, console.log(...), t",
+        "run code (17 lines)",
+        "run code (16 lines)",
+        "Based on the code results, here is the correct assignment:\n\n- **Ana wears #1** (odd number)\n- **Bo wears #3** (odd, but one more than Cy's 2)\n- **Cy wears #2** ",
+        "run code (21 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 6 model calls · 33k tokens · 43 s"
+      ]
+    },
+    {
+      "id": "not-enough-time",
+      "split": "opt",
+      "category": "trap",
+      "pass": false,
+      "missing": [
+        "\\b5 (more )?minutes? (short|over|too)|not enough|no time|-5|minus 5|negative|5 minutes (more|over)"
+      ],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "That's not possible. You have only 3 hours (180 minutes), but your activities already take 185 minutes. That means you're short by 5 minutes even before considering gaming time. You might want to trim a few minutes from homework or practice, or perhaps leave your post-school window slightly longer.",
+      "log": [
+        "calc 180 - (75 + 90 + 20)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "up-down-percent",
+      "split": "opt",
+      "category": "trap",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 14,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 22000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The final price is $48, which is lower than the original $50. Running the calculations confirms: after a 20% increase, the jacket costs $60; a subsequent 20% decrease brings it to $48. The result is lower because the percentage amount changes at each step—the deduction is based on a higher starting point than the initial addition. I won't have stored incorrect rules about this in my memory vault yet since we just worked through it, but I can note what we learned if you'd like me to record it.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (6 lines)",
+        "forget \"20% increase then 20% decrease always returns to o\" in maths",
+        "failed: No memory note called \"maths\". Use memory_search to find the right note first.",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 22k tokens · 13 s"
+      ]
+    },
+    {
+      "id": "dice-8",
+      "split": "opt",
+      "category": "probability",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 21,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 11000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The probability that two normal six-sided dice sum to 8 is **5/36**. There are 36 total possible outcomes (6 sides on die 1 × 6 sides on die 2), and only 5 combinations result in a sum of 8: (2,6), (3,5), (4,4), (5,3), and (6,2). The fraction is already simplified since 5 and 36 share no common factors.",
+      "log": [
+        "remembered: new note \"Free Time Allocation\", 2 facts -> Free Time Allocation",
+        "run code (18 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 11k tokens · 20 s"
+      ]
+    },
+    {
+      "id": "clean-together",
+      "split": "opt",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 11,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 16000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Working together, you'll finish the garage in exactly 2 hours. Your combined rate is half the garage per hour.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (16 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 16k tokens · 11 s"
+      ]
+    },
+    {
+      "id": "fuel-cost",
+      "split": "opt",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 7,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The gas will cost $41.91.",
+      "log": [
+        "calc (8.5 / 100) * 340 * 1.45",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "average-speed",
+      "split": "holdout",
+      "category": "trap",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated · 2 worked calculations in the answer re-checked - correct"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Your average speed for the whole trip is 1.33 km/h. That seems really slow - did you mean to divide by total distance instead? Let me double-check my math: Total time = (60/30) + (60/90) = 2 + 2/3 hours Total distance = 120 km Average speed = 120 / (8/3) = 45 km/h The correct answer is 45 km/h. I apologize for the earlier confusion!",
+      "log": [
+        "calc (60/30 + 60/90) / 2",
+        "verified: numbers computed with code, not estimated · 2 worked calculations in the answer re-checked - correct",
+        "cost: 2 model calls · 10k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "christmas-day",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "December 25, 2026 is a Friday.",
+      "log": [
+        "remembered: new note \"Garage Cleaning\", new note \"Family\"",
+        "run code (2 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "committees",
+      "split": "holdout",
+      "category": "combinatorics",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 16000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "You can choose **56** different 3-person committees from a class of 8 students. That's calculated using combinations (nCr), where the order of selection doesn't matter: 8! / (3! × 5!) = 56.",
+      "log": [
+        "remembered: new note \"Garage Cleaning\", 2 facts -> Garage Cleaning",
+        "calc 8 choose 3",
+        "failed: Error: Undefined symbol choose (line 1)",
+        "run code (12 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 16k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "paycheck",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You have $39.69 left for spending money after your savings and deductions.",
+      "log": [
+        "calc (12.50 * 3.5 + 12.50 * 4) * 0.85 - 40",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "sequence",
+      "split": "holdout",
+      "category": "pattern",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 5000,
+      "verified": [],
+      "tools": [],
+      "answer": "The next number is **42**. Here's why: - The pattern increases by consecutive even numbers starting from 4: +4, +6, +8, +10... - So after 30, you add 12 to get 42. Or seen another way, each term equals n²+n (where n starts at 1): 1²+1=2, 2²+2=6, 3²+3=12, etc.",
+      "log": [
+        "remembered: new note \"Biking\", 2 facts -> Biking",
+        "cost: 1 model call · 5k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "rectangle-area",
+      "split": "holdout",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 12,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 22000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "The rectangle's area is 162 square centimeters. Here's how I got there: if the length is twice the width and the perimeter is 54 cm, then the width must be 9 cm and the length 18 cm.",
+      "log": [
+        "calc let p = 54; let l = 2 * w; p = 2 * l + 2 * w; solve for w; then calculate area = l * w",
+        "failed: SyntaxError: Invalid left hand side of assignment operator = (char 7) (line 1)",
+        "run code (15 lines)",
+        "failed: SyntaxError: invalid redefinition of lexical identifier (line 1)",
+        "run code (12 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 22k tokens · 12 s"
+      ]
+    },
+    {
+      "id": "clock-angle",
+      "split": "holdout",
+      "category": "geometry",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The smaller angle between the hour and minute hand at 3:40 is **130 degrees**.",
+      "log": [
+        "calc angle_hour = (3 + 40/60) * 30; angle_minute = 40 * 6; abs(angle_hour - angle_minute); min(angle_hour - angle_minute, angle_minute - angle_hour)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "lockers",
+      "split": "holdout",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 24,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 30000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code",
+        "recall"
+      ],
+      "answer": "Kai has locker 12, Lea has locker 11, and Max has locker 10. Here's why: Kai needs an even number (10 or 12). If he had 10, Lea would be adjacent at 11, leaving Max with 12—but that violates the \"Max ≠ 12\" rule. So Kai must have 12. Since Max can't have 12, and Lea is next to Kai (so she has 11), Max takes the remaining locker: 10.",
+      "log": [
+        "recalled: Operator",
+        "remembered: new note \"Financial Habits\", new note \"Financial Goals\"",
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (52 lines)",
+        "recall \"locker puzzle Kai Lea Max\"",
+        "forget \"Kai: 12, Lea: 11, Max: 10\" in Locker puzzle",
+        "failed: No memory note called \"Locker puzzle\". Use memory_search to find the right note first.",
+        "verified: numbers computed with code, not estimated",
+        "cost: 5 model calls · 30k tokens · 23 s"
+      ]
+    }
+  ]
+}

@@ -10,6 +10,8 @@ import {
 } from '../services/liveVoiceSession';
 import { isLiveVoiceSupported } from '../services/liveVoice';
 import { playClick, playConfirm, playAlert } from '../services/sfx';
+import { onUltronVoice } from '../services/ultronVoice';
+import type { VoiceStatus } from '../types';
 
 const isTypingTarget = (el: EventTarget | null): boolean => {
   const node = el as HTMLElement | null;
@@ -21,6 +23,14 @@ const isTypingTarget = (el: EventTarget | null): boolean => {
 export function VoiceInterface() {
   const coreState = useStore((s) => s.coreState);
   const [voiceName, setVoiceName] = useState<string | null>(null);
+  const [ultronVoice, setUltronVoice] = useState<VoiceStatus | null>(null);
+  const engine = useStore((s) => s.settings?.voice.engine ?? 'ultron');
+  useEffect(() => onUltronVoice(setUltronVoice), []);
+  // Which voice is really speaking: the Ultron voice once it's downloaded, Windows' until then.
+  const ttsText = engine === 'ultron' && ultronVoice
+    ? ultronVoice.state === 'downloading' ? `ULTRON VOICE ${ultronVoice.progress !== undefined ? `${Math.round(ultronVoice.progress * 100)}%` : '...'}`
+      : ultronVoice.downloaded && ultronVoice.state !== 'error' ? 'ULTRON VOICE' : null
+    : null;
   const held = useRef(false);
   const [liveState, setLiveState] = useState<LiveVoiceState>(getLiveVoiceState());
   const [liveError, setLiveError] = useState<string | null>(null);
@@ -125,7 +135,7 @@ export function VoiceInterface() {
               onMouseLeave={() => { if (held.current) { held.current = false; endPushToTalk(); } }}
               disabled={!canTalk}
               title={canTalk ? 'Hold to talk' : (sttReason || 'Speech to text unavailable')}
-              aria-label="Hold to talk to Atlas"
+              aria-label="Hold to talk to Ultron"
               aria-pressed={coreState === 'listening'}
             >
               {coreState === 'listening' ? 'Listening' : 'Hold to talk'}
@@ -180,7 +190,7 @@ export function VoiceInterface() {
               {sttChip.label}
             </span>
             <span className={`chip ${ttsOk ? 'chip--good' : 'chip--muted'}`} style={{ justifyContent: 'center' }}>
-              TTS {ttsOk ? (voiceName ? voiceName.slice(0, 18) : 'READY') : 'N/A'}
+              TTS {ttsText ?? (ttsOk ? (voiceName ? voiceName.slice(0, 18) : 'READY') : 'N/A')}
             </span>
           </div>
         </div>

@@ -2,6 +2,8 @@
 export function Backdrop() {
   return (
     <>
+      <div className="bg-aurora" />
+      <div className="idle-ring" />
       <div className="bg-layer bg-grid" />
       <div className="bg-layer bg-grid--fine" />
       <div className="bg-layer bg-vignette" />

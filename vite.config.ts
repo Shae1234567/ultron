@@ -27,7 +27,8 @@ export default defineConfig({
     react(),
     electron({
       main: {
-        entry: 'electron/main.ts',
+        // voiceWorker: Ultron's voice runs in its own process (electron/voice/worker.ts).
+        entry: { main: 'electron/main.ts', voiceWorker: 'electron/voice/worker.ts' },
         vite: {
           build: {
             rollupOptions: {
@@ -37,10 +38,22 @@ export default defineConfig({
               // installed, and none need to be. Node resolves 'playwright'
               // itself from node_modules fine at runtime in the main process,
               // so there's no reason for Rollup to bundle any of this tree.
+              // @composio/core is ESM-only: kept external and loaded with a
+              // dynamic import() from this CommonJS bundle at runtime.
+              // The MCP SDK (Composio Connect) is loaded the same way, by subpath.
               external: [
                 'playwright', 'playwright-core',
                 'kerberos', 'mongodb-client-encryption', 'aws4', 'snappy', 'saslprep', 'socks-proxy-agent',
-                '@google/genai',
+                '@google/genai', '@composio/core',
+                /^@modelcontextprotocol\/sdk(\/.*)?$/,
+                // pdf.js (School reads teachers' PDFs) is ESM with its own worker file: loaded at runtime, not bundled.
+                /^pdfjs-dist(\/.*)?$/,
+                // The voice model's libraries: native code and model loaders, loaded from node_modules at runtime.
+                'kokoro-js', /^@huggingface\/transformers(\/.*)?$/, 'onnxruntime-node', 'sharp', 'phonemizer',
+                // ws (the Discord live connection) tries these optional native speed-ups inside a try/catch and
+                // falls back to plain JavaScript. Bundled, the missing ones became empty stubs and ws crashed on
+                // every frame over 48 bytes (12 Oct 2026); left external, require() fails and ws falls back.
+                'bufferutil', 'utf-8-validate',
               ],
             },
           },

@@ -2,43 +2,36 @@ import { Tray, Menu, app } from 'electron';
 import type { BrowserWindow } from 'electron';
 
 /**
- * System tray + background-mode + auto-launch.
- *
- * This is what makes "listen even when the window is closed" possible: the
- * close ('X') button no longer quits the process, it just hides the window.
- * The Electron process (and the renderer inside it, including the wake-word
- * listener in src/services/wakeWord.ts) keeps running in the tray, ready to
- * be summoned back with a show()/focus() the moment the wake word fires.
- * Only the tray's own "Quit" item, or a real app-level before-quit (OS
- * shutdown, updater, etc.), actually ends the process.
+ * Tray + background mode. Closing the window hides Ultron to the tray instead
+ * of quitting, which is what keeps reminders and the wake word working. Only
+ * the tray's Quit (or an OS shutdown) ends the process.
  */
 
 let tray: Tray | null = null;
+let forceQuit = false;
 
 export function setupTray(win: BrowserWindow, iconPath: string): void {
-  // A real quit needs to bypass the close-guard below - before-quit fires
-  // first and flips this flag so the subsequent 'close' event on win is let
-  // through instead of trapped into a hide().
-  app.on('before-quit', () => {
-    (win as any).__forceQuit = true;
-  });
+  app.on('before-quit', () => { forceQuit = true; });
 
   win.on('close', (e) => {
-    if (!(win as any).__forceQuit) {
+    if (!forceQuit) {
       e.preventDefault();
       win.hide();
     }
   });
 
   tray = new Tray(iconPath);
-  tray.setToolTip('Atlas');
+  tray.setToolTip('Ultron');
+
+  const show = () => {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+  };
 
   const buildMenu = () =>
     Menu.buildFromTemplate([
-      {
-        label: 'Show Atlas',
-        click: () => { win.show(); win.focus(); },
-      },
+      { label: 'Show Ultron', click: show },
       { type: 'separator' },
       {
         label: 'Start with Windows',
@@ -47,22 +40,26 @@ export function setupTray(win: BrowserWindow, iconPath: string): void {
         click: (item) => setAutoLaunch(item.checked),
       },
       { type: 'separator' },
-      {
-        label: 'Quit',
-        click: () => app.exit(0),
-      },
+      { label: 'Quit Ultron', click: () => { forceQuit = true; app.quit(); } },
     ]);
 
   tray.setContextMenu(buildMenu());
-
-  // Double-click is the expected "bring it back" gesture on Windows.
-  tray.on('double-click', () => { win.show(); win.focus(); });
+  tray.on('double-click', show);
+  tray.on('click', show);
 }
 
 export function isAutoLaunchEnabled(): boolean {
-  return app.getLoginItemSettings().openAtLogin;
+  if (!app.isPackaged) return false;
+  return app.getLoginItemSettings({ args: ['--hidden'] }).openAtLogin;
 }
 
-export function setAutoLaunch(enabled: boolean): void {
-  app.setLoginItemSettings({ openAtLogin: enabled });
+/**
+ * Starts hidden in the tray at login, so reminders fire without a window
+ * popping up. Installed app only - from a dev checkout this would register
+ * the bare Electron runtime, which opens an empty window at login.
+ */
+export function setAutoLaunch(enabled: boolean): boolean {
+  if (!app.isPackaged) return false;
+  app.setLoginItemSettings({ openAtLogin: enabled, args: ['--hidden'] });
+  return true;
 }

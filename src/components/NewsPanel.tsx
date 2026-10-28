@@ -39,7 +39,7 @@ function NewsItem({ article }: { article: Article }) {
       {relevance?.status === 'pending' && (
         <div className="relevance relevance--pending">
           <span className="dot dot--live" style={{ display: 'inline-block', marginRight: 6 }} />
-          analysing relevance via local model...
+          analysing relevance...
         </div>
       )}
       {relevance?.status === 'done' && (
@@ -123,7 +123,7 @@ export function NewsPanel() {
     setKeySaving(true);
     setKeyMsg(null);
     try {
-      const res = await ultron.settings.setEnvKey('GNEWS_API_KEY', value);
+      const res = await ultron.secrets.set('GNEWS_API_KEY', value);
       if (res.ok) {
         setKeyDraft('');
         setHasKey(true);
@@ -278,7 +278,7 @@ export function NewsPanel() {
                 <br />
                 2. Copy your API key
                 <br />
-                3. Paste it into Settings, or add <span className="mono" style={{ color: 'var(--green)' }}>GNEWS_API_KEY=...</span> to the .env file
+                3. Paste it with the + button above, or in Settings
               </>
             ) : loading ? (
               'Syncing headlines...'

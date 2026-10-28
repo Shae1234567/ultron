@@ -1,320 +1,129 @@
-﻿import { useStore, useSttStore } from '../state/store';
-import type { ChatMessage } from '../types';
-import { buildSystemPrompt, cancelAIResponse, getAIResponse, newRequestId } from './ai';
-import type { Specialist } from '../agents/types';
-import { speak, stopSpeaking } from './speech';
+import { useStore, useSttStore } from '../state/store';
+import { speak, stopSpeaking, toSpeech } from './speech';
 import { getStream, startMic, stopMic } from './audio';
 import { startRecording, stopRecording } from './recorder';
 import { ensureModel, transcribe } from './stt';
-import { ultron } from './bridge';
-import { researchMulti, formatResearchContext } from './research';
-import type { ResearchSource } from '../types';
-import { runAgentLoop } from './agentLoop';
+import { askBrain, brainBusy, cancelBrain } from './brain';
 
 /**
  * Conversation orchestration. Lives outside React so the push-to-talk key
- * handler, the composer and the news module can all drive the same pipeline.
+ * handler, the composer, reminders and proactive lines all share one
+ * pipeline: message -> team (main process) -> streamed reply -> voice.
  */
 
-// llama3.2's context window is 128k tokens - 12 turns was leaving most of
-// that unused. More history means Atlas actually remembers the start of a
-// long conversation instead of visibly forgetting it a few exchanges in.
 const HISTORY_TURNS = 24;
-let activeRequestId: string | null = null;
 
-function historyMessages(): ChatMessage[] {
+function historyMessages(): { role: 'user' | 'assistant'; content: string }[] {
   const { transcript } = useStore.getState();
   return transcript
-    .filter((t) => (t.who === 'you' || t.who === 'ultron') && !t.error && t.text.trim())
+    .filter((t) => (t.who === 'you' || t.who === 'ultron') && !t.error && !t.streaming && t.text.trim() && t.text !== '(cancelled)')
     .slice(-HISTORY_TURNS)
-    .map((t) => ({ role: t.who === 'you' ? ('user' as const) : ('assistant' as const), content: t.text }));
+    .map((t) => ({ role: t.who === 'you' ? 'user' : 'assistant', content: t.text }));
 }
 
 export function isBusy(): boolean {
-  return activeRequestId !== null;
+  return brainBusy() || useStore.getState().busy;
+}
+
+/** Speaks a line in Ultron's voice with the operator's voice settings, driving the orb state. */
+export function speakAsUltron(text: string): void {
+  const line = toSpeech(text);
+  if (!line) return;
+  const { setCoreState } = useStore.getState();
+  const voice = useStore.getState().settings?.voice;
+  setCoreState('speaking');
+  // Web Speech's onend is documented to sometimes never fire (focus changes,
+  // sleep/wake) - without a watchdog the orb would stay on RESPONDING forever.
+  const watchdog = setTimeout(() => {
+    if (useStore.getState().coreState === 'speaking') setCoreState('idle');
+  }, Math.max(8000, line.length * 90));
+  speak(line, {
+    voiceName: voice?.name,
+    rate: voice?.rate,
+    pitch: voice?.pitch,
+    onEnd: () => {
+      clearTimeout(watchdog);
+      if (useStore.getState().coreState === 'speaking') setCoreState('idle');
+    },
+    onError: () => { clearTimeout(watchdog); setCoreState('idle'); },
+  });
 }
 
 export function cancelCurrent(): void {
-  if (activeRequestId) {
-    cancelAIResponse(activeRequestId);
-    activeRequestId = null;
-  }
-  // Escape used to only stop generation/speech - if the operator was mid
-  // push-to-talk, the mic kept recording and the release still ran the full
-  // transcribe-and-submit pipeline as though nothing happened.
+  cancelBrain();
   if (pttActive) {
     pttActive = false;
     stopRecording().catch(() => {});
     stopMic();
   }
   stopSpeaking();
-  useStore.getState().setBusy(false);
   useStore.getState().setCoreState('idle');
 }
 
-/** Runs a prompt through the brain, streams it into the transcript, then speaks it. */
-export async function submitMessage(
-  text: string,
-  opts: { speakReply?: boolean; agent?: Specialist } = {},
-): Promise<void> {
+/** Sends a message to the team, streams the reply into the transcript, then speaks it. */
+export async function submitMessage(text: string, opts: { speakReply?: boolean } = {}): Promise<void> {
   const trimmed = text.trim();
-  // Also refuses while push-to-talk is recording - otherwise a text send that
-  // lands mid-recording claims activeRequestId, and the transcribed voice
-  // message that follows silently no-ops when it finds the slot already taken.
-  if (!trimmed || activeRequestId || pttActive) return;
+  // Refuses while push-to-talk is recording, or the transcribed voice message
+  // that follows would find the run slot already taken and silently vanish.
+  if (!trimmed || isBusy() || pttActive) return;
 
   const store = useStore.getState();
-  const { ollama, settings, memory, pushEntry, appendToEntry, finishEntry, setCoreState, setBusy } = store;
+  const history = historyMessages();
+  store.pushEntry({ who: 'you', text: trimmed });
 
-  pushEntry({ who: 'you', text: trimmed });
-
-  const agent = opts.agent ?? store.activeAgent ?? undefined;
-  const usingGemini = settings?.brain === 'gemini';
-
-  // The agentic tool-calling loop (see agentLoop.ts) always drives Ollama's
-  // function-calling directly - Gemini tool-calling isn't wired up yet - so
-  // Unison/Scout/Archivist need the local daemon regardless of the brain
-  // setting. Everything else can skip the Ollama gate entirely on Gemini.
-  const needsOllama = agent?.capability === 'agentic' || !usingGemini;
-  if (needsOllama) {
-    if (!ollama?.running) {
-      pushEntry({
-        who: 'system',
-        text: 'Brain offline. Ollama is not responding on ' + (ollama?.host ?? 'localhost:11434') + '. Open SETTINGS for setup steps.',
-        error: true,
-      });
-      store.setOverlay({ kind: 'ollama' });
-      return;
-    }
-    if (!ollama.modelInstalled) {
-      pushEntry({
-        who: 'system',
-        text: `Model "${ollama.activeModel}" is not installed. Run: ollama pull ${ollama.activeModel}`,
-        error: true,
-      });
-      store.setOverlay({ kind: 'ollama' });
-      return;
-    }
-  }
-
-  if (agent?.capability === 'agentic') {
-    setCoreState('thinking');
-    setBusy(true);
-    const replyId = pushEntry({ who: 'ultron', text: '', streaming: true });
-    activeRequestId = 'agentic:' + newRequestId();
-    try {
-      const systemPrompt = buildSystemPrompt(settings, memory, agent);
-      const run = await runAgentLoop(systemPrompt, trimmed, agent.tools ?? [], {
-        model: settings?.ollama.model,
-        onStep: (step) => {
-          if (step.kind === 'tool_call') appendToEntry(replyId, '');
-        },
-      });
-      activeRequestId = null;
-      setBusy(false);
-      if (!run.ok) {
-        finishEntry(replyId, { error: true, text: `[failed] ${run.error ?? 'agent loop failed'}` });
-        setCoreState('idle');
-        return;
-      }
-      finishEntry(replyId, { text: run.text });
-      const reply = run.text.trim();
-      if (!reply || opts.speakReply === false) { setCoreState('idle'); return; }
-      setCoreState('speaking');
-      const voice = useStore.getState().settings?.voice;
-      const speakWatchdog = setTimeout(() => {
-        if (useStore.getState().coreState === 'speaking') setCoreState('idle');
-      }, Math.max(8000, reply.length * 90));
-      speak(reply, {
-        voiceName: voice?.name,
-        rate: voice?.rate,
-        pitch: voice?.pitch,
-        onEnd: () => { clearTimeout(speakWatchdog); if (useStore.getState().coreState === 'speaking') setCoreState('idle'); },
-        onError: () => { clearTimeout(speakWatchdog); setCoreState('idle'); },
-      });
-    } catch (e) {
-      activeRequestId = null;
-      setBusy(false);
-      const message = e instanceof Error ? e.message : String(e);
-      finishEntry(replyId, { error: true, text: `[failed] ${message}` });
-      setCoreState('idle');
-    }
+  if (store.brain && !store.brain.active) {
+    store.pushEntry({
+      who: 'system',
+      text: 'No brain is available: Ollama is not running (or its model is not pulled) and there is no working Gemini key. Opening brain setup.',
+      error: true,
+    });
+    store.setOverlay({ kind: 'brain' });
     return;
   }
 
-  setCoreState('thinking');
-  setBusy(true);
-  const replyId = pushEntry({ who: 'ultron', text: '', streaming: true });
-  const requestId = newRequestId();
-  activeRequestId = requestId;
+  stopSpeaking();
+  store.setCoreState('thinking');
+  store.setBusy(true);
+  const replyId = store.pushEntry({ who: 'ultron', text: '', streaming: true });
 
-  // Specialist live capabilities land here, BEFORE the history/user turns -
-  // a system message placed after the user's turn breaks llama3.2's chat
-  // template (observed: the model echoed the literal token "assistant"
-  // instead of answering). Each case is a real fetch, never a fake one -
-  // if it fails, the block says so plainly rather than inventing an answer.
-  const systemBlocks = [buildSystemPrompt(settings, memory, agent)];
-  let sources: ResearchSource[] = [];
-  switch (agent?.capability) {
-    case 'research': {
-      sources = await researchMulti(trimmed);
-      systemBlocks.push(formatResearchContext(sources, trimmed));
-      break;
+  const result = await askBrain(trimmed, history, replyId);
+  const s = useStore.getState();
+  s.setBusy(false);
+
+  if (!result.ok) {
+    if (result.cancelled) {
+      s.finishEntry(replyId, { text: '(cancelled)' });
+    } else {
+      s.finishEntry(replyId, { error: true, text: `[failed] ${result.error ?? 'Something went wrong.'}` });
     }
-    case 'weather': {
-      const place = settings?.profile.location || 'Calgary, Alberta, Canada';
-      const w = await ultron.research.weather(place);
-      systemBlocks.push(
-        w
-          ? `LIVE WEATHER - ${w.place} right now: ${w.tempC}°C (feels like ${w.feelsLikeC}°C), ${w.condition}, wind ${w.windKph} km/h, ${w.isDay ? 'daytime' : 'night'}. Use this for any training/outdoor-safety advice.`
-          : 'LIVE WEATHER: the fetch failed just now. Tell the operator plainly you could not reach the weather service. Do not state a temperature, condition, or forecast of any kind - you have none.',
-      );
-      break;
-    }
-    case 'on-this-day': {
-      const events = await ultron.research.onThisDay();
-      systemBlocks.push(
-        events.length
-          ? `LIVE ON THIS DAY (today's real date, oldest first):\n${events.map((e) => `${e.year}: ${e.text}`).join('\n')}`
-          : 'LIVE ON THIS DAY: the feed returned nothing just now. Tell the operator plainly that nothing came back. Do not name a historical event, year, or figure for today - you have none to draw from.',
-      );
-      break;
-    }
-    case 'github': {
-      const connected = await ultron.github.hasToken();
-      if (!connected) {
-        // A small model demonstrably will invent plausible-sounding repo
-        // names here if this reads as a passive fact instead of a direct
-        // order - observed live: asked "what repos am I working on" with no
-        // token connected, it fabricated two fake project names rather than
-        // saying it had nothing. This block is deliberately blunt and
-        // repeats the instruction because of that, not out of caution alone.
-        systemBlocks.push(
-          'LIVE GITHUB: NOT CONNECTED. You have zero repo or issue data - none was fetched, ' +
-          'none exists in this conversation. If asked about repos, issues, pull requests, or ' +
-          'GitHub activity, your entire answer must be that GitHub is not connected yet and it ' +
-          'can be connected from Systems -> Connectors -> GitHub. Under no circumstances invent, ' +
-          'guess, or name a repo, project, or issue - you have not seen any and must not pretend ' +
-          'otherwise.',
-        );
-        break;
-      }
-      const [repos, work] = await Promise.all([ultron.github.repos(6), ultron.github.openWork(8)]);
-      const repoLines = repos.length
-        ? repos.map((r) => `${r.fullName}${r.private ? ' (private)' : ''} - updated ${r.updatedAt}${r.description ? ` - ${r.description}` : ''}`).join('\n')
-        : '(none visible to this token)';
-      const workLines = work.length
-        ? work.map((i) => `${i.isPullRequest ? 'PR' : 'Issue'} in ${i.repo}: ${i.title}`).join('\n')
-        : '(nothing open right now)';
-      systemBlocks.push(
-        `LIVE GITHUB - real data just fetched, this is the complete list, nothing else exists:\n\n` +
-        `Recently updated repos:\n${repoLines}\n\nOpen issues/PRs:\n${workLines}\n\n` +
-        'Only reference repos/issues that appear above. Do not add, embellish, or invent any not listed here.',
-      );
-      break;
-    }
-    case 'notion': {
-      const connected = await ultron.notion.hasToken();
-      if (!connected) {
-        // Same failure mode as GitHub, same fix: a blunt, repeated, imperative
-        // block, because a passive statement was demonstrably not enough to
-        // stop the model inventing plausible-sounding content.
-        systemBlocks.push(
-          'LIVE NOTION: NOT CONNECTED. You have zero page or database data - none was fetched, ' +
-          'none exists in this conversation. If asked about notes, pages, or anything in Notion, ' +
-          'your entire answer must be that Notion is not connected yet and it can be connected ' +
-          'from Systems -> Connectors -> Notion. Under no circumstances invent, guess, or name a ' +
-          'page, note, or database - you have not seen any and must not pretend otherwise.',
-        );
-        break;
-      }
-      const items = await ultron.notion.search(8);
-      const itemLines = items.length
-        ? items.map((i) => `${i.type === 'database' ? 'Database' : 'Page'}: ${i.title} - last edited ${i.lastEditedTime}`).join('\n')
-        : '(nothing shared with this integration yet)';
-      systemBlocks.push(
-        `LIVE NOTION - real data just fetched, this is the complete list, nothing else exists:\n\n` +
-        `${itemLines}\n\n` +
-        'Only reference pages/databases that appear above. Do not add, embellish, or invent any not listed here. ' +
-        'Note this only covers pages the operator has explicitly shared with the integration - absence from this ' +
-        'list does not mean the page does not exist in their Notion, only that it has not been shared yet.',
-      );
-      break;
-    }
-    default:
-      break;
+    s.setCoreState('idle');
+    return;
   }
 
-  const messages: ChatMessage[] = [
-    { role: 'system', content: systemBlocks.join('\n\n') },
-    ...historyMessages(),
-  ];
+  const agents = result.agents.filter((a) => a !== 'ultron');
+  s.finishEntry(replyId, {
+    text: result.text,
+    sources: result.sources.length ? result.sources : undefined,
+    team: agents.length || result.runNote ? { agents, runNote: result.runNote, actions: result.actions } : undefined,
+  });
 
-  try {
-    let sawFirstToken = false;
-    const full = await getAIResponse(messages, {
-      requestId,
-      brain: usingGemini ? 'gemini' : 'ollama',
-      model: usingGemini ? settings?.gemini.model : settings?.ollama.model,
-      onToken: (token) => {
-        if (!sawFirstToken) { sawFirstToken = true; }
-        appendToEntry(replyId, token);
-      },
-    });
-    activeRequestId = null;
-    setBusy(false);
-    finishEntry(replyId, sources.length ? { sources } : undefined);
-
-    const reply = full.trim();
-    if (!reply) { setCoreState('idle'); return; }
-
-    if (opts.speakReply === false) { setCoreState('idle'); return; }
-
-    setCoreState('speaking');
-    const voice = useStore.getState().settings?.voice;
-    // Web Speech's onend/onerror are documented to sometimes never fire (focus
-    // changes, sleep/wake). Without a watchdog that leaves coreState stuck on
-    // 'speaking' - [ESC] shown - with no sound and no way out but a manual cancel.
-    const speakWatchdog = setTimeout(() => {
-      if (useStore.getState().coreState === 'speaking') setCoreState('idle');
-    }, Math.max(8000, reply.length * 90));
-    speak(reply, {
-      voiceName: voice?.name,
-      rate: voice?.rate,
-      pitch: voice?.pitch,
-      onEnd: () => {
-        clearTimeout(speakWatchdog);
-        if (useStore.getState().coreState === 'speaking') setCoreState('idle');
-      },
-      onError: () => { clearTimeout(speakWatchdog); setCoreState('idle'); },
-    });
-  } catch (e) {
-    activeRequestId = null;
-    setBusy(false);
-    const message = e instanceof Error ? e.message : String(e);
-    // A cancellation is user-initiated, not a failure - cancelCurrent() already
-    // reset coreState, so just drop the half-written entry quietly.
-    if (message === 'cancelled') {
-      finishEntry(replyId, { text: '(cancelled)' });
-      return;
-    }
-    finishEntry(replyId, { error: true, text: `[failed] ${message}` });
-    setCoreState('idle');
-    void ultron.ollama.status().then(useStore.getState().setOllama);
+  if (opts.speakReply === false || !result.text.trim()) {
+    s.setCoreState('idle');
+    return;
   }
+  speakAsUltron(result.text);
 }
+
 /* ── Push to talk (local Whisper) ───────────────────────────────────────
    Web Speech recognition is a Google-hosted service that Electron builds
-   cannot reach, so speech-to-text runs locally instead: record the clip,
-   resample it, and transcribe it with Whisper in a worker. Free, offline
-   after the first model download, and it actually works here.            */
+   cannot reach, so speech-to-text runs locally: record the clip, resample
+   it, and transcribe it with Whisper in a worker.                         */
 
 let pttActive = false;
 let modelWarned = false;
 
 export const isPushToTalkActive = () => pttActive;
 
-/** Optional warm-up so the first real utterance is not stuck behind a download. */
 export function preloadSpeechModel(): void {
   void ensureModel().catch(() => {
     /* status is reported through the stt store */
@@ -322,7 +131,7 @@ export function preloadSpeechModel(): void {
 }
 
 export async function beginPushToTalk(): Promise<void> {
-  if (pttActive || activeRequestId) return;
+  if (pttActive || isBusy()) return;
   const store = useStore.getState();
 
   pttActive = true;
@@ -343,15 +152,10 @@ export async function beginPushToTalk(): Promise<void> {
     return;
   }
 
-  // Begin fetching the model now if it is not resident yet.
-  const sttState = useSttStore.getState();
-  if (sttState.stt === 'unknown') {
+  if (useSttStore.getState().stt === 'unknown') {
     if (!modelWarned) {
       modelWarned = true;
-      store.pushEntry({
-        who: 'system',
-        text: 'Loading the local Whisper model on first use. This downloads once, then runs offline.',
-      });
+      store.pushEntry({ who: 'system', text: 'Loading the local Whisper model on first use. This downloads once, then runs offline.' });
     }
     preloadSpeechModel();
   }
@@ -386,7 +190,6 @@ async function finishPushToTalk(): Promise<void> {
   try {
     const text = (await transcribe(audio)).trim();
     useSttStore.getState().setStt('ok');
-
     // Whisper emits these for silence or noise - not worth sending to the brain.
     const noise = /^[\s.,!?-]*(\[[^\]]*\]|\([^)]*\))?[\s.,!?-]*$/i;
     if (!text || noise.test(text)) {

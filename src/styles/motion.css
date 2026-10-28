@@ -1,0 +1,168 @@
+/* ── Motion: entrances, ambient life and the idle state ──────────────────
+   Everything here animates transform or opacity only (cheap, on the GPU)
+   and the ambient loops sit behind prefers-reduced-motion, so Windows'
+   "Animation effects: off" turns them off. The app adds .shell--live when
+   the start-up screen finishes and body.hud-idle after a minute without
+   input (useIdleClass in App.tsx). */
+
+/* Panels arrive one after another when the start-up screen clears. */
+.shell--live > .area-top    { animation: hud-panel-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.shell--live > .area-left   { animation: hud-panel-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.08s both; --hud-from: -14px; }
+.shell--live > .area-center { animation: hud-panel-zoom 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.16s both; }
+.shell--live > .area-right  { animation: hud-panel-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.12s both; --hud-from: 14px; }
+.shell--live > .area-bottom { animation: hud-panel-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.22s both; }
+
+/* Panels and cards open with a short pop instead of appearing. */
+.overlay { animation: hud-fade 0.22s ease-out both; }
+.overlay__card { animation: hud-pop 0.38s cubic-bezier(0.2, 0.9, 0.25, 1.1) both; }
+.approval .hud-panel { animation: hud-pop 0.34s cubic-bezier(0.2, 0.9, 0.25, 1.1) both; }
+
+/* A soft light runs across a button when you point at it. */
+.hud-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+.hud-btn:hover:not(:disabled)::after { transform: translateX(130%); transition: transform 0.55s ease; }
+
+.agent-card { transition: border-color 0.2s, background 0.2s, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.agent-card:hover { transform: translateY(-1px); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Every panel catches a slow diagonal glint now and then, each at its own moment. */
+  .area-top    { --hud-glint-delay: -2s; }
+  .area-left   { --hud-glint-delay: -9s; }
+  .area-center { --hud-glint-delay: -5s; }
+  .area-right  { --hud-glint-delay: -13s; }
+  .area-bottom { --hud-glint-delay: -17s; }
+  .hud-panel__inner::after {
+    content: '';
+    position: absolute;
+    top: -20%;
+    bottom: -20%;
+    left: 0;
+    width: 38%;
+    background: linear-gradient(100deg, transparent 0%, rgba(0, 217, 255, 0.06) 40%, rgba(234, 247, 255, 0.09) 50%, rgba(0, 217, 255, 0.06) 60%, transparent 100%);
+    transform: translateX(-120%) skewX(-12deg);
+    animation: hud-glint 20s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    animation-delay: var(--hud-glint-delay, 0s);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* The corner brackets breathe, out of step with each other. */
+  .hud-panel__bracket { animation: hud-bracket 5.5s ease-in-out infinite; }
+  .hud-panel__bracket--bl { animation-delay: -2.75s; }
+
+  /* A spark of light travels along the line under each panel header. */
+  .panel-head { position: relative; }
+  .panel-head::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 26%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    box-shadow: 0 0 6px var(--cyan);
+    transform: translateX(-110%);
+    animation: hud-spark 9s ease-in-out infinite;
+    animation-delay: var(--hud-glint-delay, 0s);
+    pointer-events: none;
+  }
+
+  /* Idle agents get a faint scan now and then, so the team feels on standby rather than off. */
+  .agent-card::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 40%;
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--agent) 12%, transparent), transparent);
+    transform: translateY(-110%);
+    animation: hud-card-scan 11s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .agent-card:nth-child(2n)::after { animation-delay: -3.5s; }
+  .agent-card:nth-child(3n)::after { animation-delay: -6.2s; }
+  .agent-card:nth-child(5n)::after { animation-delay: -8.4s; }
+
+  /* The wordmark glows like it's powered. */
+  .brand { animation: hud-brand 6s ease-in-out infinite; }
+
+  /* The newest reply's speaker label lights up once. */
+  .msg:last-child .msg__who { animation: hud-who 1.6s ease-out both; }
+
+  /* Slow aurora behind everything (Backdrop.tsx). */
+  .bg-aurora {
+    position: fixed;
+    inset: -20%;
+    pointer-events: none;
+    background:
+      radial-gradient(38% 30% at 30% 35%, rgba(0, 217, 255, 0.07), transparent 70%),
+      radial-gradient(30% 26% at 72% 64%, rgba(79, 195, 247, 0.06), transparent 70%),
+      radial-gradient(26% 22% at 58% 22%, rgba(182, 156, 255, 0.035), transparent 70%);
+    animation: hud-aurora 48s ease-in-out infinite alternate;
+    opacity: 0.8;
+    transition: opacity 2s ease;
+  }
+
+  /* ── Idle: after a minute with no input the HUD settles into standby. ── */
+  body.hud-idle .bg-aurora { opacity: 1; animation-duration: 28s; }
+  body.hud-idle .hud-panel__inner::after { animation-duration: 11s; }
+  body.hud-idle .core-caption__state { animation: hud-standby 3.2s ease-in-out infinite; }
+  body.hud-idle .idle-ring { opacity: 1; }
+  .idle-ring {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 140vmax;
+    height: 140vmax;
+    margin: -70vmax 0 0 -70vmax;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 2.5s ease;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(0, 217, 255, 0.05) 18deg, transparent 40deg, transparent 360deg);
+    animation: spin-cw 22s linear infinite;
+    z-index: 0;
+  }
+}
+
+@keyframes hud-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hud-pop { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes hud-panel-in { from { opacity: 0; transform: translateX(var(--hud-from, 0)) translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes hud-panel-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes hud-panel-zoom { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes hud-glint {
+  0%, 82% { transform: translateX(-120%) skewX(-12deg); }
+  96%, 100% { transform: translateX(360%) skewX(-12deg); }
+}
+@keyframes hud-bracket { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes hud-spark {
+  0%, 70% { transform: translateX(-110%); opacity: 0; }
+  72% { opacity: 1; }
+  92% { transform: translateX(420%); opacity: 1; }
+  100% { transform: translateX(420%); opacity: 0; }
+}
+@keyframes hud-card-scan {
+  0%, 78% { transform: translateY(-110%); }
+  100% { transform: translateY(260%); }
+}
+@keyframes hud-brand {
+  0%, 100% { text-shadow: 0 0 10px rgba(0, 217, 255, 0.45), 0 0 3px var(--cyan); }
+  50% { text-shadow: 0 0 18px rgba(0, 217, 255, 0.75), 0 0 4px var(--cyan); }
+}
+@keyframes hud-who { 0% { text-shadow: 0 0 0 transparent; } 30% { text-shadow: 0 0 12px var(--cyan); } 100% { text-shadow: 0 0 0 transparent; } }
+@keyframes hud-aurora {
+  0% { transform: translate3d(-3%, -2%, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(2%, 3%, 0) rotate(8deg) scale(1.06); }
+  100% { transform: translate3d(4%, -3%, 0) rotate(-6deg) scale(1.02); }
+}
+@keyframes hud-standby { 0%, 100% { opacity: 0.55; letter-spacing: 0.32em; } 50% { opacity: 1; letter-spacing: 0.36em; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .shell--live > *, .overlay, .overlay__card, .approval .hud-panel { animation: none; }
+}

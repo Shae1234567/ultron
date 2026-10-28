@@ -1,0 +1,23 @@
+/* The School screen - the Health app's frame and parts (health.css), plus a few of its own. */
+.sc-status { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12px; color: var(--dim); }
+.sc-warn { color: #ff8c97; }
+.sc-small { font-family: var(--font-mono); font-size: 11.5px; font-weight: 400; color: var(--dim); }
+.sc-over .hl-entry__t { color: #ffd2d7; }
+.sc-grades { list-style: none; display: flex; flex-direction: column; }
+.sc-grades li { display: grid; grid-template-columns: minmax(140px, 1.4fr) 90px minmax(120px, 1fr) 130px minmax(120px, 1fr); gap: 14px; align-items: center; padding: 9px 0; border-bottom: 1px solid rgba(0, 217, 255, 0.07); }
+.sc-grades__c { font-family: var(--font-display); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); }
+.sc-grades b { font-family: var(--font-mono); font-weight: 400; font-size: 20px; color: var(--cyan); text-shadow: var(--text-glow); }
+.sc-grades__ch { font-family: var(--font-mono); font-size: 11.5px; color: var(--dim); }
+.sc-grades__ch.up { color: var(--green); }
+.sc-grades__ch.down { color: #ff8c97; }
+.sc-spark { width: 120px; height: 28px; }
+.sc-spark path { fill: none; stroke: var(--cyan); stroke-width: 1.5; }
+.sc-libbar { width: 160px; }
+.sc-hits { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.sc-hit { padding: 10px 13px; border-left: 3px solid var(--cyan-deep); background: rgba(0, 217, 255, 0.04); display: flex; flex-direction: column; gap: 6px; }
+.sc-hit__h { display: flex; gap: 12px; align-items: baseline; }
+.sc-hit__h b { font-family: var(--font-display); font-size: 10px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); }
+.sc-hit__h span { font-family: var(--font-mono); font-size: 11px; color: var(--dim); }
+.sc-hit p { font-family: var(--font-ui); font-weight: 500; font-size: 14.5px; line-height: 1.4; color: #cfe3ee; white-space: pre-wrap; }
+.sc-focus { display: flex; align-items: center; gap: 16px; }
+.sc-dt { width: 230px; }

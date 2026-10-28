@@ -1,0 +1,544 @@
+{
+  "summary": {
+    "workflow": "v2",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "ranAt": "2026-09-29T23:37:32.759Z",
+    "passed": 17,
+    "total": 20,
+    "medianSeconds": 6,
+    "meanCalls": 3,
+    "meanTokens": 13350
+  },
+  "results": [
+    {
+      "id": "quiz-average",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 13000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Your current average is exactly 80. To bring it to 82, you need a perfect 90 on your fifth quiz. That’s a steep hill to climb.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (7 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 13k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "savings-weeks",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 7,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You'll have $400 in about 24 weeks at that rate. That's roughly six months if you're consistent with your weekly contributions.",
+      "log": [
+        "remembered: new note \"Math Performance\", 1 fact -> Math Performance",
+        "calc (400 - 40) / 15",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "discount-tax",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 4,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The final price is $66.15. You got a solid discount there - that's almost $18 off the original tag.",
+      "log": [
+        "calc (84 * 0.75) * 1.05",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "field-feet",
+      "split": "opt",
+      "category": "units",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "That's approximately 344.5 feet.",
+      "log": [
+        "remembered: new note \"Savings Goal\", new note \"Financial Habits\", 1 fact -> Savings Goal",
+        "calc 105 * 3.28084",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "days-until",
+      "split": "opt",
+      "category": "dates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 13000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "There are 81 days from September 29, 2026 to December 19, 2026.",
+      "log": [
+        "calc days between \"2026-09-29\" and \"2026-12-19\"",
+        "failed: SyntaxError: Unexpected operator \" (char 14) (line 1)",
+        "run code (6 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 13k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "solve-linear",
+      "split": "opt",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 15,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 18000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code",
+        "calc"
+      ],
+      "answer": "Here's how you solve it: Expand the left side: 3x - 12 = 2x + 7 Subtract 2x from both sides: 3x - 2x - 12 = 7 → x - 12 = 7 Add 12 to both sides: x = 19 The solution is **x = 19**.",
+      "log": [
+        "run code (1 line)",
+        "failed: ReferenceError: 'solve' is not defined (line 1)",
+        "run code (1 line)",
+        "failed: ReferenceError: 'require' is not defined (line 1)",
+        "calc 3(x - 4) = 2x + 7 for x",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 18k tokens · 14 s"
+      ]
+    },
+    {
+      "id": "bike-speed",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 4,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You average 18 km/h. That's pretty solid - faster than a decent jog, slower than a serious bike ride. Keep pedaling!",
+      "log": [
+        "calc (12 / (40/60))",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "bat-and-ball",
+      "split": "opt",
+      "category": "reasoning",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 18000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code",
+        "calc"
+      ],
+      "answer": "You spend $2.25 total. The ball is 5 cents, the bat is $1.05, so three balls and two bats come to exactly that amount.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (6 lines)",
+        "calc 3 * 0.05 + 2 * 1.05",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 18k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "read-long-rules",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": false,
+      "missing": [
+        "\\b(7|seven)\\b"
+      ],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 14000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "You're right—I didn't need to do any math here. The number of substitutes was directly stated in the league rules webpage I just read. No computation was required.",
+      "log": [
+        "read 127.0.0.1:65184/league-rules.html",
+        "verify: those numbers were not computed - working them out with code first",
+        "cost: 3 model calls · 14k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "abstain-coach",
+      "split": "opt",
+      "category": "abstention",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 18000,
+      "verified": [],
+      "tools": [
+        "recall",
+        "google"
+      ],
+      "answer": "I don't have that in my memory vault, and there's no public record of your specific practice conversations online. Since I can't access what you're asking about - either from your records or the web - I'll need you to tell me what happened if it matters for anything practical. Or just remember it yourself, since that's where the real context lives anyway.",
+      "log": [
+        "remembered: new note \"Shae's Cycling Stats\", new note \"Shae's Preferences\"",
+        "recall \"coach practice conversation last Tuesday soccer\"",
+        "google \"what did Shae's soccer coach say during practice on September 22, 2026\"",
+        "failed: Google Search needs a working Gemini key. Use web_search instead.",
+        "google \"what did Shae's soccer coach say during practice on September 22, 2026\"",
+        "failed: Google Search needs a working Gemini key. Use web_search instead.",
+        "cost: 4 model calls · 18k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "test-needed",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 13000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You need a 99 on the fourth test to average exactly 85. That's doable but not impossible—your last two scores were solid. Hope that helps you ace it!",
+      "log": [
+        "calc (72 + 88 + 81) / 4 = 85; x = (85 * 4) - (72 + 88 + 81); x",
+        "failed: SyntaxError: Invalid left hand side of assignment operator = (char 20) (line 1)",
+        "calc (85 * 4) - (72 + 88 + 81)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 13k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "compound-interest",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You'll have $562.43 after three years at 4% compounded yearly interest. That's a total of $62.43 in interest over the three-year period, which adds up to about 12 and a half cents per year on average.",
+      "log": [
+        "remembered: new note \"U15 League Rules\"",
+        "calc 500 * (1 + 0.04)^3",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "fahrenheit",
+      "split": "holdout",
+      "category": "units",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "72 degrees Fahrenheit is 22.2 degrees Celsius.",
+      "log": [
+        "calc (72 - 32) * 5/9",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "practice-hours",
+      "split": "holdout",
+      "category": "dates",
+      "pass": false,
+      "missing": [
+        "4\\.75|4 hours (and )?45|4 h 45|4:45"
+      ],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Four hours and 44 minutes of practice per week.",
+      "log": [
+        "recalled: Science Test Scores",
+        "calc (8.33 - 6.75) * 3",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "ratio-split",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You get $100, your brother gets $80.",
+      "log": [
+        "calc 180 * 5 / 9 and 180 * 4 / 9",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "solve-linear-2",
+      "split": "holdout",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 16,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 13000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Let's solve this step-by-step. Starting with: 5x + 3 = 2(x + 9) First, expand the right side: 5x + 3 = 2x + 18 Subtract 2x from both sides: 3x + 3 = 18 Subtract 3 from both sides: 3x = 15 Divide by 3: x = 5 Plugging x = 5 back in confirms both sides equal 28, so the solution is correct.",
+      "log": [
+        "calc CE.solve(\"5x + 3 = 2(x + 9)\", \"x\")",
+        "calc (5 * 5) + 3 and 2 * (5 + 9)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 13k tokens · 16 s"
+      ]
+    },
+    {
+      "id": "sprint-percent",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 4,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Your time dropped about 4.8%. That's a solid improvement. Keep it up.",
+      "log": [
+        "remembered: new note \"Shae's Practice Schedule\"",
+        "calc (6.2 - 5.9) / 6.2 * 100",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "read-long-news",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "Tier 3 tryout results will be posted on October 4, 2026. Every player who tried out will be emailed by the technical director that evening, before anything goes on the website.",
+      "log": [
+        "read 127.0.0.1:65184/club-news.html",
+        "cost: 2 model calls · 9k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "read-long-calendar",
+      "split": "holdout",
+      "category": "research-reading",
+      "pass": false,
+      "missing": [
+        "November 18|Nov\\.? 18|18 November"
+      ],
+      "wrong": [
+        "November 4\\b(?![^.]*grade 8)"
+      ],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 15000,
+      "verified": [],
+      "tools": [],
+      "answer": "I found the Grade 9 science fair information on the calendar page. The event is scheduled for November 4, 2026 in the gym at Vincent Massey School. However, I don't see a specific time listed for this event on the visible portion of the page.",
+      "log": [
+        "open 127.0.0.1:65184/school-calendar.html",
+        "cost: 3 model calls · 15k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "abstain-quiz",
+      "split": "holdout",
+      "category": "abstention",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 12,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 8,
+      "tokens": 42000,
+      "verified": [],
+      "tools": [
+        "recall",
+        "google"
+      ],
+      "answer": "I cannot access D2L grades because Shae is not signed in to the platform. The tool returned a login error requiring the operator to manually sign in through the Apps panel. Without completing this step, no grade data can be retrieved from D2L or any other school portal.",
+      "log": [
+        "recall \"September 3 science quiz mark score grade\"",
+        "google \"Shae Grade 9 Calgary science quiz September 3 mark score\"",
+        "failed: Google Search needs a working Gemini key. Use web_search instead.",
+        "D2L grades",
+        "failed: Not signed in to D2L. The operator needs to open Apps and press \"Sign in to D2L\" (they log in themselves; Ultron never sees the password).",
+        "work check: no app action behind that answer - sent back to run it",
+        "work check: no app action behind that answer - sent back to run it",
+        "cost: 8 model calls · 42k tokens · 11 s"
+      ]
+    }
+  ]
+}

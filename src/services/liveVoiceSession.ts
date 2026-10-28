@@ -1,6 +1,5 @@
 import { startLiveVoice, isLiveVoiceSupported, type LiveVoiceHandle } from './liveVoice';
-import { buildSystemPrompt } from './ai';
-import { useStore } from '../state/store';
+import { ultron } from './bridge';
 
 /**
  * Wires liveVoice.ts's Gemini Live session to an actual microphone and
@@ -116,15 +115,13 @@ export async function startLiveVoiceSession(opts: LiveVoiceStartOptions = {}): P
   if (session) return { ok: true }; // already live, idempotent
   if (!isLiveVoiceSupported()) return { ok: false, error: 'This browser build has no Web Audio support.' };
 
-  const { settings, memory } = useStore.getState();
-
   setState('connecting');
   try {
     // The Live API is a direct browser<->Google WebSocket, so (unlike every
-    // other brain call in this app) the renderer needs the real key - see the
-    // comment on the 'gemini:getKeyForLiveSession' handler in main.ts for why
-    // that's the one deliberate exception to secrets staying main-process-only.
-    const apiKey = await window.ultron.gemini.getKeyForLiveSession();
+    // other brain call in this app) the renderer needs the real key - the one
+    // deliberate exception to secrets staying in the main process.
+    const live = await ultron.brain.liveVoice();
+    const apiKey = live.key;
     if (!apiKey) {
       setState('error');
       return { ok: false, error: 'No Gemini API key configured - add one in Settings first.' };
@@ -157,7 +154,8 @@ export async function startLiveVoiceSession(opts: LiveVoiceStartOptions = {}): P
         onClose: () => { if (session === s) stopLiveVoiceSession(); },
       },
       {
-        systemInstruction: buildSystemPrompt(settings, memory) + '\n\nYou are in a real-time spoken voice conversation right now - keep replies short and natural, like talking, not writing.',
+        model: live.model ?? undefined,
+        systemInstruction: live.system ?? 'You are ULTRON. You are in a real-time spoken voice conversation - keep replies short and natural.',
       },
     );
 

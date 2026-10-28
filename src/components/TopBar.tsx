@@ -1,7 +1,8 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '../state/store';
 import { ultron } from '../services/bridge';
 import { GlitchText } from './hud/GlitchText';
+import { FocusChip } from './FocusChip';
 
 function Clock() {
   const [now, setNow] = useState(() => new Date());
@@ -14,7 +15,7 @@ function Clock() {
   const ss = String(now.getSeconds()).padStart(2, '0');
   const date = now.toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
   return (
-    <div className="readout">
+    <div className="readout readout--clock">
       <span className="readout__label">TIME</span>
       <span className="readout__value">
         {hh}:{mm}
@@ -26,41 +27,40 @@ function Clock() {
 }
 
 export function TopBar() {
-  const ollama = useStore((s) => s.ollama);
-  const quota = useStore((s) => s.quota);
-  const folders = useStore((s) => s.folders);
+  const brain = useStore((s) => s.brain);
+  const apps = useStore((s) => s.apps);
+  const d2l = useStore((s) => s.d2l);
   const setOverlay = useStore((s) => s.setOverlay);
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => ultron.win.onState(({ maximized: m }) => setMaximized(m)), []);
 
-  const brainOnline = Boolean(ollama?.running && ollama.modelInstalled);
-  // Three real states - "offline" would be wrong when the daemon is up but bare.
-  const link = ollama === null
+  const link = brain === null
     ? { label: 'PROBING', cls: 'chip--muted' }
-    : !ollama.running
-      ? { label: 'OLLAMA OFFLINE', cls: 'chip--bad' }
-      : !ollama.modelInstalled
-        ? { label: 'MODEL MISSING', cls: 'chip--bad' }
-        : { label: 'OLLAMA ONLINE', cls: 'chip--good' };
+    : brain.active
+      ? { label: brain.label, cls: 'chip--good' }
+      : { label: 'BRAIN OFFLINE', cls: 'chip--bad' };
+  const connected = apps?.apps.filter((a) => a.status === 'connected').length ?? 0;
   const modules: { name: string; on: boolean }[] = [
-    { name: 'BRAIN', on: brainOnline },
+    { name: 'BRAIN', on: Boolean(brain?.active) },
     { name: 'VOICE', on: typeof window !== 'undefined' && 'speechSynthesis' in window },
-    { name: 'NEWS', on: Boolean(quota) },
-    { name: 'FILES', on: folders.length > 0 },
+    { name: 'MEMORY', on: true },
+    { name: connected ? `APPS ${connected}` : 'APPS', on: connected > 0 },
+    { name: 'D2L', on: Boolean(d2l?.signedIn) },
   ];
 
   return (
     <div className="topbar">
       <div className="topbar__drag">
         <div>
-          <div className="brand"><GlitchText>ATLAS</GlitchText></div>
-          <div className="brand__sub">COMMAND CENTER v0.1</div>
+          <div className="brand"><GlitchText>ULTRON</GlitchText></div>
+          <div className="brand__sub">COMMAND CENTER v2.0</div>
         </div>
 
+        <FocusChip />
         <Clock />
 
-        <div className="readout">
+        <div className="readout readout--link">
           <span className="readout__label">LINK</span>
           <span className={`chip ${link.cls}`}>
             <span className="dot dot--live" />
@@ -68,26 +68,23 @@ export function TopBar() {
           </span>
         </div>
 
-        <div className="readout" style={{ gap: 5 }}>
+        <div className="readout readout--modules" style={{ gap: 5 }}>
           <span className="readout__label">MODULES</span>
           {modules.map((m) => (
             <span key={m.name} className={`chip ${m.on ? '' : 'chip--muted'}`}>{m.name}</span>
           ))}
         </div>
 
-        {ollama?.running && (
-          <div className="readout">
+        {brain?.model && (
+          <div className="readout readout--model">
             <span className="readout__label">MODEL</span>
-            <span className="readout__value" style={{ fontSize: 11 }}>{ollama.activeModel}</span>
+            <span className="readout__value" style={{ fontSize: 11 }}>{brain.model}</span>
           </div>
         )}
       </div>
 
       <div className="topbar__nodrag">
-        <button className="hud-btn" onClick={() => setOverlay({ kind: 'worldmap' })}>Global Theater</button>
-        <button className="hud-btn" onClick={() => setOverlay({ kind: 'browser' })}>Browser</button>
-        <button className="hud-btn" onClick={() => setOverlay({ kind: 'google' })}>Google</button>
-        <button className="hud-btn" onClick={() => setOverlay({ kind: 'cm8' })}>CM8</button>
+        <button className="hud-btn" onClick={() => setOverlay({ kind: 'apps' })}>Apps</button>
         <button className="hud-btn" onClick={() => setOverlay({ kind: 'memory' })}>Memory</button>
         <button className="hud-btn" onClick={() => setOverlay({ kind: 'settings' })}>Settings</button>
         <button className="winbtn" title="Minimize" aria-label="Minimize window" onClick={() => void ultron.win.minimize()}>
@@ -99,7 +96,7 @@ export function TopBar() {
             {maximized && <rect x="3.5" y="3.5" width="6" height="6" fill="none" stroke="currentColor" strokeWidth="1" />}
           </svg>
         </button>
-        <button className="winbtn winbtn--close" title="Close" aria-label="Close window" onClick={() => void ultron.win.close()}>
+        <button className="winbtn winbtn--close" title="Close to tray" aria-label="Close window to tray" onClick={() => void ultron.win.close()}>
           <svg width="11" height="11" viewBox="0 0 11 11">
             <path d="M1.5 1.5 L9.5 9.5 M9.5 1.5 L1.5 9.5" stroke="currentColor" strokeWidth="1.2" />
           </svg>

@@ -1,0 +1,336 @@
+{
+  "summary": {
+    "workflow": "v2",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard2-tasks.json",
+    "ranAt": "2026-09-30T17:27:38.782Z",
+    "passed": 10,
+    "total": 12,
+    "medianSeconds": 6,
+    "meanCalls": 3,
+    "meanTokens": 15250
+  },
+  "results": [
+    {
+      "id": "shop",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You'll pay $5.05 total. That's $2.80 for the pencils and $2.25 for the erasers.",
+      "log": [
+        "calc (7 * 1.20 / 3) + (5 * 0.90 / 2)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "bus",
+      "split": "holdout",
+      "category": "clock",
+      "pass": false,
+      "missing": [
+        "\\b9:04\\b"
+      ],
+      "wrong": [],
+      "seconds": 16,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 27000,
+      "verified": [
+        "numbers computed with code, not estimated · 1 worked calculation in the answer re-checked - correct"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Let me recalculate this more carefully: 9:00 am is 5 hours and 20 minutes after 6:40 am. (5 × 60 + 20) = 320 minutes between the two times. Since buses come every 18 minutes, we divide by 18 to find how many buses have passed: 320 ÷ 18 ≈ 17.78 So the first bus after 9:00 am would be the 18th bus (starting count from 0). 17 × 18 = 306 minutes after 6:40 am. 6:40 + 306 minutes = 6:40 + 5 hours and 6 minutes = 1:46 pm. Wait, that's for the bus at exactly 9:00 minus 18 minutes. Let me reconsider... Actually, simpler approach: - First bus at 6:40 am - Bus times: 6:40, 7:00, 7:18, 7:36, 7:54, 8:12, 8:30, 8:48, 9:06 The first bus after 9:00 am is at **9:06 am**.",
+      "log": [
+        "calc minutesBetween(\"6:40 am\", \"9:00 am\")",
+        "failed: Error: Undefined function minutesBetween (line 1)",
+        "calc 9.0 - 6.40/3",
+        "calc (0.333... * 18) + 6.40/3",
+        "failed: SyntaxError: Parenthesis ) expected (char 7) (line 1)",
+        "calc (6.40/3 + (6.867 - 2.133)*18/60) * 60",
+        "verified: numbers computed with code, not estimated · 1 worked calculation in the answer re-checked - correct",
+        "cost: 5 model calls · 27k tokens · 15 s"
+      ]
+    },
+    {
+      "id": "neither",
+      "split": "holdout",
+      "category": "sets",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 11000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Five students play neither sport. The math is straightforward: 18 plus 12 minus the 5 who do both gives us 25 who play at least one, so 30 minus 25 leaves five out in the cold.",
+      "log": [
+        "run code (7 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 11k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "battery",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You have about 250 minutes left before your battery hits 20%. That's roughly four hours of drain at that rate. Better plug it in soon than risk waking up on a dead phone!",
+      "log": [
+        "calc (80 - 20) / (6 / 25)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "remainder",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 17,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 6000,
+      "verified": [],
+      "tools": [],
+      "answer": "The smallest whole number that leaves a remainder of 1 when divided by 2, 3, 4, 5, or 6 and is divisible by 7 is **91**. Here's the reasoning: - A number that leaves a remainder of 1 when divided by 2, 3, 4, 5, or 6 can be expressed as $n = LCM(2, 3, 4, 5, 6) \\times k + 1$, where $LCM(2, 3, 4, 5, 6) = 60$. - So the possible values for $n$ are of the form $60k + 1$. - We need to find the smallest $k$ such that $60k + 1$ is divisible by 7. - Checking values: - For $k = 0$, $60(0) + 1 = 1$, which is not divisible by 7. - For $k = 1$, $60(1) + 1 = 61$, which is not divisible by 7. - For $k = 2$, $60(2) + 1 = 121$, which is not divisible by 7. - For $k = 3$, $60(3) + 1 = 181$, which is not divisible by 7. - For $k = 4$, $60(4) + 1 = 241$, which is not divisible by 7. - For $k = 5$, $60(5) + 1 = 301$, which is divisible by 7 ($301 / 7 = 43$). However, we missed a simpler case: - For $k = 1$, $60(1) + 1 = 61$, which is not divisible by 7. - For $k = 0$, $60(0) + 1 = 1$, which is not divisible by 7. - For $k = -1$, $60(-1) + 1 = -59$, which is not divisible by 7. Let's recheck: - For $k = 1$, $60(1) + 1 = 61$, which is not divisible by 7. - For $k = 2$, $60(2) + 1 = 121$, which is not divi",
+      "log": [
+        "cost: 1 model call · 6k tokens · 15 s"
+      ]
+    },
+    {
+      "id": "flour",
+      "split": "holdout",
+      "category": "ratio",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You need exactly 300 grams more flour to cook for 10 people.",
+      "log": [
+        "calc (10 / 4) * 300 - 450",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "june-first",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": false,
+      "missing": [
+        "Tuesday"
+      ],
+      "wrong": [
+        "(June 1|1st of June|June 1st)[^.]{0,40}\\b(Monday|Wednesday|Thursday|Friday|Saturday|Sunday)\\b"
+      ],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "June 1, 2027 is a Thursday.",
+      "log": [
+        "run code (2 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "bill",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 7,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 21000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Ana pays $17.10, leaving $35.40 for the other two friends to split equally. Each of them pays exactly $17.70.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "calc 52.50 - 17.10",
+        "calc 35.4 / 2",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 21k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "race",
+      "split": "holdout",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 58,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 37000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code",
+        "calc"
+      ],
+      "answer": "The only valid solution is: Wes in 1st place, Zoe in 2nd, Xia in 3rd, and Yan in 4th. This satisfies all constraints including Zoe not winning and Xia finishing right after her.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (50 lines)",
+        "calc zoe:1, yan:4, xia:2, wes:3",
+        "failed: SyntaxError: Unexpected operator , (char 6) (line 1)",
+        "The code shows that Zoe is in position 0 (which means 1st), Yan in position 3 (4th), Xia in position 1 (2nd), and Wes in position 2 (3rd). Wait, there's a contr",
+        "run code (30 lines)",
+        "run code (31 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 6 model calls · 37k tokens · 56 s"
+      ]
+    },
+    {
+      "id": "tank",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 20,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 21000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "It takes about 15 hours to fill the tank. Here's the math: the pipe fills it at 1/6 per hour, the drain empties it at 1/10 per hour, so together they add up to a net gain of 2/30 or 1/15 of the tank each hour. At that rate, you need 15 hours to get a full tank.",
+      "log": [
+        "calc (1/6 - 1/10) * t = 1; t",
+        "calc (1/6 - 1/10) * t = 1; solve(t)",
+        "calc rate_fill = 1/6; rate_drain = 1/10; net_rate = rate_fill - rate_drain; time_to_fill = 1/net_rate; time_to_fill",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 21k tokens · 18 s"
+      ]
+    },
+    {
+      "id": "sum-3-5",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The sum of all whole numbers from 1 to 200 that are divisible by 3 or by 5 is **9,368**.",
+      "log": [
+        "run code (8 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "savings",
+      "split": "holdout",
+      "category": "series",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You've saved $285 after 10 weeks. That's a solid streak—keeps it up and you'll be looking at over $300 by the time the decade is done.",
+      "log": [
+        "calc sum(range(15, 15 + 3 * (10 - 1), 3))",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 4 s"
+      ]
+    }
+  ]
+}

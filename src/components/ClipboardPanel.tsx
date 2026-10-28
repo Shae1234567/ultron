@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { getAIResponseOnce } from '../services/ai';
-import type { ChatMessage } from '../types';
+import { ultron } from '../services/bridge';
 
 /** The four single-purpose operations this panel can run on copied text. */
 type ClipboardAction = 'translate' | 'summarise' | 'explain' | 'fix';
@@ -33,13 +32,6 @@ const ACTION_INSTRUCTIONS: Record<ClipboardAction, string> = {
 
 const PREVIEW_LENGTH = 120;
 
-function buildMessages(action: ClipboardAction, text: string): ChatMessage[] {
-  return [
-    { role: 'system', content: ACTION_INSTRUCTIONS[action] },
-    { role: 'user', content: text },
-  ];
-}
-
 /**
  * Floating action panel shown when new clipboard text is detected. Anchored
  * to a fixed corner of the viewport rather than the actual cursor position -
@@ -59,8 +51,9 @@ export function ClipboardPanel({ text, onClose }: { text: string; onClose: () =>
     setError(null);
     setResult(null);
     try {
-      const response = await getAIResponseOnce(buildMessages(action, text));
-      setResult(response.trim());
+      const res = await ultron.brain.once({ system: ACTION_INSTRUCTIONS[action], user: text, tier: 'main', temperature: 0.3 });
+      if (!res.ok) throw new Error(res.error);
+      setResult(res.text.trim());
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

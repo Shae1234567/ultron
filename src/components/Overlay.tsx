@@ -9,9 +9,11 @@ interface Props {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  /** Wider card, for panels with a big visual (the Memory tab's mind sphere). */
+  wide?: boolean;
 }
 
-export function Overlay({ title, meta, onClose, children, footer }: Props) {
+export function Overlay({ title, meta, onClose, children, footer, wide }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -26,7 +28,7 @@ export function Overlay({ title, meta, onClose, children, footer }: Props) {
         transition={panelTransition.transition}
       >
         <HexPanel
-          className="overlay__card"
+          className={`overlay__card${wide ? ' overlay__card--wide' : ''}`}
           title={title}
           meta={meta}
           scroll={false}

@@ -1,4 +1,4 @@
-import { env } from './env';
+import { getSecret } from './secrets';
 
 /**
  * Real Telegram connector, via Telegram's Bot API.
@@ -18,7 +18,7 @@ import { env } from './env';
 const TIMEOUT_MS = 10000;
 
 function botToken(): string {
-  return env('TELEGRAM_BOT_TOKEN');
+  return getSecret('TELEGRAM_BOT_TOKEN');
 }
 
 export function hasToken(): boolean {

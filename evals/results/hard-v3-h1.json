@@ -1,0 +1,440 @@
+{
+  "summary": {
+    "workflow": "v3",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard-tasks.json",
+    "ranAt": "2026-09-30T04:28:44.133Z",
+    "passed": 13,
+    "total": 16,
+    "medianSeconds": 30,
+    "meanCalls": 4,
+    "meanTokens": 10625
+  },
+  "results": [
+    {
+      "id": "trains-meet",
+      "split": "opt",
+      "category": "multi-step",
+      "pass": false,
+      "missing": [
+        "\\b4:0[12]\\b"
+      ],
+      "wrong": [],
+      "seconds": 185,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 23000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The correct answer is **2:56 PM**. The math works like this: Train A leaves at 2:15 PM and Train B at 2:45 PM. By the time they start, there's already a 30 km gap that needs closing. The combined speed of both trains (90 + 110 = 200 km/h) means they close that initial gap in just 9 minutes, putting them back-to-back at roughly 2:24 PM. From then on, they are traveling toward each other and meet about 31 minutes later, landing at **2:56 PM**. The \"NaN\" result was a calculation error in one of the previous programs.",
+      "log": [
+        "solving it with independent programs",
+        "solver: no agreement (error: TypeError: 'hRounded' i | Meeting at NaN:NaN am | 16:01 pm)",
+        "run code (40 lines)",
+        "failed: SyntaxError: expecting ',' (line 1)",
+        "run code (25 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 6 model calls · 23k tokens · 185 s"
+      ]
+    },
+    {
+      "id": "ages",
+      "split": "opt",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 76,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 19000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "You're 30 now, and your cousin is 10. In ten years you'll be 40 while your cousin will be 20—exactly twice as old. The math checks out perfectly.",
+      "log": [
+        "solving it with independent programs",
+        "solver: no agreement (error: ReferenceError: 'meNowV | error: TypeError: 'currentAgeM | error: ReferenceError: 'cousin)",
+        "calc x = ? # Solve: x = 3c and x+10 = 2(c+10)",
+        "failed: SyntaxError: Value expected (char 5) (line 1)",
+        "run code (27 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 6 model calls · 19k tokens · 75 s"
+      ]
+    },
+    {
+      "id": "jerseys",
+      "split": "opt",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 135,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 21000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"Ana 1, Bo 4, Cy 3, Di 2\""
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Wait—there are no valid solutions with these constraints? Let me double-check the logic again. Ana is odd (1 or 3), Bo is even (2 or 4), Cy isn't 1, and Bo = Cy + 1. If Cy = 2, Bo = 3 (odd)—invalid. If Cy = 3, Bo = 4 (even)—valid. Then Ana must be 1, leaving Di = 2. But Di must be greater than Ana—2 > 1, which works. So the original answer was actually correct: Ana 1, Bo 4, Cy 3, Di 2. The code error was in the range check for Cy—I only allowed cy up to 3 instead of 4. The constraint \"Cy's number is not 1\" doesn't limit it to just 2 or 3. With that fix, we get one valid solution: Ana 1, Bo 4, Cy 3, Di 2.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 2 of 3 programs agree - Ana 1, Bo 4, Cy 3, Di 2",
+        "Ana wears 1, Bo wears 4, Cy wears 3, and Di wears 2.\n\nHere’s the logic: Ana is odd, so she’s either 1 or 3. Cy isn’t 1, and Bo is one more than Cy—so if Cy were",
+        "run code (21 lines)",
+        "The logic was slightly off in the script. Let me re-verify with a cleaner approach:",
+        "run code (14 lines)",
+        "verified: numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"Ana 1, Bo 4, Cy 3, Di 2\"",
+        "cost: 6 model calls · 21k tokens · 134 s"
+      ]
+    },
+    {
+      "id": "not-enough-time",
+      "split": "opt",
+      "category": "trap",
+      "pass": false,
+      "missing": [
+        "\\b5 (more )?minutes? (short|over|too)|not enough|no time|-5|minus 5|negative|5 minutes (more|over)"
+      ],
+      "wrong": [],
+      "seconds": 33,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"-5\" · 3 worked calculations in the answer re-checked - correct"
+      ],
+      "tools": [],
+      "answer": "You're wrong: there's **90 minutes** left for gaming. Here's how the math works: Start with 180 minutes (3 hours). Subtract homework (75): 180 – 75 = 105 Subtract soccer practice (90): 105 – 90 = 15 Subtract dinner (20): 15 – 20 = **–5**... Wait, that can't be right. Actually, let me recalculate carefully: 3 hours = 180 minutes 180 – 75 (homework) = 105 105 – 90 (soccer) = 15 15 – 20 (dinner) = **–5** This means you don't have enough time for all activities. You need to either shorten one activity, add more time before school, or skip something. Would you like me to help reschedule or prioritize your activities?",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - -5",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"-5\" · 3 worked calculations in the answer re-checked - correct",
+        "cost: 4 model calls · 7k tokens · 32 s"
+      ]
+    },
+    {
+      "id": "up-down-percent",
+      "split": "opt",
+      "category": "trap",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 30,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 12000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The final price is $48, which is lower than the original $50. Here's why: When you increase a price by 20%, it goes from $50 to $60. But when you take that new price ($60) and decrease it by 20%, you're taking 20% of $60 (which is $12), not 20% of the original $50. So $60 minus $12 equals $48. The final price is lower by $2.",
+      "log": [
+        "solving it with independent programs",
+        "solver: no agreement (Final Price: $48, Status: lowe | Final price: $48.00 (Lower tha | Final Price: $48, which is low)",
+        "run code (7 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 5 model calls · 12k tokens · 30 s"
+      ]
+    },
+    {
+      "id": "dice-8",
+      "split": "opt",
+      "category": "probability",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 50,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"5/36\" · 1 worked calculation in the answer re-checked - correct"
+      ],
+      "tools": [],
+      "answer": "The probability is **5/36**. Here's why: Two six-sided dice have 6 × 6 = 36 total possible outcomes. The combinations that sum to 8 are: (2,6), (3,5), (4,4), (5,3), and (6,2) — that's 5 winning combinations out of 36 possible ones. Five over thirty-six is the exact fraction. I'll trust those three independent programs on this one; it checks out cleanly.",
+      "log": [
+        "solving it with independent programs",
+        "remembered: new note \"Free Time Allocation\", new note \"Activity Planning\"",
+        "solver: 3 of 3 programs agree - 5/36",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"5/36\" · 1 worked calculation in the answer re-checked - correct",
+        "cost: 4 model calls · 7k tokens · 49 s"
+      ]
+    },
+    {
+      "id": "clean-together",
+      "split": "opt",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 23,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"2.0000\""
+      ],
+      "tools": [],
+      "answer": "It will take you and your brother **2 hours** to clean the garage together. Here’s how that works: Your rate of cleaning is one-third of the garage per hour, and your brother’s rate is one-sixth per hour. When you work together, your combined rate is the sum of your individual rates: one-third plus one-sixth equals half a garage per hour. If you clean half the garage in one hour, then doubling that gives you the full garage in 2 hours.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 2 of 3 programs agree - 2.0000",
+        "verified: numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"2.0000\"",
+        "cost: 4 model calls · 7k tokens · 22 s"
+      ]
+    },
+    {
+      "id": "fuel-cost",
+      "split": "opt",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 23,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"41.9\""
+      ],
+      "tools": [],
+      "answer": "The gas will cost $41.90. Here's how it works: Multiply the trip distance by your car's fuel consumption rate (340 km × 8.5 L/100 km) to get the total liters needed, which is 28.9 liters. Then multiply that by the price per liter (28.9 × $1.45) to find the cost, resulting in $41.91. The slight difference from your earlier calculation comes from rounding during intermediate steps—using exact numbers throughout gives the most accurate result.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 2 of 3 programs agree - 41.9",
+        "verified: numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"41.9\"",
+        "cost: 4 model calls · 7k tokens · 23 s"
+      ]
+    },
+    {
+      "id": "average-speed",
+      "split": "holdout",
+      "category": "trap",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 26,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"45.00\" · 2 worked calculations in the answer re-checked - correct"
+      ],
+      "tools": [],
+      "answer": "Your average speed for the whole trip is 45 km/h. To find this, you can't just average the two speeds (60 + 90) / 2 = 75, because you spent equal *distance* at each speed, not equal *time*. The correct method is to calculate total distance divided by total time. You traveled 120 km total. The first leg took 2 hours (60/30), and the second took 2/3 of an hour (60/90). Your total time was 2 + 2/3 = 8/3 hours. Dividing 120 by 8/3 gives 45 km/h.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 45.00",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"45.00\" · 2 worked calculations in the answer re-checked - correct",
+        "cost: 4 model calls · 7k tokens · 25 s"
+      ]
+    },
+    {
+      "id": "christmas-day",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": false,
+      "missing": [],
+      "wrong": [
+        "\\b(Monday|Tuesday|Wednesday|Thursday|Saturday|Sunday)\\b(?![^.]*(is|was) (a )?Tuesday)"
+      ],
+      "seconds": 40,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"Friday\""
+      ],
+      "tools": [],
+      "answer": "December 25, 2026 will be a **Friday**. Here's how we get there: September has 30 days, October has 31, November has 30, and December has 31. Starting from Tuesday, September 29, you add up the days in each month to find where Christmas falls. After counting through the months, you land on Friday the 25th.",
+      "log": [
+        "solving it with independent programs",
+        "remembered: new note \"Preferences\", new note \"Other\"",
+        "solver: 2 of 3 programs agree - Friday",
+        "verified: numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"Friday\"",
+        "cost: 4 model calls · 7k tokens · 38 s"
+      ]
+    },
+    {
+      "id": "committees",
+      "split": "holdout",
+      "category": "combinatorics",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 18,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"56\""
+      ],
+      "tools": [],
+      "answer": "There are **56** different 3-person committees that can be chosen from a class of 8 students. The method relies on combinations, not permutations, because the order in which you pick the three students doesn't matter—only who is on the committee does. You use the formula \"8 choose 3,\" calculated as 8 factorial divided by (3 factorial times 5 factorial), which simplifies to (8 × 7 × 6) ÷ (3 × 2 × 1).",
+      "log": [
+        "solving it with independent programs",
+        "remembered: new note \"# Sports\"",
+        "solver: 3 of 3 programs agree - 56",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"56\"",
+        "cost: 4 model calls · 7k tokens · 18 s"
+      ]
+    },
+    {
+      "id": "paycheck",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 15,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"39.69\" · 1 worked calculation in the answer re-checked - correct"
+      ],
+      "tools": [],
+      "answer": "You have **$39.69** left. Here's how we got there: 1. Your hourly wage is $12.50. 2. You worked 3.5 hours on Saturday and 4 hours on Sunday, totaling 7.5 hours. 3. Gross pay is $12.50 multiplied by 7.5, which equals $93.75. 4. Putting 15% into savings means taking away $93.75 multiplied by 0.15, or $14.06 (rounded to the nearest cent). This leaves you with $79.69 after savings. 5. Spending $40 from that remaining amount gives you a final balance of $39.69. Math confirmed via calculation: `(12.50 * 7.5) * (1 - 0.15) - 40 = 39.6875`, which rounds to **$39.69**.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 39.69",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"39.69\" · 1 worked calculation in the answer re-checked - correct",
+        "cost: 4 model calls · 7k tokens · 14 s"
+      ]
+    },
+    {
+      "id": "sequence",
+      "split": "holdout",
+      "category": "pattern",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 27,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"42\" · corrected 3 wrong calculations: \"1 * 2 = 2\n- 2 * 3\" is wrong - it is 2; \"6\n- 3 * 4 = 12\n- 4 * 5\" is wrong - it is -6; \"20\n- 5 * 6 = 30\n- 6 * 7\" is wrong - it is -10"
+      ],
+      "tools": [],
+      "answer": "The next number is **42**. The pattern isn't simple addition; it's based on multiplying consecutive integers by their position: - 1 × 2 = 2 - 2 × 3 = 6 - 3 × 4 = 12 - 4 × 5 = 20 - 5 × 6 = 30 - 6 × 7 = **42** Or, you can think of it as adding increasing even numbers: +4, +6, +8, +10, so the next jump is +12 (30 + 12 = 42). Correction: \"1 * 2 = 2 - 2 * 3\" is wrong - it is 2; \"6 - 3 * 4 = 12 - 4 * 5\" is wrong - it is -6; \"20 - 5 * 6 = 30 - 6 * 7\" is wrong - it is -10.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 42",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"42\" · corrected 3 wrong calculations: \"1 * 2 = 2\n- 2 * 3\" is wrong - it is 2; \"6\n- 3 * 4 = 12\n- 4 * 5\" is wrong - it is -6; \"20\n- 5 * 6 = 30\n- 6 * 7\" is wrong - it is -10",
+        "cost: 5 model calls · 7k tokens · 27 s"
+      ]
+    },
+    {
+      "id": "rectangle-area",
+      "split": "holdout",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 10,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 11000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The area of the rectangle is 162 cm². The width is 9 cm and the length is 18 cm.",
+      "log": [
+        "The perimeter of a rectangle is calculated as $2 \\times (\\text{length} + \\text{width})$. Given the perimeter is 54 cm and the length is twice the width, we can ",
+        "calc 18 * 9",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 11k tokens · 9 s"
+      ]
+    },
+    {
+      "id": "clock-angle",
+      "split": "holdout",
+      "category": "geometry",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 29,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"130\" · 2 worked calculations in the answer re-checked - correct"
+      ],
+      "tools": [],
+      "answer": "The smaller angle between the hour and minute hands at 3:40 is indeed **130 degrees**. Here's the breakdown: * At exactly 3:00, the hour hand is at the 3 (90° from 12), and the minute hand is at the 12 (0°). * The minute hand moves to the 8 (40 minutes), which is 240° from 12. * The hour hand also moves as the minutes pass. It travels 30° per hour, plus an additional 0.5° per minute. So at 3:40, it's at $90 + (40 \\times 0.5) = 110°$ from 12. * The difference between the two hands is $|240 - 110| = 130°$. Since 130° is less than 180°, it is already the smaller angle (the other angle would be $360 - 130 = 230°$).",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 130",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"130\" · 2 worked calculations in the answer re-checked - correct",
+        "cost: 4 model calls · 7k tokens · 28 s"
+      ]
+    },
+    {
+      "id": "lockers",
+      "split": "holdout",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 52,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 14000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The solution is clear and consistent. The first program's answer (Kai: 12, Lea: 11, Max: 10) is correct. The second program's claim that Max's locker number is \"undefined\" is wrong because the constraints don't leave any ambiguity. Here's why it works: - Kai must be even (10 or 12), and - Max cannot be 12, so if Kai were 10, Max would have to be 11 or 12, but 12 is forbidden for Max, leaving only 11. But then Lea would need to be next to Kai (10), which means 9 or 11 - both taken. So Kai can't be 10. - Therefore Kai is 12, Max must be 10 (since he can't be 12), and Lea is 11 (next to Kai). So: **Kai: 12, Lea: 11, Max: 10**",
+      "log": [
+        "recalled: Operator",
+        "solving it with independent programs",
+        "remembered: new note \"Financial Habits\", 1 fact -> Financial Habits",
+        "solver: no agreement (12 (Kai), 11 (Lea), 10 (Max) | 12 11 undefined | error: ReferenceError: 'Kai' i)",
+        "run code (45 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 5 model calls · 14k tokens · 51 s"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "rows": [
+    {
+      "run": "run1",
+      "version": "v1",
+      "all": "12/20",
+      "holdout": "6/8",
+      "medianSec": 5,
+      "callsPerTask": 2,
+      "tokensPerTask": 7750
+    },
+    {
+      "run": "run1",
+      "version": "v2",
+      "all": "19/20",
+      "holdout": "8/8",
+      "medianSec": 6,
+      "callsPerTask": 4,
+      "tokensPerTask": 15250
+    },
+    {
+      "run": "run2",
+      "version": "v1",
+      "all": "12/20",
+      "holdout": "5/8",
+      "medianSec": 5,
+      "callsPerTask": 3,
+      "tokensPerTask": 10450
+    },
+    {
+      "run": "run2",
+      "version": "v2",
+      "all": "17/20",
+      "holdout": "7/8",
+      "medianSec": 6,
+      "callsPerTask": 3,
+      "tokensPerTask": 13350
+    },
+    {
+      "run": "run3",
+      "version": "v1",
+      "all": "14/21",
+      "holdout": "7/9",
+      "medianSec": 5,
+      "callsPerTask": 2,
+      "tokensPerTask": 8905
+    },
+    {
+      "run": "run3",
+      "version": "v2",
+      "all": "20/21",
+      "holdout": "8/9",
+      "medianSec": 8,
+      "callsPerTask": 3,
+      "tokensPerTask": 13667
+    }
+  ],
+  "agg": {
+    "v1": {
+      "p": 38,
+      "n": 61,
+      "hp": 18,
+      "hn": 25
+    },
+    "v2": {
+      "p": 56,
+      "n": 61,
+      "hp": 23,
+      "hn": 25
+    }
+  },
+  "scoring": "tasks.json v3"
+}

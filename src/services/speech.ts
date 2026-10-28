@@ -1,10 +1,17 @@
-﻿/**
+﻿import { useStore } from '../state/store';
+import { speakUltron, stopUltron, ultronSpeaking, ultronVoiceUsable } from './ultronVoice';
+
+/**
+ * 11 Oct 2026: Ultron has its own voice now (ultronVoice.ts - Kokoro on this PC plus the Ultron
+ * effect). speak() uses it whenever it's chosen and downloaded; the Windows voices below are
+ * the fallback (still downloading, or the operator picked them in Settings).
+ *
  * Text-to-speech via the Web Speech API - free, built into Chromium, and it
  * uses the OS voices so it works reliably inside Electron.
  *
  * Speech-to-text deliberately does NOT live here. The Web Speech recognition
  * API exists in Electron but is backed by a Google-hosted service that Electron
- * builds cannot reach, so it fails with a `network` error every time. Atlas
+ * builds cannot reach, so it fails with a `network` error every time. Ultron
  * runs Whisper locally instead - see services/stt.ts.
  */
 
@@ -55,8 +62,26 @@ export function primeVoices(): void {
   };
 }
 
-/** Deep and deliberate - as close to Atlas as the stock OS voices get. */
+/** Deep and deliberate - as close to Ultron as the stock OS voices get. */
 export const VOICE_DEFAULTS = { rate: 0.93, pitch: 0.8 };
+
+/** What the voice should actually say: no markdown symbols, citation markers or raw URLs. */
+export function toSpeech(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '$1')
+    .replace(/https?:\/\/\S+/g, 'the link')
+    .replace(/\s*\[\d+(?:[,\s-]+\d+)*\]/g, '')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s*[-*•]\s+/gm, '')
+    .replace(/(\*\*|__|\*|_)(?=\S)([\s\S]*?\S)\1/g, '$2')
+    // A line break reads as a pause: end the sentence if it didn't already.
+    .replace(/([^.!?:;,\s])[ \t]*\n+\s*/g, '$1. ')
+    .replace(/\s*\n+\s*/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
 
 export interface SpeakOptions {
   onStart?: () => void;
@@ -65,9 +90,36 @@ export interface SpeakOptions {
   rate?: number;
   pitch?: number;
   voiceName?: string;
+  /** Overrides the saved setting (the Settings test button uses these). */
+  engine?: 'ultron' | 'system';
+  ultronVoice?: string;
+  effect?: number;
 }
 
 export function speak(text: string, opts: SpeakOptions = {}): void {
+  const saved = useStore.getState().settings?.voice;
+  if ((opts.engine ?? saved?.engine ?? 'ultron') === 'ultron' && ultronVoiceUsable() && text.trim()) {
+    if (ttsSupported()) window.speechSynthesis.cancel();
+    let started = false;
+    let fellBack = false;
+    void speakUltron(text, {
+      voice: opts.ultronVoice ?? saved?.ultronVoice ?? 'am_michael',
+      rate: opts.rate ?? saved?.rate ?? VOICE_DEFAULTS.rate,
+      effect: opts.effect ?? saved?.effect ?? 0.6,
+      onStart: () => { started = true; opts.onStart?.(); },
+      // If the Ultron voice fails before saying anything, the line still gets said - by Windows.
+      onError: (m) => {
+        if (started) opts.onError?.(m);
+        else { fellBack = true; speakSystem(text, opts); }
+      },
+      onEnd: () => { if (!fellBack) opts.onEnd?.(); },
+    });
+    return;
+  }
+  speakSystem(text, opts);
+}
+
+function speakSystem(text: string, opts: SpeakOptions): void {
   if (!ttsSupported() || !text.trim()) { opts.onEnd?.(); return; }
   window.speechSynthesis.cancel();
 
@@ -89,7 +141,8 @@ export function speak(text: string, opts: SpeakOptions = {}): void {
 }
 
 export function stopSpeaking(): void {
+  stopUltron();
   if (ttsSupported()) window.speechSynthesis.cancel();
 }
 
-export const isSpeaking = (): boolean => ttsSupported() && window.speechSynthesis.speaking;
+export const isSpeaking = (): boolean => ultronSpeaking() || (ttsSupported() && window.speechSynthesis.speaking);

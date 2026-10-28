@@ -1,4 +1,5 @@
 import { clipboard } from 'electron';
+import { serviceOfKey } from './keyShapes';
 
 /**
  * Clipboard Intelligence - detection side.
@@ -45,9 +46,17 @@ export function startClipboardWatch(onNewText: (text: string) => void): () => vo
     const trimmed = current.trim();
     if (!trimmed) return;
     if (trimmed.length > MAX_TEXT_LENGTH) return;
+    // A copied key or token is never offered to the AI (10 Oct 2026: replacing a refused key means copying one).
+    if (looksLikeSecret(trimmed)) return;
 
     onNewText(trimmed);
   }, POLL_INTERVAL_MS);
 
   return () => clearInterval(interval);
+}
+
+/** A key or token: a known service's shape, or one long unbroken run of letters, digits and dashes. */
+export function looksLikeSecret(text: string): boolean {
+  if (/\s/.test(text)) return false;
+  return Boolean(serviceOfKey(text)) || /^(sk|pk|rk|ck|ak|api|key|tok|nvapi|gsk|hf|xox[abp])[-_][A-Za-z0-9_-]{16,}$/i.test(text) || /^[A-Za-z0-9_-]{32,}$/.test(text);
 }

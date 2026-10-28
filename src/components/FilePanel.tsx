@@ -118,12 +118,11 @@ export function FilePanel() {
 
       {folders.length === 0 ? (
         <div className="empty-note">
-          No folders indexed. Atlas can only see folders you add here explicitly -
-          it has no access to the rest of the drive. Once added, Atlas can also
-          create, edit, rename, move, and delete (to the Recycle Bin) files inside
-          them. For full access to everything, click "+ Add folder" and select
-          your whole user folder (or navigate up to the drive root, e.g. C:\) -
-          the picker opens there by default.
+          No folders indexed yet. This tab is a quick browser for folders you add. Ultron's
+          operator agent (Hephaestus) can already work anywhere in your user folder - finding,
+          reading, writing and organizing files - and asks before anything that overwrites,
+          moves or deletes. Add a folder here to browse it, or to give Hephaestus a folder
+          outside your user folder (another drive, say).
         </div>
       ) : (
         <>

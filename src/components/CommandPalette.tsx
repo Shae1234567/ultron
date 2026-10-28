@@ -1,17 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useStore } from '../state/store';
+import { useStore, type Overlay, type RightTab } from '../state/store';
 import { isLiveVoiceSupported } from '../services/liveVoice';
 import { startLiveVoiceSession, stopLiveVoiceSession, getLiveVoiceState } from '../services/liveVoiceSession';
-import { startWakeWordListening, stopWakeWordListening, isWakeWordActive } from '../services/wakeWord';
+import { isWakeWordActive } from '../services/wakeWord';
+import { setWakeWord } from '../services/wakeWordControl';
 import { cancelCurrent, preloadSpeechModel } from '../services/conversation';
 import { ultron } from '../services/bridge';
 
-/**
- * Ctrl+K command palette. The parent owns the Ctrl+K listener and mount
- * point (see proposals/command-palette.md) - this component only manages
- * its own open/close keyboard behavior (Escape, arrow nav, Enter-to-run)
- * once `open` is true.
- */
+/** Ctrl+K command palette. The parent owns the Ctrl+K listener and mount point. */
 
 interface Command {
   id: string;
@@ -23,35 +19,62 @@ interface Command {
 function useCommands(): Command[] {
   return useMemo<Command[]>(() => {
     const cmds: Command[] = [];
-
-    const overlays: { label: string; kind: 'settings' | 'ollama' | 'memory' | 'github' | 'notion' | 'discord' | 'obsidian' | 'cm8' | 'browser' | 'google' | 'worldmap' }[] = [
-      { label: 'Open Settings', kind: 'settings' },
-      { label: 'Open Memory', kind: 'memory' },
-      { label: 'Open GitHub', kind: 'github' },
-      { label: 'Open Notion', kind: 'notion' },
-      { label: 'Open Discord', kind: 'discord' },
-      { label: 'Open Obsidian', kind: 'obsidian' },
-      { label: 'Open CM8', kind: 'cm8' },
-      { label: 'Open Browser', kind: 'browser' },
-      { label: 'Open Google', kind: 'google' },
-      { label: 'Open World Map', kind: 'worldmap' },
-      { label: 'Open Ollama Setup', kind: 'ollama' },
+    const overlays: { label: string; overlay: NonNullable<Overlay> }[] = [
+      { label: 'Open Settings', overlay: { kind: 'settings' } },
+      { label: 'Open Memory (Obsidian vault)', overlay: { kind: 'memory' } },
+      { label: 'Open Apps (connections, D2L)', overlay: { kind: 'apps' } },
+      { label: 'Open Brain setup', overlay: { kind: 'brain' } },
     ];
     for (const o of overlays) {
+      cmds.push({ id: `overlay:${o.overlay.kind}`, label: o.label, hint: 'Panel', run: () => useStore.getState().setOverlay(o.overlay) });
+    }
+    cmds.push({ id: 'overlay:close', label: 'Close panel', hint: 'Panel', run: () => useStore.getState().setOverlay(null) });
+    const health: { label: string; tab: string; start?: string }[] = [
+      { label: 'Open Health', tab: 'today' },
+      { label: 'Health: log sleep', tab: 'sleep' },
+      { label: 'Health: log a practice', tab: 'train', start: 'practice' },
+      { label: 'Health: log a game', tab: 'train', start: 'game' },
+      { label: 'Health: start a gym workout', tab: 'train', start: 'gym' },
+      { label: 'Health: log food', tab: 'food' },
+      { label: 'Health: pain or check-in', tab: 'body' },
+      { label: 'Health: this week', tab: 'week' },
+    ];
+    for (const h of health) cmds.push({ id: `health:${h.label}`, label: h.label, hint: 'Health', run: () => useStore.getState().setHealth({ open: true, tab: h.tab, start: h.start }) });
+    cmds.push({ id: 'health:water', label: 'Health: + a glass of water', hint: 'Health', run: () => void ultron.health.log('water', { ml: 250 }) });
+    for (const s of [{ label: 'Open School - this week', tab: 'week' }, { label: 'School: grades', tab: 'grades' }, { label: 'School: course library', tab: 'library' }, { label: 'School: study and focus', tab: 'study' }]) {
+      cmds.push({ id: `school:${s.tab}`, label: s.label, hint: 'School', run: () => useStore.getState().setSchool({ open: true, tab: s.tab }) });
+    }
+
+    const tabs: { label: string; tab: RightTab }[] = [
+      { label: 'Show the team', tab: 'team' },
+      { label: 'Show tasks', tab: 'tasks' },
+      { label: 'Show files', tab: 'files' },
+      { label: 'Show system status', tab: 'system' },
+    ];
+    for (const t of tabs) cmds.push({ id: `tab:${t.tab}`, label: t.label, hint: 'Tab', run: () => useStore.getState().setRightTab(t.tab) });
+
+    cmds.push({
+      id: 'action:d2l-sync',
+      label: 'Import D2L deadlines into tasks',
+      hint: 'School',
+      run: () => {
+        useStore.getState().setRightTab('tasks');
+        void ultron.d2l.sync().then((r) => useStore.getState().pushEntry({
+          who: 'system',
+          text: r.ok ? `D2L: imported ${r.added?.length ?? 0} deadline(s), ${r.skipped ?? 0} already on the list.` : `D2L: ${r.error}`,
+          error: !r.ok,
+        }));
+      },
+    });
+    cmds.push({ id: 'action:open-vault', label: 'Open the vault in Obsidian', hint: 'Memory', run: () => void ultron.vault.open() });
+    for (const mode of ['auto', 'full'] as const) {
       cmds.push({
-        id: `overlay:${o.kind}`,
-        label: o.label,
-        hint: 'Overlay',
-        run: () => useStore.getState().setOverlay({ kind: o.kind }),
+        id: `action:team-${mode}`,
+        label: mode === 'full' ? 'Team mode: full team on everything' : 'Team mode: auto',
+        hint: 'Team',
+        run: () => void ultron.settings.save({ team: { mode } }).then((s) => useStore.getState().setSettings(s)),
       });
     }
-    cmds.push({
-      id: 'overlay:close',
-      label: 'Close overlay',
-      hint: 'Overlay',
-      run: () => useStore.getState().setOverlay(null),
-    });
-
     cmds.push({
       id: 'action:toggle-live-voice',
       label: 'Toggle Live Voice',
@@ -59,54 +82,21 @@ function useCommands(): Command[] {
       run: () => {
         if (!isLiveVoiceSupported()) return;
         const s = getLiveVoiceState();
-        if (s === 'live' || s === 'connecting') {
-          stopLiveVoiceSession();
-        } else {
-          void startLiveVoiceSession({
-            onTranscript: (text) => useStore.getState().pushEntry({ who: 'ultron', text }),
-          });
-        }
+        if (s === 'live' || s === 'connecting') stopLiveVoiceSession();
+        else void startLiveVoiceSession({ onTranscript: (text) => useStore.getState().pushEntry({ who: 'ultron', text }) });
       },
     });
-
     cmds.push({
       id: 'action:toggle-wake-word',
-      label: 'Toggle Wake Word',
+      label: 'Toggle "Ultron" wake word',
       hint: 'Voice',
       run: () => {
-        if (isWakeWordActive()) {
-          stopWakeWordListening();
-        } else {
-          void startWakeWordListening(() => { void ultron.win.show(); });
-        }
+        void setWakeWord(!isWakeWordActive());
       },
     });
-
-    cmds.push({ id: 'action:abort', label: 'Abort', hint: 'Voice', run: () => cancelCurrent() });
+    cmds.push({ id: 'action:abort', label: 'Stop / abort', hint: 'Voice', run: () => cancelCurrent() });
     cmds.push({ id: 'action:load-voice-model', label: 'Load voice model', hint: 'Voice', run: () => preloadSpeechModel() });
-
-    const tabs: { label: string; tab: 'system' | 'files' | 'connectors' | 'agents' }[] = [
-      { label: 'Switch to System tab', tab: 'system' },
-      { label: 'Switch to Files tab', tab: 'files' },
-      { label: 'Switch to Connectors tab', tab: 'connectors' },
-      { label: 'Switch to Agents tab', tab: 'agents' },
-    ];
-    for (const t of tabs) {
-      cmds.push({
-        id: `tab:${t.tab}`,
-        label: t.label,
-        hint: 'Tab',
-        run: () => useStore.getState().setRightTab(t.tab),
-      });
-    }
-
-    cmds.push({
-      id: 'action:clear-transcript',
-      label: 'Clear transcript',
-      hint: 'Voice',
-      run: () => useStore.getState().clearTranscript(),
-    });
-
+    cmds.push({ id: 'action:clear-transcript', label: 'Clear transcript', hint: 'Voice', run: () => useStore.getState().clearTranscript() });
     return cmds;
   }, []);
 }
@@ -177,19 +167,10 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex((i) => Math.min(i + 1, Math.max(results.length - 1, 0)));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex((i) => Math.max(i - 1, 0));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        runSelected();
-      }
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex((i) => Math.min(i + 1, Math.max(results.length - 1, 0))); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIndex((i) => Math.max(i - 1, 0)); }
+      else if (e.key === 'Enter') { e.preventDefault(); runSelected(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -198,40 +179,20 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 
   if (!open) return null;
 
-  // No CSS file may be edited (see task constraint - exactly one new file
-  // is allowed), so the ".cmdk"/".cmdk-row" treatment the visual proposal
-  // describes is reproduced with inline styles built from the same design
-  // tokens, layered on top of the reused .overlay/.holo-panel/.holo-border-anim/
-  // .folder-row/.holo-flicker--text classes rather than new class names.
   return (
     <div className="overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div
         className="holo-panel holo-border-anim holo-border-anim--active"
-        style={{
-          width: 'min(560px, 100%)',
-          maxHeight: '60vh',
-          marginTop: '12vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
+        style={{ width: 'min(560px, 100%)', maxHeight: '60vh', marginTop: '12vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
       >
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10, height: 52,
-          padding: '0 14px', borderBottom: '1px solid var(--cyan-20)', flex: '0 0 auto',
-        }}>
-          <span style={{ color: 'var(--cyan)', textShadow: 'var(--text-glow)', fontFamily: 'var(--font-mono)' }}>
-            &#10095;
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, height: 52, padding: '0 14px', borderBottom: '1px solid var(--cyan-20)', flex: '0 0 auto' }}>
+          <span style={{ color: 'var(--cyan)', textShadow: 'var(--text-glow)', fontFamily: 'var(--font-mono)' }}>&#10095;</span>
           <input
             ref={inputRef}
             placeholder="Type a command..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            style={{
-              flex: 1, background: 'transparent', border: 'none', outline: 'none',
-              fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--cyan)',
-            }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--cyan)' }}
           />
         </div>
         <div style={{ overflowY: 'auto', flex: '1 1 auto' }}>
@@ -249,30 +210,18 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
                   onMouseLeave={() => setHoveredIndex((h) => (h === i ? null : h))}
                   onClick={() => { setSelectedIndex(i); runSelected(); }}
                   style={{
-                    padding: '8px 14px',
-                    gap: 10,
-                    borderBottom: '1px solid rgba(0,217,255,0.07)',
-                    cursor: 'pointer',
+                    padding: '8px 14px', gap: 10, borderBottom: '1px solid rgba(0,217,255,0.07)', cursor: 'pointer',
                     background: active ? 'var(--cyan-12)' : hovered ? 'rgba(0,217,255,0.06)' : 'transparent',
                     borderLeft: active ? '2px solid var(--cyan)' : '2px solid transparent',
                   }}
                 >
-                  <span
-                    className={active ? 'holo-flicker--text' : undefined}
-                    style={{ color: active ? 'var(--cyan)' : 'var(--dim)', textShadow: active ? 'var(--text-glow)' : undefined }}
-                  >
+                  <span className={active ? 'holo-flicker--text' : undefined} style={{ color: active ? 'var(--cyan)' : 'var(--dim)', textShadow: active ? 'var(--text-glow)' : undefined }}>
                     &#10095;
                   </span>
-                  <span style={{
-                    flex: 1, fontFamily: 'var(--font-ui)',
-                    color: active ? 'var(--cyan)' : 'var(--white)',
-                    textShadow: active ? 'var(--text-glow)' : undefined,
-                  }}>
+                  <span style={{ flex: 1, fontFamily: 'var(--font-ui)', color: active ? 'var(--cyan)' : 'var(--white)', textShadow: active ? 'var(--text-glow)' : undefined }}>
                     {c.label}
                   </span>
-                  {c.hint && (
-                    <span className="mono" style={{ fontSize: 9.5, color: 'var(--dim)' }}>{c.hint}</span>
-                  )}
+                  {c.hint && <span className="mono" style={{ fontSize: 9.5, color: 'var(--dim)' }}>{c.hint}</span>}
                 </div>
               );
             })

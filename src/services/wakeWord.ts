@@ -3,19 +3,18 @@ import { startRecording, stopRecording } from './recorder';
 import { ensureModel, transcribe } from './stt';
 
 /**
- * Always-on wake-phrase detection ("atlas" / "atlas wake up").
+ * Always-on wake-phrase detection ("Ultron" / "hey Ultron").
  *
  * Deliberately dumb: there is no real wake-word model here (Whisper is a
- * full transcriber, not a lightweight keyword spotter), so this just runs
- * the same record -> transcribe pipeline push-to-talk uses, on a rolling
- * 3-second timer, and checks the text for the word "atlas". That means
- * continuous Whisper inference in the background - real CPU cost - which is
- * exactly why this must stay strictly opt-in (a Settings toggle wired up
- * elsewhere), never on by default.
+ * full transcriber, not a lightweight keyword spotter), so this runs the same
+ * record -> transcribe pipeline push-to-talk uses on a rolling 3-second
+ * window and checks the text for the name. That is continuous Whisper
+ * inference in the background - real CPU cost - so it stays strictly opt-in.
  */
 
 const WINDOW_MS = 3000;
-const WAKE_RE = /\batlas\b/i;
+// Whisper's usual spellings of "Ultron" when it mishears it.
+const WAKE_RE = /\b(ult?ron|altron|all[\s-]?tron|ultra[\s-]?on)\b/i;
 
 export type WakeWordStatus = 'off' | 'listening' | 'unavailable';
 

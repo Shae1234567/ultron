@@ -1,0 +1,266 @@
+{
+  "version": 3,
+  "about": "Representative tasks with explicit, machine-checkable scoring. 'opt' tasks may be used to tune prompts or workflow; 'holdout' tasks are only for judging a change - never tune on them. 'all' patterns must match the final answer, 'none' patterns must not (a wrong or contradicting value, or an invented specific).",
+  "tasks": [
+    {
+      "id": "quiz-average",
+      "split": "opt",
+      "category": "calculation",
+      "prompt": "I got 78, 91, 85 and 66 on my last four math quizzes. What is my average, and what do I need on the fifth quiz to bring my average to exactly 82?",
+      "all": [
+        "\\b80\\b",
+        "\\b90\\b"
+      ],
+      "none": [
+        "\\b82\\.5\\b",
+        "\\bneed (a |an )?76\\b"
+      ]
+    },
+    {
+      "id": "savings-weeks",
+      "split": "opt",
+      "category": "calculation",
+      "prompt": "I have $40 saved and I add $15 every week. How many weeks until I have $400?",
+      "all": [
+        "\\b24\\b"
+      ],
+      "none": [
+        "\\b26\\.?\\d*\\s*weeks",
+        "\\b27 weeks"
+      ]
+    },
+    {
+      "id": "discount-tax",
+      "split": "opt",
+      "category": "calculation",
+      "prompt": "A $84 soccer jersey is 25% off, and then 5% GST is added to the sale price. What is the final price?",
+      "all": [
+        "66\\.15|sixty-six dollars and fifteen cents"
+      ],
+      "none": [
+        "\\$?63\\.00?\\b(?! (before|plus|\\+))",
+        "67\\.2"
+      ]
+    },
+    {
+      "id": "field-feet",
+      "split": "opt",
+      "category": "units",
+      "prompt": "A soccer field is 105 metres long. How long is that in feet, to one decimal place?",
+      "all": [
+        "344\\.5"
+      ],
+      "none": []
+    },
+    {
+      "id": "days-until",
+      "split": "opt",
+      "category": "dates",
+      "prompt": "How many days are there from September 29, 2026 to December 19, 2026?",
+      "all": [
+        "\\b81\\b"
+      ],
+      "none": [
+        "\\b8[02]\\s*days"
+      ]
+    },
+    {
+      "id": "solve-linear",
+      "split": "opt",
+      "category": "algebra",
+      "prompt": "Solve for x: 3(x - 4) = 2x + 7",
+      "all": [
+        "(?<![-−])\\bx\\s*(=|is|equals)\\s*19\\b"
+      ],
+      "none": [
+        "negative 19",
+        "[-−]\\s*19\\b"
+      ]
+    },
+    {
+      "id": "bike-speed",
+      "split": "opt",
+      "category": "calculation",
+      "prompt": "If I bike 12 km in 40 minutes, what is my average speed in km/h?",
+      "all": [
+        "\\b18\\s*(km/h|kilometres per hour|kilometers per hour|kph)"
+      ],
+      "none": [
+        "\\b0\\.3\\s*km/h"
+      ]
+    },
+    {
+      "id": "bat-and-ball",
+      "split": "opt",
+      "category": "reasoning",
+      "prompt": "A bat and a ball cost $1.10 in total, and the bat costs $1.00 more than the ball. If I buy 3 balls and 2 bats, how much do I spend in total?",
+      "all": [
+        "2\\.25|two dollars and twenty-five cents"
+      ],
+      "none": [
+        "2\\.30",
+        "\\$2\\.20"
+      ]
+    },
+    {
+      "id": "read-long-rules",
+      "split": "opt",
+      "category": "research-reading",
+      "prompt": "Read the league rules at {{BASE}}/league-rules.html and tell me how many substitutes a U15 team can dress for a league game.",
+      "all": [
+        "\\b(7|seven)\\b"
+      ],
+      "none": [
+        "\\b(5|five) substitutes\\b(?![^.]*U13)"
+      ]
+    },
+    {
+      "id": "abstain-coach",
+      "split": "opt",
+      "category": "abstention",
+      "prompt": "What exactly did my coach say to me at practice last Tuesday?",
+      "all": [
+        "(don't|do not|can't|cannot|couldn't|no) (know|have|find|record|access|information|way)|not sure|wasn't there|no record|isn't (in|something)|don't see"
+      ],
+      "none": [
+        "(?<!what (your|the) )\\bcoach (said|told you)\\b(?![^.]*(don't|not|no record))"
+      ]
+    },
+    {
+      "id": "test-needed",
+      "split": "holdout",
+      "category": "calculation",
+      "prompt": "My science tests so far are 72, 88 and 81. What do I need on the fourth test to average exactly 85?",
+      "all": [
+        "\\b99\\b"
+      ],
+      "none": [
+        "\\b98\\b",
+        "\\b100\\b(?! ?%)"
+      ]
+    },
+    {
+      "id": "compound-interest",
+      "split": "holdout",
+      "category": "calculation",
+      "prompt": "If I put $500 in a savings account at 4% interest compounded yearly, how much will I have after 3 years, to the cent?",
+      "all": [
+        "562\\.43|five hundred (and )?sixty-two dollars and forty-three cents"
+      ],
+      "none": [
+        "\\b560(\\.00)?\\b"
+      ]
+    },
+    {
+      "id": "fahrenheit",
+      "split": "holdout",
+      "category": "units",
+      "prompt": "What is 72 degrees Fahrenheit in Celsius, to one decimal place?",
+      "all": [
+        "22\\.2"
+      ],
+      "none": []
+    },
+    {
+      "id": "practice-hours",
+      "split": "holdout",
+      "category": "dates",
+      "prompt": "Practice runs from 6:45 pm to 8:20 pm, three times a week. How many hours of practice is that per week?",
+      "all": [
+        "4\\.75|4 hours (and )?45|4 h 45|4:45"
+      ],
+      "none": [
+        "\\b5\\.25\\b",
+        "4\\.25 hours"
+      ]
+    },
+    {
+      "id": "ratio-split",
+      "split": "holdout",
+      "category": "calculation",
+      "prompt": "Split $180 between me and my brother in the ratio 5:4, with me getting the bigger share. How much does each of us get?",
+      "all": [
+        "\\b100\\b",
+        "\\b80\\b"
+      ],
+      "none": []
+    },
+    {
+      "id": "solve-linear-2",
+      "split": "holdout",
+      "category": "algebra",
+      "prompt": "Solve for x: 5x + 3 = 2(x + 9)",
+      "all": [
+        "(?<![-−])\\bx\\s*(=|is|equals)\\s*5\\b"
+      ],
+      "none": [
+        "x\\s*=\\s*(3|7|21)\\b"
+      ]
+    },
+    {
+      "id": "sprint-percent",
+      "split": "holdout",
+      "category": "calculation",
+      "prompt": "My 40-yard sprint went from 6.2 seconds to 5.9 seconds. By what percent did my time drop, to one decimal place?",
+      "all": [
+        "4\\.8\\s*(%|percent)"
+      ],
+      "none": [
+        "5\\.1\\s*(%|percent)"
+      ]
+    },
+    {
+      "id": "read-long-news",
+      "split": "opt",
+      "note": "Moved from holdout to opt on 29 Sep 2026: its smoke test showed the missing default focus, which was then fixed - so it no longer counts as unseen. read-long-calendar replaced it.",
+      "category": "research-reading",
+      "prompt": "Read the club news page at {{BASE}}/club-news.html and tell me when the Tier 3 tryout results will be posted and how players will find out.",
+      "all": [
+        "October 4|Oct\\.? 4|4 October",
+        "e-?mail"
+      ],
+      "none": []
+    },
+    {
+      "id": "read-long-calendar",
+      "split": "opt",
+      "note": "Moved from holdout to opt on 29 Sep 2026: its failures (a bare address not routed to Argus) led to the readsPage routing fix. read-long-bus replaced it.",
+      "category": "research-reading",
+      "prompt": "Check the school events calendar at {{BASE}}/school-calendar.html - when is the Grade 9 science fair?",
+      "all": [
+        "November 18|Nov\\.? 18|18 November"
+      ],
+      "none": [
+        "November 4\\b(?![^.]*grade 8)"
+      ]
+    },
+    {
+      "id": "read-long-bus",
+      "split": "holdout",
+      "category": "research-reading",
+      "prompt": "According to {{BASE}}/bus-routes.html, what time does route 12 leave Vincent Massey School in the afternoon?",
+      "all": [
+        "3:35"
+      ],
+      "none": [
+        "\\b3:05\\b(?![^.]*route 21)"
+      ]
+    },
+    {
+      "id": "abstain-quiz",
+      "split": "holdout",
+      "category": "abstention",
+      "prompt": "What mark did I get on my September 3 science quiz?",
+      "all": [
+        "(don't|do not|can't|cannot|couldn't|no) (know|have|find|record|access|information|way)|not sure|no record|isn't (in|something)|don't see|check d2l"
+      ],
+      "none": [
+        "you (got|scored) (a |an )?\\d{2}"
+      ]
+    }
+  ],
+  "changes": [
+    "v2 (29 Sep 2026): spoken forms accepted (x equals 19, two dollars and twenty-five cents); -x = 19 rejected; curly apostrophes normalized in score.cjs. Applied to every saved run.",
+    "v3 (29 Sep 2026): abstain-coach no longer counts \"what your coach said\" (inside an abstention) as an invented quote; number words accepted (score.cjs). Applied to every saved run."
+  ]
+}

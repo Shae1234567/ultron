@@ -1,0 +1,328 @@
+{
+  "summary": {
+    "workflow": "v3",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard2-tasks.json",
+    "ranAt": "2026-09-30T17:22:38.312Z",
+    "passed": 11,
+    "total": 12,
+    "medianSeconds": 15,
+    "meanCalls": 5,
+    "meanTokens": 12000
+  },
+  "results": [
+    {
+      "id": "shop",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 17,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"5.05\""
+      ],
+      "tools": [],
+      "answer": "You pay $5.05. The cost for 7 pencils at $0.40 each is $2.80, and 5 erasers at $0.45 each is $2.25, totaling $5.05. Each item costs a fixed amount per unit, so multiply the quantity by the unit price and sum the results.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 2 of 3 programs agree - 5.05",
+        "verified: numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"5.05\"",
+        "cost: 4 model calls · 7k tokens · 16 s"
+      ]
+    },
+    {
+      "id": "bus",
+      "split": "holdout",
+      "category": "clock",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 17,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 17000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "The last bus left at 8:46 am, and the next one departs at 9:04 am (9 minutes before the 9:18 calculation). That's the first bus after 9:00 am.",
+      "log": [
+        "calc minutes between 6:40 am and 9:00 am = (9*60+0) - (6*60+40); first_bus_after_minutes = minutes_between + 18; first_bus_time = minutes_between + 18; hours = floor(minutes/60); remainder = minutes%60; string(hours, \":\", format(remainder))",
+        "failed: SyntaxError: Invalid left hand side of assignment operator = (char 37) (line 1)",
+        "run code (41 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 17k tokens · 17 s"
+      ]
+    },
+    {
+      "id": "neither",
+      "split": "holdout",
+      "category": "sets",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 14,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 12000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"5\""
+      ],
+      "tools": [],
+      "answer": "Five students play neither sport. To find this, add the soccer and badminton players together, subtract the overlap to get the total who play at least one sport, then subtract that sum from the class size of 30. The remaining five students do not participate in either activity.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 5",
+        "check: the reply does not give the computed answer (5) - answering again",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"5\"",
+        "cost: 5 model calls · 12k tokens · 13 s"
+      ]
+    },
+    {
+      "id": "battery",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 14,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"250\""
+      ],
+      "tools": [],
+      "answer": "250 minutes until your battery hits 20%. You lose 6% every 25 minutes, so that's 0.24% per minute. Starting at 80% and needing to drop 60% means dividing 60 by 0.24, which gives exactly 250 minutes or about four hours and ten minutes left.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 250",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"250\"",
+        "cost: 4 model calls · 7k tokens · 13 s"
+      ]
+    },
+    {
+      "id": "remainder",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 6000,
+      "verified": [],
+      "tools": [],
+      "answer": "The smallest whole number that leaves a remainder of 1 when divided by 2, 3, 4, 5, or 6, and is divisible by 7, is **7**. Here's why: - A number that leaves a remainder of 1 when divided by 2, 3, 4, 5, or 6 can be expressed as (LCM(2, 3, 4, 5, 6) × k) + 1. - The LCM of 2, 3, 4, 5, and 6 is 60. - So the numbers are 60k + 1 for integers k. - We also need the number to be divisible by 7. - Let's test values of k: - For k = 0: 60(0) + 1 = 1, which is not divisible by 7. - For k = 1: 60(1) + 1 = 61, which is not divisible by 7. - For k = 2: 60(2) + 1 = 121, which is not divisible by 7. - For k = 3: 60(3) + 1 = 181, which is not divisible by 7. - For k = 4: 60(4) + 1 = 241, which is not divisible by 7. - For k = 5: 60(5) + 1 = 301, which is divisible by 7 (301 / 7 = 43). Therefore, the smallest such number is **301**.",
+      "log": [
+        "cost: 1 model call · 6k tokens · 9 s"
+      ]
+    },
+    {
+      "id": "flour",
+      "split": "holdout",
+      "category": "ratio",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 15,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 13000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"300.00\""
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "You need exactly 300 grams more flour. The calculation is straightforward: ten people require 750 grams total (300 grams for four people scaled proportionally), and since you already have 450 grams, the difference is 300 grams.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 2 of 3 programs agree - 300.00",
+        "You need 150 grams more flour. The formula scales from four to ten people, which is a factor of two and a half; ten servings require 750 grams total, minus your",
+        "run code (3 lines)",
+        "verified: numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"300.00\"",
+        "cost: 6 model calls · 13k tokens · 14 s"
+      ]
+    },
+    {
+      "id": "june-first",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 253,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 8,
+      "tokens": 30000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "June 1, 2027 is a Tuesday. The math checks out - that's 90 days after March 1, which shifts the weekday by exactly two days forward.",
+      "log": [
+        "solving it with independent programs",
+        "remembered: new note \"Transportation\", new note \"Bus Schedule\"",
+        "solver: no agreement (Saturday | Thursday | Monday | Tuesday | error: TypeError: 'currentMont)",
+        "run code (20 lines)",
+        "failed: SyntaxError: expecting ';' (line 1) - this sandbox runs JavaScript, not Python. Use let/const, console.log(...), template strings `${x}`, ar",
+        "run code (10 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 8 model calls · 30k tokens · 252 s"
+      ]
+    },
+    {
+      "id": "bill",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 14,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"17.70\""
+      ],
+      "tools": [],
+      "answer": "Each of the other two pays $17.70. Subtract Ana's $17.10 from the total $52.50 to get $35.40 left, then divide that by 2 to find each person's share.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 17.70",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"17.70\"",
+        "cost: 4 model calls · 7k tokens · 12 s"
+      ]
+    },
+    {
+      "id": "race",
+      "split": "holdout",
+      "category": "logic",
+      "pass": false,
+      "missing": [
+        "Zoe\\D{0,25}(\\b2\\b|2nd|second)|(\\b2\\b|2nd|second)\\W{0,12}(place\\W{0,5})?Zoe",
+        "Yan\\D{0,25}(\\b4\\b|4th|fourth|last)|(\\b4\\b|4th|fourth|last)\\W{0,12}(place\\W{0,5})?Yan",
+        "Xia\\D{0,25}(\\b3\\b|3rd|third)|(\\b3\\b|3rd|third)\\W{0,12}(place\\W{0,5})?Xia",
+        "Wes\\D{0,25}(\\b1\\b|1st|first|wins|won)|(\\b1\\b|1st|first)\\W{0,12}(place\\W{0,5})?Wes"
+      ],
+      "wrong": [],
+      "seconds": 78,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 8,
+      "tokens": 24000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"2 2, 4 4, 3 3, 1 1\""
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The solution you were given is wrong. The correct order is: Zoe is 1st, Xia is 2nd, Yan is 3rd, and Wes is 4th. I made an error in my initial deduction—Zoe cannot finish before Yan if they both occupy the same position, which violates the race rules where each person must have a unique place. The code confirmed there are only two valid arrangements meeting all constraints, but your original answer doesn't match either.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 2 of 3 programs agree - 2 2, 4 4, 3 3, 1 1",
+        "check: the reply does not give the computed answer (2 2, 4 4, 3 3, 1 1) - answering again",
+        "Yan is 2nd, Zoe is 2nd, Wes is 4th, Xia is 3rd. Wait, that can't be right—two people in the same spot? Let me check my logic with a code verification to find th",
+        "run code (20 lines)",
+        "verified: numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"2 2, 4 4, 3 3, 1 1\"",
+        "cost: 8 model calls · 24k tokens · 77 s"
+      ]
+    },
+    {
+      "id": "tank",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 15,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"15.00\""
+      ],
+      "tools": [],
+      "answer": "It takes 15 hours to fill the tank. The combined filling rate is five-sixths of a tank per hour when adding the drain's emptying effect, which means the net rate is one-sixth per hour. Inverting that gives fifteen hours for the full tank.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 15.00",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"15.00\"",
+        "cost: 4 model calls · 7k tokens · 14 s"
+      ]
+    },
+    {
+      "id": "sum-3-5",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 18,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"9368\""
+      ],
+      "tools": [],
+      "answer": "The sum is 9368. We filtered numbers from 1 to 200 divisible by 3 or 5, summed them, and added any duplicates removed via the inclusion-exclusion principle. The three independent programs matched on this result, confirming accuracy.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 9368",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"9368\"",
+        "cost: 4 model calls · 7k tokens · 17 s"
+      ]
+    },
+    {
+      "id": "savings",
+      "split": "holdout",
+      "category": "series",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 14,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"285\""
+      ],
+      "tools": [],
+      "answer": "You've saved $285 after 10 weeks. This is found by adding the first week's savings to the number of weeks times the weekly increase, which gives $15 plus 3 times 9 times 10.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 285",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"285\"",
+        "cost: 4 model calls · 7k tokens · 13 s"
+      ]
+    }
+  ]
+}

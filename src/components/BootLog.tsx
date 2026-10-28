@@ -10,7 +10,7 @@ const CHECK_ORDER: CheckKey[] = ['memory', 'settings', 'brain', 'voice'];
 const CHECK_LABEL: Record<CheckKey, string> = {
   memory: 'MEMORY',
   settings: 'SETTINGS',
-  brain: 'BRAIN (OLLAMA)',
+  brain: 'BRAIN',
   voice: 'VOICE (TTS)',
 };
 

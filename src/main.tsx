@@ -8,7 +8,10 @@ import './styles/app.css';
 import './styles/boot.css';
 import './styles/hologram.css';
 import './styles/bootlog.css';
+import './styles/team.css';
 import './styles/a11y.css';
+import './styles/life.css';
+import './styles/motion.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

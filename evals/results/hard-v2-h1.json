@@ -1,0 +1,447 @@
+{
+  "summary": {
+    "workflow": "v2",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard-tasks.json",
+    "ranAt": "2026-09-30T04:15:17.651Z",
+    "passed": 11,
+    "total": 16,
+    "medianSeconds": 66,
+    "meanCalls": 3,
+    "meanTokens": 13813
+  },
+  "results": [
+    {
+      "id": "trains-meet",
+      "split": "opt",
+      "category": "multi-step",
+      "pass": false,
+      "missing": [
+        "\\b4:0[12]\\b"
+      ],
+      "wrong": [],
+      "seconds": 29,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 18000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "They meet at **3:45 pm**. Here's the math: Train 1 has a head start of 30 minutes. By then, they're 275 km apart (300 - 90×0.5). Closing together at 200 km/h (90 + 110), they meet in 1.375 hours, or about 82.5 minutes from the start of their journey. Adding this to Train 1's 2:15 pm departure gives roughly 3:45 pm.",
+      "log": [
+        "run code (46 lines)",
+        "failed: SyntaxError: return not in a function (line 1)",
+        "run code (40 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 18k tokens · 28 s"
+      ]
+    },
+    {
+      "id": "ages",
+      "split": "opt",
+      "category": "algebra",
+      "pass": false,
+      "missing": [
+        "\\b30\\b"
+      ],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 5000,
+      "verified": [],
+      "tools": [],
+      "answer": "You're 45. Here's the math: Let your age be x and your cousin's be y. You know x = 3y. In 10 years, you'll be x+10 and they'll be y+10, and x+10 = 2(y+10). Solving these equations gives x=45 and y=15.",
+      "log": [
+        "cost: 1 model call · 5k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "jerseys",
+      "split": "opt",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 155,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 31000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code",
+        "calc"
+      ],
+      "answer": "Let me think through this more carefully step by step: **Key constraints:** 1. Ana is odd (1 or 3) 2. Bo = Cy + 1 and Bo is even → Cy must be odd 3. Di > Ana 4. Cy ≠ 1 5. All numbers 1-4 used exactly once **If Ana = 1:** - Cy must be odd and ≠ 1, so Cy = 3 - Bo = Cy + 1 = 4 (even ✓) - Di > Ana (1), remaining number is 2, so Di = 2 This gives: Ana=1, Bo=4, Cy=3, Di=2 Let me verify all constraints: - Ana(1) is odd ✓ - Bo(4) = Cy(3) + 1 ✓ and even ✓ - Di(2) > Ana(1) ✓ - Cy(3) ≠ 1 ✓ - All numbers different ✓ **Answer:** * **Ana**: 1 * **Bo**: 4 * **Cy**: 3 * **Di**: 2",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (41 lines)",
+        "failed: SyntaxError: expecting '(' (line 1) - this sandbox runs JavaScript, not Python. Use let/const, console.log(...), template strings `${x}`, ar",
+        "run code (25 lines)",
+        "The code found two potential solutions, but one has Bo and Ana both assigned to 3, which violates the constraint that each player wears a different number. The ",
+        "calc 15% of 240",
+        "verified: numbers computed with code, not estimated",
+        "cost: 5 model calls · 31k tokens · 154 s"
+      ]
+    },
+    {
+      "id": "not-enough-time",
+      "split": "opt",
+      "category": "trap",
+      "pass": false,
+      "missing": [
+        "\\b5 (more )?minutes? (short|over|too)|not enough|no time|-5|minus 5|negative|5 minutes (more|over)"
+      ],
+      "wrong": [],
+      "seconds": 60,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You don't have any minutes left for gaming. The activities you listed (homework, soccer practice including travel, and dinner) take up all three hours after school. You might want to consider if the practice time includes travel or if there's flexibility in your schedule.",
+      "log": [
+        "calc 3 * 60 - 75 - 90 - 20",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 60 s"
+      ]
+    },
+    {
+      "id": "up-down-percent",
+      "split": "opt",
+      "category": "trap",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 49,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 21000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "The final price is exactly **$48**, which is **$2 lower** than the original $50. The 20% increase to $60, followed by a 20% decrease back down to $48, doesn't return to the starting point because percentages are calculated on their base values - not the absolute change.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "calc 50 * 1.2 * 0.8",
+        "run code (1 line)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 21k tokens · 48 s"
+      ]
+    },
+    {
+      "id": "dice-8",
+      "split": "opt",
+      "category": "probability",
+      "pass": false,
+      "missing": [
+        "5\\s*/\\s*36|5 out of 36|five out of thirty-six"
+      ],
+      "wrong": [],
+      "seconds": 40,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 18000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The probability that two six-sided dice sum to 8 is exactly five thirty-sixths. There are only five combinations—3+5, 4+4, 5+3, 6+2, and 2+6—that produce that total out of the possible thirty-six outcomes.",
+      "log": [
+        "calc count([1,2,3,4,5,6], [x,y] for x in range(1,7) for y in range(1,7) if x+y==8) / 36",
+        "failed: Error: Undefined symbol x (line 1)",
+        "calc fraction(5,36)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 4 model calls · 18k tokens · 39 s"
+      ]
+    },
+    {
+      "id": "clean-together",
+      "split": "opt",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 53,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 16000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The code confirms it will take exactly **2 hours** to clean the garage together. Your combined cleaning rate is 0.5 of the garage per hour, meaning you finish the whole job in two hours.",
+      "log": [
+        "remembered: new note \"Free Time Allocation\", new note \"Soccer Practice\", new note \"Daily Routine\"",
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (8 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 16k tokens · 52 s"
+      ]
+    },
+    {
+      "id": "fuel-cost",
+      "split": "opt",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 66,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "$41.91. Rounding up from $41.905 since you're paying by the cent.",
+      "log": [
+        "calc (8.5 / 100) * 340 * 1.45",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 65 s"
+      ]
+    },
+    {
+      "id": "average-speed",
+      "split": "holdout",
+      "category": "trap",
+      "pass": false,
+      "missing": [
+        "\\b45\\s*(km/h|kilometres per hour|kilometers per hour|kph)"
+      ],
+      "wrong": [],
+      "seconds": 81,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Your average speed for the whole trip was about 40 km/h. You might be surprised you're actually faster than that overall, because the longer time spent at your slower speed drags down your average.",
+      "log": [
+        "calc (60/30 + 60/90) / 2",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 80 s"
+      ]
+    },
+    {
+      "id": "christmas-day",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 70,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "December 25, 2026 is a Friday.",
+      "log": [
+        "run code (2 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 69 s"
+      ]
+    },
+    {
+      "id": "committees",
+      "split": "holdout",
+      "category": "combinatorics",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 55,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 16000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "You can choose 56 different 3-person committees from a class of 8 students. That's 8 factorial divided by (3 factorial times 5 factorial).",
+      "log": [
+        "remembered: new note \"Garage Cleaning\", new note \"Work Habits\"",
+        "calc combination(8, 3)",
+        "failed: Error: Undefined function combination (line 1)",
+        "run code (1 line)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 16k tokens · 54 s"
+      ]
+    },
+    {
+      "id": "paycheck",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 70,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You have $39.69 left to spend.",
+      "log": [
+        "calc (12.50 * (3.5 + 4)) * 0.85 - 40",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 69 s"
+      ]
+    },
+    {
+      "id": "sequence",
+      "split": "holdout",
+      "category": "pattern",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 76,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 11000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The next number is **42**. You might be tempted to think there's another pattern here (like the famous \"sequence that equals 5, 9, 13...\"), but based on what you gave me, it's pretty straightforward: add consecutive even numbers.",
+      "log": [
+        "remembered: new note \"Shae's Cycling Stats\", new note \"Shae's Preferences\"",
+        "The pattern adds consecutive even numbers: +4, +6, +8, +10... So the next step is +12.\n\n30 + 12 = **42**\n\nLet me verify that with exact math:",
+        "run code (5 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 11k tokens · 75 s"
+      ]
+    },
+    {
+      "id": "rectangle-area",
+      "split": "holdout",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 64,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 5000,
+      "verified": [
+        "corrected 1 wrong calculation: \"9 * 18 = 135\" is wrong - it is 162"
+      ],
+      "tools": [],
+      "answer": "Your area is 162 cm². Here's why: Let width be $w$, so length is $2w$. Perimeter = $2(w + 2w) = 54$, which gives $6w = 54$, so $w = 9$ and length = 18. Area = $9 \\times 18 = 162$.",
+      "log": [
+        "remembered: new note \"Shae's Preferences\"",
+        "verified: corrected 1 wrong calculation: \"9 * 18 = 135\" is wrong - it is 162",
+        "cost: 2 model calls · 5k tokens · 63 s"
+      ]
+    },
+    {
+      "id": "clock-angle",
+      "split": "holdout",
+      "category": "geometry",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 87,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 11000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The smaller angle between the hour and minute hands at 3:40 is approximately **138.3°**. Here's the breakdown: - At 3:00, the hour hand is at 90° from the 12 o'clock position (3 × 30°) - By 3:40, the minute hand moves to 240° (40 × 6°) - The hour hand also moves during those 40 minutes: it's now at 90° + (40/60 × 30°) = 110° - The difference is |240° - 110°| = 130°... wait, let me recalculate Actually, I got 138.3°, which means the angle is **138.3 degrees** (the larger one). The smaller angle would be **360° - 138.3° = 221.7°**... no wait, that's still wrong. Let me verify: at 3:40, - Hour hand position: (3 + 40/60) × 30° = 110° from 12 o'clock - Minute hand position: 40 × 6° = 240° from 12 o'clock - Difference: |240 - 110| = 130° So the smaller angle is **130 degrees**.",
+      "log": [
+        "calc hour_angle = (3 * 60 + 40) / 12; minute_angle = 40 * 6; smaller_angle = abs(minute_angle - hour_angle); min(smaller_angle, 360 - smaller_angle)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 11k tokens · 87 s"
+      ]
+    },
+    {
+      "id": "lockers",
+      "split": "holdout",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 127,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 19000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Based on the code verification, the solution is confirmed: - **Kai:** Locker 12 (Even number) - **Lea:** Locker 11 (Right next to Kai's 12) - **Max:** Locker 10 (Not locker 12)",
+      "log": [
+        "recalled: Operator",
+        "remembered: new note \"Financial Habits\", new note \"Financial Goals\"",
+        "verify: those numbers were not computed - working them out with code first",
+        "You're right—I should have used a tool to be precise. Let me verify this step-by-step using JavaScript to ensure accuracy.",
+        "run code (29 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 19k tokens · 126 s"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { env } from './env';
+import { getSecret } from './secrets';
 
 /**
  * WolframAlpha connector, via the free "Short Answers" REST API.
@@ -14,7 +14,7 @@ import { env } from './env';
 const TIMEOUT_MS = 10000;
 
 function appId(): string {
-  return env('WOLFRAM_APP_ID');
+  return getSecret('WOLFRAM_APP_ID');
 }
 
 export function hasKey(): boolean {

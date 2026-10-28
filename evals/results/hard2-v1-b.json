@@ -1,0 +1,310 @@
+{
+  "summary": {
+    "workflow": "v1",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard2-tasks.json",
+    "ranAt": "2026-09-30T17:40:15.445Z",
+    "passed": 8,
+    "total": 12,
+    "medianSeconds": 8,
+    "meanCalls": 3,
+    "meanTokens": 12417
+  },
+  "results": [
+    {
+      "id": "shop",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "You pay $6.95 total. Here's how: Pencils cost $0.40 each, so 7 pencils are $2.80. Erasers cost $0.45 each, so 5 erasers are $2.25. Add them together and you get $5.05. Wait, that doesn't match my earlier statement. Let me recalculate: Pencils are $1.20 for 3, which is $0.40 per pencil. 7 pencils times $0.40 equals $2.80. Erasers are $0.90 for 2, which is $0.45 per eraser. 5 erasers times $0.45 equals $2.25. Adding $2.80 and $2.25 gives you $5.05, not $6.95. I apologize for the error in my initial response. The correct total is $5.05.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "bus",
+      "split": "holdout",
+      "category": "clock",
+      "pass": false,
+      "missing": [
+        "\\b9:04\\b"
+      ],
+      "wrong": [],
+      "seconds": 2,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "The buses leave at 6:40, 7:58, 9:16, and so on. The first one after 9:00 is at 9:16.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 1 s"
+      ]
+    },
+    {
+      "id": "neither",
+      "split": "holdout",
+      "category": "sets",
+      "pass": false,
+      "missing": [
+        "\\b5\\b[^.]{0,40}\\bneither|neither[^.]{0,40}\\b5\\b|answer is \\W{0,3}5\\b|^\\W*5\\b"
+      ],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "3 students play neither. Here's the math: Start with 30 total. Add the soccer and badminton players (18 + 12 = 30), but since 5 play both, we've double-counted them, so subtract 5 once to get the unique count of sports participants (30 - 5 = 25). That leaves 3 students who don't play either sport.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "battery",
+      "split": "holdout",
+      "category": "rates",
+      "pass": false,
+      "missing": [
+        "\\b250 minutes|\\b4 hours,? (and )?10 minutes"
+      ],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The phone will run out in about 2 hours and 30 minutes. Start charging soon.",
+      "log": [
+        "calc (80 - 20) / (6 / 25)",
+        "cost: 2 model calls · 7k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "remainder",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 11,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "The smallest whole number that leaves a remainder of 1 when divided by 2, 3, 4, 5, or 6 and is also divisible by 7 is **301**. Here's the reasoning: - A number leaving a remainder of 1 when divided by 2, 3, 4, 5, and 6 must be 1 more than a multiple of their least common multiple (LCM). - The LCM of 2, 3, 4, 5, and 6 is 60. - So we're looking for the smallest number of the form **60k + 1** that is also divisible by 7. - Testing values: 60(1) + 1 = 61 (not divisible by 7), 60(2) + 1 = 121 (not divisible by 7), ..., 60(5) + 1 = **301**, which is divisible by 7. So, the answer is 301.",
+      "log": [
+        "remembered: new note \"Transportation Preferences\", new note \"Bus Schedule\"",
+        "cost: 1 model call · 4k tokens · 9 s"
+      ]
+    },
+    {
+      "id": "flour",
+      "split": "holdout",
+      "category": "ratio",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 7000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You need another 300 grams of flour.",
+      "log": [
+        "calc (10/4)*300 - 450",
+        "cost: 2 model calls · 7k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "june-first",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": false,
+      "missing": [
+        "Tuesday"
+      ],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 19000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Done.",
+      "log": [
+        "calc 31*4 + 365/4 - 365*2",
+        "That calculation didn't work for this question. Let me try a simpler approach to figure out the days.",
+        "calc 31 + 28 + 30 + 1",
+        "Wait, that's just the number of days in those months. Let me think about this differently - I'll calculate how many days are between March 1, 2027 and June 1, 2",
+        "calc 31 + 30 + 31",
+        "calc 92 mod 7",
+        "failed: Invalid expression.",
+        "calc 31 + 28 + 30 + 1",
+        "cost: 5 model calls · 19k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "bill",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "The total is $52.50. Ana pays $17.10, leaving $35.40 for the other two friends to split equally. That means each of them pays $17.70.",
+      "log": [
+        "cost: 1 model call · 4k tokens · 2 s"
+      ]
+    },
+    {
+      "id": "race",
+      "split": "holdout",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 12,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 4000,
+      "verified": [],
+      "tools": [],
+      "answer": "Okay, let's figure this out step-by-step without doing any actual schoolwork for you: 1. **Zoe's position:** She doesn't win (so not 1st). Xia finishes right after her. So the order must be Zoe (2nd) -> Xia (3rd) or Zoe (3rd) -> Xia (4th). 2. **Wes's position:** He is not last, so he can't be 4th. Since Xia is either 3rd or 4th, if Xia is 4th, Wes could be 1st or 2nd. But we know Zoe isn't 1st. 3. **Yan's position:** He is not 2nd. Let's test the scenarios: * **Scenario A:** Zoe is 2nd and Xia is 3rd. * Remaining spots: 1st and 4th. * Remaining runners: Wes and Yan. * Wes is not last, so Wes must be 1st and Yan must be 4th. * Let's check the constraints: * Zoe finishes before Yan? Yes (2nd < 4th). * Xia finishes right after Zoe? Yes (3rd = 2nd + 1). * Wes is not last? Yes (1st). * Yan is not 2nd? Yes (4th). * Zoe does not win? Yes (2nd). * This scenario works! * **Scenario B:** Zoe is 3rd and Xia is 4th. * Remaining spots: 1st and 2nd. * Remaining runners: Wes and Yan. * Wes is not last (which is always true here as he can't be 4th anyway), but Yan is not 2nd. So Yan must be 1st and Wes must be 2nd. * Let's check the constraints: * Zoe finishes before Yan? No, Zoe (3rd) is behind Y",
+      "log": [
+        "cost: 1 model call · 4k tokens · 12 s"
+      ]
+    },
+    {
+      "id": "tank",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 15000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "It takes exactly 15 hours to fill the tank when both the pipe and drain are open. The net rate is about 1/15 of the tank per hour after accounting for the drain removing 1/10 while the pipe adds 1/6.",
+      "log": [
+        "calc (1/6 - 1/10) * t = 1 for t",
+        "failed: Invalid expression.",
+        "calc (1/6 - 1/10)",
+        "calc 1 / (1/6 - 1/10)",
+        "cost: 4 model calls · 15k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "sum-3-5",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 77,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 18,
+      "tokens": 62000,
+      "verified": [],
+      "tools": [
+        "calc",
+        "recall"
+      ],
+      "answer": "The sum is 9,368. I added multiples of 3 to get 6,633 and multiples of 5 for 4,100, then subtracted the overlap of 1,365 to avoid double counting. The math checks out using standard inclusion-exclusion formulas. Since you are a Grade 9 student, practice this method yourself by trying it with 1 to 100 next time. I can quiz you or explain any step again if you need more depth on the arithmetic series formula later.",
+      "log": [
+        "You want the sum of integers between 1 and 200 that are multiples of 3 or 5. That’s a classic inclusion-exclusion problem. I’ll calculate it exactly for you.",
+        "calc sum([i for i in range(1, 201) if i % 3 == 0 or i % 5 == 0])",
+        "failed: Invalid expression.",
+        "recall \"arithmetic series formula sum multiples inclusion-\"",
+        "calc sum([i for i in range(1, 201) if i % 3 == 0])",
+        "failed: Invalid expression.",
+        "recall \"arithmetic series sum formula multiples inclusion-\"",
+        "calc # Numbers divisible by 3 from 1 to 200: 3, 6, 9, ..., 198\n# This is an arithmetic sequence with first term a=3, last term l=198\n# Number of terms n = floor(200/3) = 66\nn3 = 200 // 3\nsum3 = n3 * (3 + 198) / 2\nn3, sum3",
+        "failed: Invalid expression.",
+        "recall \"sum of multiples arithmetic progression formula\"",
+        "calc 200 // 3",
+        "failed: Invalid expression.",
+        "write note \"Sum of Multiples - Inclusion-Exclusion Method\"",
+        "calc 200 divided by 3",
+        "failed: Invalid expression.",
+        "calc 66 * (3 + 198) / 2",
+        "calc # Numbers divisible by 5 from 1 to 200: 5, 10, 15, ..., 200\n# Number of terms n = floor(200/5) = 40\nn5 = 200 // 5\nsum5 = n5 * (5 + 200) / 2\nn5, sum5",
+        "failed: Invalid expression.",
+        "calc 40 * (5 + 200) / 2",
+        "calc # Numbers divisible by 15 from 1 to 200: 15, 30, 45, ..., 195\n# Number of terms n = floor(200/15) = 13\nn15 = 200 // 15\nsum15 = n15 * (15 + 195) / 2\nn15, sum15",
+        "failed: Invalid expression.",
+        "cost: 18 model calls · 62k tokens · 77 s"
+      ]
+    },
+    {
+      "id": "savings",
+      "split": "holdout",
+      "category": "series",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 12,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 15000,
+      "verified": [],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You saved $15 in the first week, and each subsequent week you save $3 more than the previous week. To find your total savings after 10 weeks, we can use this arithmetic series: First week: $15 Second week: $18 (15 + 3) Third week: $21 (18 + 3) ...and so on The formula for the nth term is: a_n = 15 + 3*(n-1) For the 10th week: a_10 = 15 + 3*9 = 42 To find the total savings after 10 weeks, we sum all these amounts. The formula for the sum of an arithmetic series is: S_n = n/2 * (a_1 + a_n) Where: - S_n is the sum of n terms - a_1 is the first term ($15) - a_n is the nth term ($42) - n is the number of terms (10) S_10 = 10/2 * (15 + 42) = 5 * 57 = $285 So after 10 weeks, you'll have saved a total of $285.",
+      "log": [
+        "calc sum([15 + 3*i for i in range(10)])",
+        "failed: Invalid expression.",
+        "calc fraction(15) + fraction(3)*9",
+        "failed: Invalid expression.",
+        "calc 15 + 3*9",
+        "cost: 4 model calls · 15k tokens · 11 s"
+      ]
+    }
+  ]
+}

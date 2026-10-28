@@ -1,633 +1,391 @@
-﻿import { app, BrowserWindow, ipcMain, screen, shell } from 'electron';
+import fs from 'node:fs';
 import path from 'node:path';
-import { env, loadEnv, setEnvKey, writableEnvPath } from './env';
-import { getSettings, saveSettings } from './store';
+import { spawn } from 'node:child_process';
+import { app, BrowserWindow, Notification, powerMonitor, screen, shell } from 'electron';
 import * as ollama from './ollama';
-import * as news from './news';
-import * as files from './files';
-import * as memory from './memory';
-import * as research from './research';
-import * as github from './github';
-import * as notion from './notion';
-import * as discord from './discord';
-import * as obsidian from './obsidian';
-import * as gemini from './gemini';
+import { registerIpc } from './ipc';
+import { setupTray } from './tray';
+import { emit, setEventWindow } from './brain/events';
+import { refreshGemini } from './brain/llm';
+import { importLegacyEnv } from './secrets';
+import * as tasks from './tasks';
 import * as browserAgent from './browser';
-import * as googleAuth from './googleAuth';
-import * as googleGmail from './googleGmail';
-import * as googleCalendarReal from './googleCalendarReal';
-import * as googleDrive from './googleDrive';
-import * as systemControl from './systemControl';
-import * as notifications from './notifications';
-import * as backup from './backup';
-import * as vision from './vision';
-import * as sessionMemory from './sessionMemory';
-import * as backgroundMonitor from './backgroundMonitor';
-import * as reminders from './reminders';
-import * as flightFinder from './flightFinder';
-import * as gameUpdater from './gameUpdater';
-import * as remoteServer from './remoteServer';
 import * as clipboardWatch from './clipboardWatch';
-import * as telegram from './telegram';
-import { getHardwareStats } from './hardwareStats';
-import * as calculator from './calculator';
-import * as wolframAlpha from './wolframAlpha';
-import * as quickNotes from './quickNotes';
-import * as joke from './joke';
-import * as ipInfo from './ipInfo';
-import * as batteryInfo from './batteryInfo';
-import * as windowSwitch from './windowSwitch';
-import * as screenshot from './screenshot';
-import * as fileVisibility from './fileVisibility';
-import * as geocode from './geocode';
-import { setupTray, isAutoLaunchEnabled, setAutoLaunch } from './tray';
+import * as d2l from './d2l';
+import * as powerschool from './powerschool';
+import { getSettings, readDoc, writeDoc } from './store';
+import { warmUp } from './brain/providers/ollama';
+import { ensureVault, writeNote } from './memory/vault';
+import { syncIndex } from './memory/semantic';
+import * as hindsight from './hindsight';
+import { flushUsage } from './brainUse';
+import { prepareVoice, stopVoice, voiceStatus } from './voice/kokoro';
+import { startDashboard } from './dashboard';
+import { startReflecting } from './reflect';
+import { startLibrarian } from './memory/librarian';
+import { startPcActivity } from './departments/health/pcActivity';
+import { startBedtimeNudge } from './departments/health/nudge';
+import { startSchoolRefresh } from './departments/school/refresh';
+import { startHelios } from './helios/sweep';
+import { startSundayReview } from './olympus';
+import { startGameTracker } from './media/tracker';
+import { showNotification } from './notifications';
+import { startPhone } from './discordGateway';
+import { handlePhone } from './phone';
+import { isRunning as teamBusy, once } from './brain/team';
+import { proveAllClouds, refreshAllClouds, startCloudWatch } from './clouds';
+import { startVaultBackups } from './vaultBackup';
+import { startBriefing } from './briefing';
+import { redactSecrets } from './memory/redact';
 
 process.env.DIST = path.join(__dirname, '../dist');
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
+const APP_ID = 'com.shae.ultron';
+
+app.setName('Ultron');
+app.setAppUserModelId(APP_ID);
+// Dev-only: run a test instance against a throwaway profile so test chats never land in the real vault.
+if (!app.isPackaged && process.env.ULTRON_USER_DATA) app.setPath('userData', process.env.ULTRON_USER_DATA);
+// Dev-only, for automated checks on a throwaway profile: run one agent tool directly (never in an installed build).
+if (!app.isPackaged && process.env.ULTRON_USER_DATA && process.env.ULTRON_TOOL_HOOK === '1') {
+  (globalThis as Record<string, unknown>).__ultronTool = async (name: string, args: Record<string, unknown>) => {
+    const { ALL_TOOLS } = await import('./brain/tools/index');
+    const t = ALL_TOOLS.find((x) => x.name === name);
+    if (!t) return { error: `no tool called ${name}` };
+    const tab = { id: 'hook', runId: 'hook', agent: t.owner, label: 'hook' };
+    return t.run(args, { runId: 'hook', agent: t.owner, tab, signal: new AbortController().signal, resultBudget: 20_000, approve: async () => false, progress: () => {}, post: () => {} });
+  };
+}
+
+/*
+ * A background job that throws must never take Ultron down. 12 Oct 2026: the Discord connection hit a bundling
+ * slip in `ws`, and Electron froze the whole app behind a "JavaScript error occurred" box until OK was clicked.
+ * Now the error goes to logs/main-errors.log in his profile (secrets blanked) and everything else keeps running.
+ */
+function logMainError(kind: string, e: unknown): void {
+  const text = redactSecrets(e instanceof Error ? e.stack ?? e.message : String(e));
+  console.error(`[ultron] ${kind}:`, text);
+  try {
+    const dir = path.join(app.getPath('userData'), 'logs');
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, 'main-errors.log');
+    if (fs.existsSync(file) && fs.statSync(file).size > 1_000_000) fs.renameSync(file, `${file}.old`);
+    fs.appendFileSync(file, `${new Date().toISOString()} ${kind}: ${text}\n`);
+  } catch { /* logging must never throw */ }
+}
+process.on('uncaughtException', (e) => logMainError('uncaught exception', e));
+process.on('unhandledRejection', (e) => logMainError('unhandled rejection', e));
 
 let win: BrowserWindow | null = null;
+const startHidden = process.argv.includes('--hidden');
+
+function iconPath(): string {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.ico')
+    : path.join(__dirname, '../build-assets/icon.ico');
+}
+
+function showWindow(): void {
+  if (!win || win.isDestroyed()) return;
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+}
+
+interface WindowState { x: number; y: number; width: number; height: number; maximized: boolean }
+
+/** The last window position, if it still fits on a connected screen (monitors change). */
+function savedBounds(): WindowState | null {
+  const s = readDoc<WindowState | null>('window-state.json', null);
+  if (!s || !Number.isFinite(s.width) || !Number.isFinite(s.height)) return null;
+  const area = screen.getDisplayMatching({ x: s.x, y: s.y, width: s.width, height: s.height }).workArea;
+  const visible = s.x < area.x + area.width - 100 && s.y < area.y + area.height - 100 && s.x + s.width > area.x + 100 && s.y >= area.y - 10;
+  return visible ? s : null;
+}
+
+function rememberBounds(w: BrowserWindow): void {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const save = () => {
+    if (w.isDestroyed() || w.isMinimized()) return;
+    const b = w.getNormalBounds();
+    writeDoc('window-state.json', { ...b, maximized: w.isMaximized() } satisfies WindowState);
+  };
+  const soon = () => { if (timer) clearTimeout(timer); timer = setTimeout(save, 600); };
+  w.on('resize', soon);
+  w.on('move', soon);
+  w.on('maximize', save);
+  w.on('unmaximize', save);
+  w.on('close', save);
+}
 
 function createWindow(): void {
   // Fit the work area so the window is never partly offscreen (which also
-  // makes capturePage return uninitialised pixels).
+  // makes capturePage return uninitialised pixels). Where the operator left it wins.
   const work = screen.getPrimaryDisplay().workAreaSize;
-  const width = Math.min(1560, work.width - 40);
-  const height = Math.min(960, work.height - 40);
-
+  const last = savedBounds();
   win = new BrowserWindow({
-    width,
-    height,
-    center: true,
+    width: last?.width ?? Math.min(1560, work.width - 40),
+    height: last?.height ?? Math.min(960, work.height - 40),
+    ...(last ? { x: last.x, y: last.y } : { center: true }),
     minWidth: 1120,
     minHeight: 720,
     show: false,
     frame: false,
     backgroundColor: '#060910',
-    title: 'ATLAS',
-    icon: path.join(__dirname, '../build-assets/icon.ico'),
+    title: 'ULTRON',
+    icon: iconPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      // Powers BrowserPanel.tsx's <webview> - the "side tab" real browser.
-      // Each <webview> is its own separate renderer process/origin, so it does
-      // not inherit this window's preload API or Node access.
-      webviewTag: true,
-      // preload.ts only imports 'electron' (contextBridge, ipcRenderer), both
-      // available under the sandbox - this is the real containment boundary
-      // if a renderer-side dependency is ever compromised, and there was no
-      // actual reason for it to be off.
       sandbox: true,
     },
   });
+  setEventWindow(win);
+  rememberBounds(win);
+  if (last?.maximized) win.maximize();
 
-  win.once('ready-to-show', () => win?.show());
-  setupTray(win, path.join(__dirname, '../build-assets/icon.ico'));
+  win.once('ready-to-show', () => { if (!startHidden) showWindow(); });
+  setupTray(win, iconPath());
 
   // External links open in the real browser, never inside the HUD.
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//.test(url)) shell.openExternal(url);
+    if (/^https?:\/\//.test(url)) void shell.openExternal(url);
     return { action: 'deny' };
   });
 
-  // setWindowOpenHandler above only covers window.open/target=_blank - it
-  // does nothing to stop the existing frame from being navigated away. If
-  // any rendered content (a news headline, model output) ever contained a
-  // link the user clicked, or a compromised dependency tried it, the page
-  // would navigate to a remote origin that inherits this window's full
-  // preload API (files:search, files:reveal, settings:save, ...). Block any
-  // navigation that is not to our own app content.
+  // Never let the HUD itself navigate to a remote page - it would inherit the
+  // whole preload API. Links go to the real browser instead.
   const ownOrigin = VITE_DEV_SERVER_URL ? new URL(VITE_DEV_SERVER_URL).origin : null;
-  const blockForeignNavigation = (e: Electron.Event, url: string) => {
+  win.webContents.on('will-navigate', (e, url) => {
     const allowed = ownOrigin ? url.startsWith(ownOrigin) : url.startsWith('file://');
     if (allowed) return;
     e.preventDefault();
-    if (/^https?:\/\//.test(url)) shell.openExternal(url);
-  };
-  win.webContents.on('will-navigate', blockForeignNavigation);
+    if (/^https?:\/\//.test(url)) void shell.openExternal(url);
+  });
 
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(path.join(process.env.DIST!, 'index.html'));
-  }
+  if (VITE_DEV_SERVER_URL) void win.loadURL(VITE_DEV_SERVER_URL);
+  else void win.loadFile(path.join(process.env.DIST!, 'index.html'));
 
   const emitWindowState = () => {
-    if (!win || win.isDestroyed()) return;
-    win.webContents.send('win:state', { maximized: win.isMaximized() });
+    if (win && !win.isDestroyed()) win.webContents.send('win:state', { maximized: win.isMaximized() });
   };
   win.on('maximize', emitWindowState);
   win.on('unmaximize', emitWindowState);
-  win.on('closed', () => { win = null; });
+  win.on('closed', () => { win = null; setEventWindow(null); });
 }
 
-// Tried enabling cross-origin isolation (COOP/COEP) here to unlock
-// multi-threaded WASM for Whisper - real 2-4x speedup on paper. Verified
-// live before keeping it, per the project's own rule, and the verification
-// caught a real regression: under the packaged app's file:// origin, the
-// Whisper Worker itself failed to construct under COEP ("Whisper worker
-// crashed"), immediately breaking speech-to-text entirely - not a
-// hypothetical risk, an observed one. A broken core feature is worse than a
-// slower one, so this stays off. Revisit if bundling the worker with real
-// Cross-Origin-Resource-Policy headers (e.g. serving over a custom
-// same-origin protocol handler instead of file://) becomes worth the effort.
-app.whenReady().then(() => {
-  loadEnv(true);
-  createWindow();
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
-});
-
-// Scout's headless Chromium instance is a real OS process - leaving it running
-// after the HUD closes would silently leak a browser in the background.
-app.on('before-quit', () => { void browserAgent.closeBrowser(); remoteServer.stopRemoteServer(); });
-
-/* ── IPC: window chrome ─────────────────────────────────────────────── */
-
-ipcMain.handle('win:minimize', () => win?.minimize());
-ipcMain.handle('win:maximize', () => {
-  if (!win) return false;
-  if (win.isMaximized()) win.unmaximize();
-  else win.maximize();
-  return win.isMaximized();
-});
-ipcMain.handle('win:close', () => win?.close());
-ipcMain.handle('win:show', () => { win?.show(); win?.focus(); });
-
-/* ── IPC: notifications (native OS toast for background/proactive events) ── */
-
-ipcMain.handle('notify:show', (_e, title: unknown, body: unknown) => {
-  if (typeof title !== 'string' || typeof body !== 'string') return { ok: false };
-  // No need to interrupt with a system toast if the operator is already
-  // looking at the HUD - only fire when the window isn't focused.
-  if (win && win.isFocused()) return { ok: true, skipped: true };
-  notifications.showNotification(title, body);
-  return { ok: true };
-});
-
-/* ── IPC: backup (settings + memory export/import, never API keys) ────── */
-
-ipcMain.handle('backup:export', () => backup.exportBackup(win));
-ipcMain.handle('backup:import', () => backup.importBackup(win));
-
-/* ── IPC: vision (real screen capture, piped to Gemini for description) ── */
-
-ipcMain.handle('vision:captureScreen', () => vision.captureScreen());
-ipcMain.handle('vision:listScreenSources', () => vision.listScreenSources());
-
-/* ── IPC: session memory (yesterday's recap, consumed once) ───────────── */
-
-ipcMain.handle('sessionMemory:getPending', () => sessionMemory.getPendingSessionSummary());
-ipcMain.handle('sessionMemory:save', (_e, text: unknown) =>
-  typeof text === 'string' ? sessionMemory.saveSessionSummary(text) : undefined);
-ipcMain.handle('sessionMemory:consume', () => sessionMemory.consumeSessionSummary());
-
-/* ── IPC: background topic monitoring (opt-in, never crypto/financial) ── */
-
-ipcMain.handle('monitor:list', () => backgroundMonitor.listMonitoredTopics());
-ipcMain.handle('monitor:add', (_e, query: unknown) =>
-  typeof query === 'string' ? backgroundMonitor.addMonitoredTopic(query) : { ok: false, error: 'Bad query' });
-ipcMain.handle('monitor:remove', (_e, id: unknown) => {
-  if (typeof id === 'string') backgroundMonitor.removeMonitoredTopic(id);
-});
-ipcMain.handle('monitor:checkAll', () => backgroundMonitor.checkAllTopics());
-
-/* ── IPC: smart reminders ──────────────────────────────────────────────── */
-
-ipcMain.handle('reminders:list', () => reminders.listReminders());
-ipcMain.handle('reminders:schedule', (_e, text: unknown, whenISO: unknown) =>
-  typeof text === 'string' && typeof whenISO === 'string'
-    ? reminders.scheduleReminder(text, whenISO)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('reminders:cancel', (_e, id: unknown) =>
-  typeof id === 'string' ? reminders.cancelReminder(id) : { ok: false, error: 'Bad id' });
-
-/* ── IPC: flight finder / game updater ─────────────────────────────────── */
-
-ipcMain.handle('flights:find', (_e, origin: unknown, destination: unknown, date: unknown) =>
-  typeof origin === 'string' && typeof destination === 'string' && typeof date === 'string'
-    ? flightFinder.findFlights(origin, destination, date)
-    : { ok: false, results: [], error: 'Bad payload' });
-
-ipcMain.handle('games:detect', () => gameUpdater.detectGameLaunchers());
-ipcMain.handle('games:updateSteam', () => gameUpdater.triggerSteamUpdateCheck());
-ipcMain.handle('games:updateEpic', () => gameUpdater.triggerEpicUpdateCheck());
-
-/* ── IPC: remote phone dashboard (LAN-only, opt-in, QR pairing) ────────── */
-
-ipcMain.handle('remote:start', async () => remoteServer.startRemoteServer((cmd) => {
-  // Commands from the paired phone are treated exactly like a typed message
-  // from the operator - never auto-executed as a privileged action.
-  if (cmd.type === 'message' && win && !win.isDestroyed()) {
-    win.webContents.send('remote:command', cmd);
-  }
-}));
-ipcMain.handle('remote:stop', () => remoteServer.stopRemoteServer());
-ipcMain.handle('remote:status', () => remoteServer.getRemoteServerStatus());
-
-/* ── IPC: Telegram (real Bot API, opt-in) ───────────────────────────────── */
-
-ipcMain.handle('telegram:hasToken', () => telegram.hasToken());
-ipcMain.handle('telegram:verify', () => telegram.verify());
-ipcMain.handle('telegram:send', (_e, chatId: unknown, text: unknown) =>
-  typeof chatId === 'string' && typeof text === 'string'
-    ? telegram.sendMessage(chatId, text)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('telegram:recentChats', () => telegram.getRecentChats());
-
-ipcMain.handle('system:hardwareStats', () => getHardwareStats());
-
-/* ── IPC: calculator / WolframAlpha ─────────────────────────────────────── */
-
-ipcMain.handle('calc:evaluate', (_e, expr: unknown) =>
-  typeof expr === 'string' ? calculator.evaluate(expr) : { ok: false, error: 'Bad expression' });
-ipcMain.handle('wolfram:hasKey', () => wolframAlpha.hasKey());
-ipcMain.handle('wolfram:ask', (_e, query: unknown) =>
-  typeof query === 'string' ? wolframAlpha.askWolframAlpha(query) : { ok: false, error: 'Bad query' });
-
-/* ── IPC: quick notes / joke ─────────────────────────────────────────────── */
-
-ipcMain.handle('notes:add', (_e, text: unknown) =>
-  typeof text === 'string' ? quickNotes.addNote(text) : undefined);
-ipcMain.handle('notes:list', () => quickNotes.listNotes());
-ipcMain.handle('notes:delete', (_e, id: unknown) => {
-  if (typeof id === 'string') quickNotes.deleteNote(id);
-});
-ipcMain.handle('joke:random', () => joke.getRandomJoke());
-
-/* ── IPC: IP / battery ───────────────────────────────────────────────────── */
-
-ipcMain.handle('ip:info', () => ipInfo.getIpInfo());
-ipcMain.handle('battery:info', () => batteryInfo.getBatteryInfo());
-
-/* ── IPC: window switching ──────────────────────────────────────────────── */
-
-ipcMain.handle('windows:list', () => windowSwitch.listOpenWindows());
-ipcMain.handle('windows:switchTo', (_e, titleContains: unknown) =>
-  typeof titleContains === 'string' ? windowSwitch.switchToWindow(titleContains) : { ok: false, error: 'Bad title' });
-ipcMain.handle('windows:cycle', () => windowSwitch.cycleWindow());
-
-/* ── IPC: screenshot ─────────────────────────────────────────────────────── */
-
-ipcMain.handle('screenshot:take', (_e, filename: unknown) =>
-  screenshot.takeScreenshotAndSave(typeof filename === 'string' ? filename : undefined));
-
-/* ── IPC: file visibility (same folder containment as files.ts) ────────── */
-
-ipcMain.handle('fileVisibility:hide', (_e, folderPath: unknown) =>
-  typeof folderPath === 'string' ? fileVisibility.hideFolderContents(folderPath) : { ok: false, error: 'Bad folder' });
-ipcMain.handle('fileVisibility:unhide', (_e, folderPath: unknown) =>
-  typeof folderPath === 'string' ? fileVisibility.unhideFolderContents(folderPath) : { ok: false, error: 'Bad folder' });
-
-/* ── IPC: geocoding / distance ───────────────────────────────────────────── */
-
-ipcMain.handle('geo:place', (_e, query: unknown) =>
-  typeof query === 'string' ? geocode.geocodePlace(query) : { ok: false, error: 'Bad query' });
-ipcMain.handle('geo:distance', (_e, from: unknown, to: unknown) =>
-  typeof from === 'string' && typeof to === 'string'
-    ? geocode.distanceToPlace(from, to)
-    : { ok: false, error: 'Bad payload' });
-
-/* ── Clipboard Intelligence: watched from boot, opt-in via a Settings toggle
-   handled entirely on the renderer side (it just ignores the events if the
-   panel is disabled) - the watcher itself is cheap enough to always run. ── */
-clipboardWatch.startClipboardWatch((text) => {
-  if (win && !win.isDestroyed()) win.webContents.send('clipboard:newText', text);
-});
-
-/* ── IPC: brain (Ollama) ────────────────────────────────────────────── */
-
-ipcMain.handle('ollama:status', () => ollama.status());
-
-ipcMain.handle('ollama:chat', (event, payload: {
-  requestId: string;
-  messages: ollama.ChatMessage[];
-  model?: string;
-  temperature?: number;
-}) => {
-  // Fire and forget - tokens stream back over ollama:chunk / :done / :error
-  void ollama.chatStream(event.sender, payload.requestId, payload.messages, {
-    model: payload.model,
-    temperature: payload.temperature,
-  });
-  return { started: true };
-});
-
-ipcMain.handle('ollama:cancel', (_e, requestId: string) => ollama.cancel(requestId));
-
-ipcMain.handle('ollama:once', async (_e, payload: {
-  messages: ollama.ChatMessage[];
-  model?: string;
-  temperature?: number;
-  timeoutMs?: number;
-  tools?: ollama.OllamaToolSpec[];
-}) => {
+/**
+ * One-time carry-over from the Atlas build (userData %APPDATA%\Atlas): the
+ * newer settings/news cache, and its memory file as the vault's seed profile.
+ * The Atlas folder itself is left untouched.
+ */
+function migrateFromAtlas(): string | undefined {
+  // A test profile must never pull in the real Atlas settings (they point at the operator's real vault).
+  if (!app.isPackaged && process.env.ULTRON_USER_DATA) return undefined;
+  const userData = app.getPath('userData');
+  const marker = path.join(userData, '.migrated-from-atlas');
+  const atlasDir = path.join(app.getPath('appData'), 'Atlas');
+  let seed: string | undefined;
   try {
-    const { text, toolCalls } = await ollama.chatOnce(payload.messages, payload);
-    return { ok: true as const, text, ...(toolCalls ? { toolCalls } : {}) };
+    fs.mkdirSync(userData, { recursive: true });
+    if (!fs.existsSync(marker) && fs.existsSync(atlasDir)) {
+      let complete = true;
+      for (const f of ['settings.json', 'news-cache.json', 'news-quota.json']) {
+        const src = path.join(atlasDir, f);
+        const dst = path.join(userData, f);
+        if (fs.existsSync(src) && (!fs.existsSync(dst) || fs.statSync(src).mtimeMs > fs.statSync(dst).mtimeMs)) {
+          fs.copyFileSync(src, dst);
+          // The first launch of a fresh install once "copied" without an error and without changing the file
+          // (antivirus scanning the new exe is the likely cause) - only call it done once the copy is really there.
+          if (fs.statSync(dst).size !== fs.statSync(src).size) complete = false;
+        }
+      }
+      if (complete) fs.writeFileSync(marker, new Date().toISOString(), 'utf8');
+      else console.warn('[ultron] Atlas migration incomplete - will retry next launch');
+    }
+    for (const candidate of [path.join(atlasDir, 'memory.md'), path.join(userData, 'memory.md')]) {
+      if (fs.existsSync(candidate)) {
+        seed = fs.readFileSync(candidate, 'utf8');
+        break;
+      }
+    }
   } catch (e) {
-    return { ok: false as const, error: e instanceof Error ? e.message : String(e) };
+    console.warn('[ultron] Atlas migration skipped:', e);
   }
-});
+  return seed;
+}
 
-/* ── IPC: brain (Gemini - second, hosted brain) ───────────────────────── */
+/** Installed app: make sure a Start Menu shortcut carries our AppUserModelID, which Windows needs to show toasts. */
+function ensureStartMenuShortcut(): void {
+  if (!app.isPackaged || process.platform !== 'win32') return;
+  try {
+    const lnk = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Ultron.lnk');
+    if (fs.existsSync(lnk)) return;
+    shell.writeShortcutLink(lnk, 'create', {
+      target: process.execPath,
+      appUserModelId: APP_ID,
+      icon: iconPath(),
+      iconIndex: 0,
+      description: 'Ultron - personal AI command center',
+    });
+  } catch { /* shortcut is a nicety, not a requirement */ }
+}
 
-ipcMain.handle('gemini:status', () => gemini.status());
+/** If Ollama is installed but not running, start it in the background (what the old launcher script did). */
+async function ensureOllama(): Promise<void> {
+  if (!(await ollama.status()).running) {
+    const exe = path.join(process.env.LOCALAPPDATA ?? '', 'Programs', 'Ollama', 'ollama app.exe');
+    if (!fs.existsSync(exe)) return;
+    try {
+      spawn(exe, [], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+    } catch { return; /* the brain setup panel explains how to start it by hand */ }
+  }
+  // Load the model now, while the HUD boots, so the first request doesn't wait for it.
+  for (let i = 0; i < 20; i++) {
+    const s = await ollama.status();
+    if (s.running && s.modelInstalled) {
+      const { host, model } = getSettings().ollama;
+      await warmUp(host.replace(/\/$/, ''), model);
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+}
 
-ipcMain.handle('gemini:chat', (event, payload: {
-  requestId: string;
-  messages: gemini.ChatMessage[];
-  model?: string;
-  temperature?: number;
-}) => {
-  void gemini.chatStream(event.sender, payload.requestId, payload.messages, {
-    model: payload.model,
-    temperature: payload.temperature,
+let mirrorTimer: ReturnType<typeof setTimeout> | null = null;
+function mirrorTasksToVault(): void {
+  if (mirrorTimer) clearTimeout(mirrorTimer);
+  mirrorTimer = setTimeout(() => {
+    try { writeNote('Tasks/Tasks.md', tasks.tasksMarkdown()); } catch { /* vault unavailable */ }
+  }, 1500);
+}
+
+function startTaskScheduler(): void {
+  tasks.startScheduler({
+    onChange: (all) => {
+      emit('tasks:changed', all);
+      mirrorTasksToVault();
+    },
+    onFire: (task, missed) => {
+      if (Notification.isSupported()) {
+        const n = new Notification({
+          title: missed ? 'Ultron - missed reminder' : 'Ultron - reminder',
+          body: tasks.describeTask(task),
+          icon: iconPath(),
+        });
+        n.on('click', () => {
+          showWindow();
+          emit('ui:focus', { tab: 'tasks' });
+        });
+        n.show();
+      }
+      emit('tasks:reminder', { task, missed });
+    },
   });
-  return { started: true };
-});
+}
 
-ipcMain.handle('gemini:cancel', (_e, requestId: string) => gemini.cancel(requestId));
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  // Ultron is already running (probably in the tray) - that instance shows itself.
+  app.quit();
+} else {
+  app.on('second-instance', () => showWindow());
 
-// Live Voice (services/liveVoiceSession.ts) connects directly from the
-// renderer to Google's Live API over its own WebSocket - unlike every other
-// call in this app, there is no way to proxy that through the main process,
-// so the renderer needs the raw key. This is the one deliberate exception to
-// "secrets never leave the main process" in this codebase: acceptable for a
-// personal local app using the operator's own key for their own use.
-// Hardening note: Google's Live API supports short-lived ephemeral tokens
-// for exactly this situation - minting one here instead of returning the
-// long-lived key would be the next step for anything beyond personal use.
-ipcMain.handle('gemini:getKeyForLiveSession', () => env('GEMINI_API_KEY'));
+  app.whenReady().then(() => {
+    const seed = migrateFromAtlas();
+    const imported = importLegacyEnv();
+    if (imported.length) console.log('[ultron] imported keys from .env:', imported.join(', '));
+    try { ensureVault(seed); } catch (e) { console.warn('[ultron] vault unavailable:', e); }
 
-ipcMain.handle('gemini:once', async (_e, payload: {
-  messages: gemini.ChatMessage[];
-  model?: string;
-  temperature?: number;
-  timeoutMs?: number;
-}) => {
-  try {
-    const text = await gemini.chatOnce(payload.messages, payload);
-    return { ok: true as const, text };
-  } catch (e) {
-    return { ok: false as const, error: e instanceof Error ? e.message : String(e) };
-  }
-});
+    registerIpc(() => win);
+    createWindow();
+    startTaskScheduler();
+    startDashboard();
+    startReflecting();
+    startLibrarian(teamBusy);
+    // Health's sleep pre-fill: when the PC is in use, nothing more (Settings -> trackers).
+    startPcActivity(() => powerMonitor.getSystemIdleTime());
+    startBedtimeNudge({ idleSeconds: () => powerMonitor.getSystemIdleTime(), notify: showNotification });
+    // School's copy of D2L (what's due, grades, quiz windows): every two hours while idle.
+    startSchoolRefresh(teamBusy);
+    // Ultron's voice: the first time, download it in the background (about 330 MB, once) so it's
+    // ready by the time he talks to it. Once downloaded it only loads when something is said.
+    setTimeout(() => {
+      if (getSettings().voice.engine === 'ultron' && !voiceStatus().downloaded) prepareVoice();
+    }, 20_000);
+    // School sign-ins: every cookie D2L or PowerSchool sets is saved at once, so a crash or shutdown can't lose it.
+    // Dev-only: a test can shorten the 8-minute keep-alive to seconds.
+    const aliveMs = !app.isPackaged ? Number(process.env.ULTRON_ALIVE_MS) || undefined : undefined;
+    d2l.startKeeping(aliveMs);
+    powerschool.startKeeping(aliveMs);
+    // Timers stop while the PC sleeps - check both as soon as it's back, before a timeout can land.
+    const schoolCheckNow = () => { d2l.aliveNow(); powerschool.aliveNow(); };
+    powerMonitor.on('resume', schoolCheckNow);
+    powerMonitor.on('unlock-screen', schoolCheckNow);
+    // Helios: hourly free feed pulls and three sweeps a day while idle - AI only on a cloud brain, 40 calls a day at most.
+    startHelios({ busy: teamBusy, write: (system, user) => once({ system, user, tier: 'fast', temperature: 0.4, noLocal: true }) });
+    // The Sunday review: each department's number and next week's top three, from their data (no AI).
+    startSundayReview(teamBusy);
+    // Media's game tracker: which installed games are running, every two minutes (Settings - trackers).
+    startGameTracker();
+    // Log from his phone: DMs to his own bot, from his linked account only.
+    startPhone(handlePhone);
+    startVaultBackups();
+    startBriefing();
+    // Re-checks a used-up or stumbled service every half hour, so the operator never
+    // has to press anything to get a brain back.
+    startCloudWatch();
+    ensureStartMenuShortcut();
+    void ensureOllama();
+    void refreshGemini(true).catch(() => {});
+    void refreshAllClouds().then(() => proveAllClouds()).catch(() => {});
+    // Give Ollama a moment after login before embedding anything that changed in the vault.
+    setTimeout(() => { void syncIndex().catch(() => {}); }, 8000);
 
-/* ── IPC: browser (Playwright - real autonomous web browsing) ─────────── */
+    clipboardWatch.startClipboardWatch((text) => {
+      if (win && !win.isDestroyed()) win.webContents.send('clipboard:newText', text);
+    });
 
-ipcMain.handle('browser:search', (_e, query: unknown, limit?: number) =>
-  typeof query === 'string' ? browserAgent.webSearch(query, limit) : { ok: false, results: [], error: 'Bad query' });
-ipcMain.handle('browser:open', (_e, url: unknown) =>
-  typeof url === 'string' ? browserAgent.openPage(url) : { ok: false, error: 'Bad url' });
-ipcMain.handle('browser:click', (_e, selector: unknown) =>
-  typeof selector === 'string' ? browserAgent.clickOnPage(selector) : { ok: false, error: 'Bad selector' });
-ipcMain.handle('browser:type', (_e, selector: unknown, text: unknown, submit?: boolean) =>
-  typeof selector === 'string' && typeof text === 'string'
-    ? browserAgent.typeOnPage(selector, text, Boolean(submit))
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('browser:youtubeSearch', (_e, query: unknown, limit?: number) =>
-  typeof query === 'string' ? browserAgent.youtubeSearch(query, limit) : { ok: false, results: [], error: 'Bad query' });
-ipcMain.handle('browser:screenshot', () => browserAgent.screenshotPage());
-ipcMain.handle('browser:close', () => browserAgent.closeBrowser());
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+      else showWindow();
+    });
+  });
 
-/* ── IPC: Google (Drive/Gmail/Calendar) - real OAuth, operator's own account ── */
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit();
+  });
 
-ipcMain.handle('google:hasCredentials', () => googleAuth.hasCredentials());
-ipcMain.handle('google:isConnected', () => googleAuth.isConnected());
-ipcMain.handle('google:connect', (_e, scopes: unknown) =>
-  Array.isArray(scopes) ? googleAuth.connect(scopes as string[]) : { ok: false, error: 'Bad scopes' });
-ipcMain.handle('google:disconnect', () => googleAuth.disconnect());
-ipcMain.handle('google:gmail:listUnread', (_e, limit?: number) => googleGmail.listUnread(limit));
-ipcMain.handle('google:gmail:send', (_e, to: unknown, subject: unknown, body: unknown) =>
-  typeof to === 'string' && typeof subject === 'string' && typeof body === 'string'
-    ? googleGmail.sendMessage(to, subject, body)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('google:calendar:listUpcoming', (_e, limit?: number) => googleCalendarReal.listUpcoming(limit));
-ipcMain.handle('google:calendar:createEvent', (_e, title: unknown, start: unknown, end: unknown, desc?: unknown) =>
-  typeof title === 'string' && typeof start === 'string' && typeof end === 'string'
-    ? googleCalendarReal.createEvent(title, start, end, typeof desc === 'string' ? desc : undefined)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('google:drive:listRecent', (_e, limit?: number) => googleDrive.listRecent(limit));
-ipcMain.handle('google:drive:search', (_e, query: unknown, limit?: number) =>
-  typeof query === 'string' ? googleDrive.searchFiles(query, limit) : { ok: false, error: 'Bad query' });
-
-/* ── IPC: tray / auto-launch ────────────────────────────────────────── */
-
-ipcMain.handle('tray:isAutoLaunchEnabled', () => isAutoLaunchEnabled());
-ipcMain.handle('tray:setAutoLaunch', (_e, enabled: unknown) => setAutoLaunch(Boolean(enabled)));
-
-/* ── IPC: system control - real OS integration on the operator's own machine ── */
-
-ipcMain.handle('system:openApp', (_e, name: unknown) =>
-  typeof name === 'string' ? systemControl.openApp(name) : { ok: false, error: 'Bad payload' });
-ipcMain.handle('system:openGoogleService', (_e, service: unknown) =>
-  typeof service === 'string' ? systemControl.openGoogleService(service) : { ok: false, error: 'Bad payload' });
-ipcMain.handle('system:setVolume', (_e, direction: unknown) =>
-  direction === 'up' || direction === 'down' || direction === 'mute'
-    ? systemControl.setVolume(direction)
-    : { ok: false, error: 'Bad direction' });
-ipcMain.handle('system:lock', () => systemControl.lockComputer());
-ipcMain.handle('system:sleep', () => systemControl.sleepComputer());
-ipcMain.handle('system:openExplorer', (_e, path: unknown) =>
-  systemControl.openFileExplorer(typeof path === 'string' ? path : undefined));
-// Shutdown/restart are deliberately NOT exposed here without a dedicated,
-// explicitly-confirmed channel - see the comments on those two functions in
-// systemControl.ts. No IPC handler for them at all yet, by design.
-
-/* ── IPC: news ──────────────────────────────────────────────────────── */
-
-ipcMain.handle('news:fetch', (_e, manual: boolean) => news.fetchNews(Boolean(manual)));
-ipcMain.handle('news:quota', () => news.quotaSnapshot());
-ipcMain.handle('news:hasKey', () => news.hasApiKey());
-
-/* ── IPC: settings + env ────────────────────────────────────────────── */
-
-ipcMain.handle('settings:get', () => getSettings());
-ipcMain.handle('settings:save', (_e, patch: unknown) => {
-  if (!patch || typeof patch !== 'object') return getSettings();
-  // `folders` is deliberately never settable through this channel - the
-  // whole point of files.ts's design is that Atlas only ever indexes
-  // folders added through the real OS picker (files:add). Accepting it here
-  // would let any renderer-side bug or bad prompt output point the indexer
-  // at an arbitrary path with no dialog in the way.
-  const { folders: _ignoredFolders, ...rest } = patch as Record<string, unknown>;
-  return saveSettings(rest);
-});
-ipcMain.handle('env:setKey', (_e, payload: unknown) => {
-  if (
-    !payload || typeof payload !== 'object' ||
-    typeof (payload as { key?: unknown }).key !== 'string' ||
-    typeof (payload as { value?: unknown }).value !== 'string'
-  ) {
-    return { ok: false, error: 'Bad payload' };
-  }
-  const { key, value } = payload as { key: string; value: string };
-  const allowed = [
-    'GNEWS_API_KEY', 'OLLAMA_HOST', 'OLLAMA_MODEL', 'GITHUB_TOKEN', 'NOTION_TOKEN',
-    'DISCORD_WEBHOOK_URL', 'DISCORD_BOT_TOKEN', 'GEMINI_API_KEY', 'GEMINI_MODEL',
-    'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'TELEGRAM_BOT_TOKEN', 'WOLFRAM_APP_ID',
-  ];
-  if (!allowed.includes(key)) return { ok: false, error: 'Key not allowed' };
-  // Newlines in the value would let a value smuggle in an extra "KEY=..."
-  // line, writing keys the allowlist above was supposed to block.
-  if (/[\r\n]/.test(value)) return { ok: false, error: 'Value cannot contain line breaks' };
-  try {
-    const file = setEnvKey(key, value);
-    return { ok: true, file };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) };
-  }
-});
-ipcMain.handle('env:path', () => writableEnvPath());
-
-/* ── IPC: memory ────────────────────────────────────────────────────── */
-
-ipcMain.handle('memory:get', () => memory.getMemory());
-ipcMain.handle('memory:save', (_e, content: string) => memory.saveMemory(content));
-ipcMain.handle('memory:path', () => memory.memoryPath());
-
-/* ── IPC: research (the Researcher specialist's live lookup) ─────────── */
-
-ipcMain.handle('research:wikipedia', (_e, query: unknown) =>
-  typeof query === 'string' ? research.lookupWikipedia(query) : null);
-ipcMain.handle('research:multi', (_e, query: unknown) =>
-  typeof query === 'string' ? research.research(query) : []);
-ipcMain.handle('research:weather', (_e, place: unknown) =>
-  typeof place === 'string' ? research.getWeather(place) : null);
-ipcMain.handle('research:onThisDay', () => research.getOnThisDay());
-
-/* ── IPC: GitHub connector (real, not scaffolding) ────────────────────── */
-
-ipcMain.handle('github:hasToken', () => github.hasToken());
-ipcMain.handle('github:verify', () => github.verify());
-ipcMain.handle('github:repos', (_e, limit?: number) => github.getRepos(limit));
-ipcMain.handle('github:openWork', (_e, limit?: number) => github.getOpenWork(limit));
-
-/* ── IPC: Notion connector (real, not scaffolding) ─────────────────────── */
-
-ipcMain.handle('notion:hasToken', () => notion.hasToken());
-ipcMain.handle('notion:verify', () => notion.verify());
-ipcMain.handle('notion:search', (_e, limit?: number) => notion.search(limit));
-
-/* ── IPC: Discord connector (real, webhook-based) ──────────────────────── */
-
-ipcMain.handle('discord:hasWebhook', () => discord.hasWebhook());
-ipcMain.handle('discord:verify', () => discord.verify());
-// Posting is always a direct result of a button click in DiscordPanel - never
-// reachable from LLM output, consistent with the file-mutation design choice.
-ipcMain.handle('discord:postMessage', (_e, content: unknown) =>
-  typeof content === 'string' ? discord.postMessage(content) : { ok: false, error: 'Bad payload' });
-
-/* ── IPC: Discord bot mode (real, deliberately narrow - see discord.ts) ── */
-
-ipcMain.handle('discord:hasBotToken', () => discord.hasBotToken());
-ipcMain.handle('discord:verifyBot', () => discord.verifyBot());
-ipcMain.handle('discord:guilds', () => discord.listGuilds());
-ipcMain.handle('discord:channels', (_e, guildId: unknown) =>
-  typeof guildId === 'string' ? discord.listChannels(guildId) : []);
-ipcMain.handle('discord:messages', (_e, channelId: unknown, limit?: number) =>
-  typeof channelId === 'string' ? discord.getRecentMessages(channelId, limit) : []);
-ipcMain.handle('discord:postAsBot', (_e, channelId: unknown, content: unknown) =>
-  typeof channelId === 'string' && typeof content === 'string'
-    ? discord.postMessageAsBot(channelId, content)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('discord:roles', (_e, guildId: unknown) =>
-  typeof guildId === 'string' ? discord.listRoles(guildId) : []);
-ipcMain.handle('discord:members', (_e, guildId: unknown, limit?: number) =>
-  typeof guildId === 'string' ? discord.listMembers(guildId, limit) : []);
-ipcMain.handle('discord:assignRole', (_e, guildId: unknown, userId: unknown, roleId: unknown) =>
-  typeof guildId === 'string' && typeof userId === 'string' && typeof roleId === 'string'
-    ? discord.assignRole(guildId, userId, roleId)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('discord:removeRole', (_e, guildId: unknown, userId: unknown, roleId: unknown) =>
-  typeof guildId === 'string' && typeof userId === 'string' && typeof roleId === 'string'
-    ? discord.removeRole(guildId, userId, roleId)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('discord:createChannel', (_e, guildId: unknown, name: unknown) =>
-  typeof guildId === 'string' && typeof name === 'string'
-    ? discord.createChannel(guildId, name)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('discord:renameChannel', (_e, channelId: unknown, name: unknown) =>
-  typeof channelId === 'string' && typeof name === 'string'
-    ? discord.renameChannel(channelId, name)
-    : { ok: false, error: 'Bad payload' });
-
-/* ── IPC: Obsidian vault (real, no credentials - just indexed folders) ─── */
-
-ipcMain.handle('obsidian:hasVault', () => obsidian.hasVault());
-ipcMain.handle('obsidian:folders', () => obsidian.getVaultFolders());
-ipcMain.handle('obsidian:recentNotes', (_e, limit?: number) => obsidian.getRecentNotes(limit));
-
-/* ── IPC: files (phase 2) ───────────────────────────────────────────── */
-
-ipcMain.handle('files:add', () => files.addFolder(win));
-ipcMain.handle('files:remove', (_e, folderPath: string) => files.removeFolder(folderPath));
-ipcMain.handle('files:list', (_e, limit?: number) => files.listFiles(limit));
-ipcMain.handle('files:search', (_e, query: string) => files.searchFiles(query));
-ipcMain.handle('files:rebuild', () => files.rebuildIndex().length);
-ipcMain.handle('files:stats', () => files.indexStats());
-// Validated against the indexed-folder allowlist inside files.ts itself -
-// this channel never had a containment check before, so any path could be
-// revealed regardless of whether the operator had actually indexed it.
-ipcMain.handle('files:reveal', (_e, filePath: unknown) =>
-  typeof filePath === 'string' ? files.revealSafe(filePath) : false);
-
-/* ── IPC: files - organize & edit (real mutation, indexed folders only) */
-
-ipcMain.handle('files:read', (_e, p: unknown) => (typeof p === 'string' ? files.readFileContent(p) : { ok: false, error: 'Bad path' }));
-ipcMain.handle('files:write', (_e, p: unknown, content: unknown) =>
-  typeof p === 'string' && typeof content === 'string'
-    ? files.writeFileContent(p, content)
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('files:rename', (_e, p: unknown, name: unknown) =>
-  typeof p === 'string' && typeof name === 'string' ? files.renameFile(p, name) : { ok: false, error: 'Bad payload' });
-ipcMain.handle('files:move', (_e, p: unknown, destFolder: unknown) =>
-  typeof p === 'string' && typeof destFolder === 'string' ? files.moveFile(p, destFolder) : { ok: false, error: 'Bad payload' });
-ipcMain.handle('files:delete', (_e, p: unknown) =>
-  typeof p === 'string' ? files.deleteFile(p) : Promise.resolve({ ok: false, error: 'Bad path' }));
-ipcMain.handle('files:createFile', (_e, folder: unknown, name: unknown, content: unknown) =>
-  typeof folder === 'string' && typeof name === 'string'
-    ? files.createFile(folder, name, typeof content === 'string' ? content : '')
-    : { ok: false, error: 'Bad payload' });
-ipcMain.handle('files:createFolder', (_e, folder: unknown, name: unknown) =>
-  typeof folder === 'string' && typeof name === 'string' ? files.createSubfolder(folder, name) : { ok: false, error: 'Bad payload' });
-
-/* ── IPC: misc ──────────────────────────────────────────────────────── */
-
-ipcMain.handle('app:openExternal', async (_e, url: string) => {
-  if (!/^https?:\/\//.test(url)) return false;
-  await shell.openExternal(url); // resolves void on success - do not return it directly
-  return true;
-});
-ipcMain.handle('app:versions', () => ({
-  electron: process.versions.electron,
-  chrome: process.versions.chrome,
-  node: process.versions.node,
-  platform: process.platform,
-}));
+  // Before quitting: keep the D2L session (its cookies would otherwise die with the app), then shut the
+  // agents' browser down - it's a real OS process and must never outlive Ultron.
+  let finalSaveDone = false;
+  // Hindsight's memory server starts in the background with Ultron and goes when Ultron does.
+  setTimeout(() => { void hindsight.ensureRunning(); }, 15_000);
+  app.on('will-quit', () => { hindsight.stop(); flushUsage(); stopVoice(false); });
+  app.on('before-quit', (e) => {
+    tasks.stopScheduler();
+    if (finalSaveDone) return;
+    e.preventDefault();
+    const giveUp = new Promise((r) => setTimeout(r, 4000));
+    void Promise.race([Promise.all([d2l.keepSignedIn().catch(() => 0), powerschool.keepSignedIn().catch(() => {}), browserAgent.closeBrowser()]), giveUp]).finally(() => {
+      finalSaveDone = true;
+      app.quit();
+    });
+  });
+}
 
 /* ── Dev utility ────────────────────────────────────────────────────────
    ULTRON_CAPTURE=<file.png> launches the app, lets it settle, writes a
-   screenshot of its own window and exits. Used to generate README shots
-   and to eyeball the HUD without a manual screen grab.
-   Optional: ULTRON_CAPTURE_DELAY (ms), ULTRON_CAPTURE_JS (snippet run first).  */
-
-// Dev-only, hard gate: this runs arbitrary JS in the renderer and writes an
-// arbitrary file path from two env vars. Fine for a local build tool; not
-// something that may ever be reachable in a shipped install by whoever set
-// an env var before launching the installed app.
+   screenshot of its own window and exits. Hard-gated to unpackaged builds:
+   it runs arbitrary JS from an env var. Optional: ULTRON_CAPTURE_DELAY (ms),
+   ULTRON_CAPTURE_JS (snippet run first).                                   */
 if (!app.isPackaged && process.env.ULTRON_CAPTURE) {
   const target = process.env.ULTRON_CAPTURE;
   const rawDelay = Number(process.env.ULTRON_CAPTURE_DELAY);
   const delay = Number.isFinite(rawDelay) && rawDelay > 0 ? rawDelay : 4200;
   app.whenReady().then(() => {
-    const timer = setTimeout(async () => {
+    setTimeout(async () => {
       try {
         if (!win || win.isDestroyed()) throw new Error('window gone');
         const js = process.env.ULTRON_CAPTURE_JS;
@@ -637,15 +395,13 @@ if (!app.isPackaged && process.env.ULTRON_CAPTURE) {
           await new Promise((r) => setTimeout(r, 1500));
         }
         const image = await win.webContents.capturePage();
-        const fs = require('node:fs') as typeof import('node:fs');
         fs.mkdirSync(path.dirname(target), { recursive: true });
         fs.writeFileSync(target, image.toPNG());
         console.log(`[ultron] captured -> ${target}`);
       } catch (e) {
         console.error('[ultron] capture failed:', e);
       } finally {
-        clearTimeout(timer);
-        app.quit();
+        app.exit(0);
       }
     }, delay);
   });

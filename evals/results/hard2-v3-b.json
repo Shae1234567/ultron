@@ -1,0 +1,334 @@
+{
+  "summary": {
+    "workflow": "v3",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard2-tasks.json",
+    "ranAt": "2026-09-30T17:37:19.771Z",
+    "passed": 9,
+    "total": 12,
+    "medianSeconds": 17,
+    "meanCalls": 5,
+    "meanTokens": 13583
+  },
+  "results": [
+    {
+      "id": "shop",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 15,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"5.05\" · 1 worked calculation in the answer re-checked - correct"
+      ],
+      "tools": [],
+      "answer": "You pay $5.05. Three pencils cost $0.40 and two erasers cost $0.90; that's 7 pencils at $0.30 each ($2.10) and 5 erasers at $0.45 each ($2.25), totaling $4.35. Wait, that doesn't match the solver output. Let me recalculate: Pencils: 3 for $1.20 means $0.40 per pencil Erasers: 2 for $0.90 means $0.45 per eraser 7 pencils at $0.40 = $2.80 5 erasers at $0.45 = $2.25 Total: $2.80 + $2.25 = $5.05 The solver is correct. You pay exactly five dollars and five cents.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 2 of 3 programs agree - 5.05",
+        "verified: numbers computed with code, not estimated · solved by programs: 2 of 3 agree on \"5.05\" · 1 worked calculation in the answer re-checked - correct",
+        "cost: 4 model calls · 7k tokens · 15 s"
+      ]
+    },
+    {
+      "id": "bus",
+      "split": "holdout",
+      "category": "clock",
+      "pass": false,
+      "missing": [
+        "\\b9:04\\b"
+      ],
+      "wrong": [],
+      "seconds": 46,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 7,
+      "tokens": 31000,
+      "verified": [
+        "numbers computed with code, not estimated · corrected 7 wrong calculations: \"40 + 18 = 6\" is wrong - it is 58; \"00 - 18*5 = 8\" is wrong - it is -90; \"00 - 18 = 8\" is wrong - it is -18; \"40 + 18*9 = 6\" is wrong - it is 202; \"40 + 18*10 = 6\" is wrong - it is 220; \"40 + 180 = 9\" is wrong - it is 220; \"00 + 18 = 9\" is wrong - it is 18"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "The first bus after 9:00 AM leaves at 9:40 AM. Here's how: The gap between 6:40 AM and 9:00 AM is exactly 180 minutes (3 hours). Since the buses run every 18 minutes, that means 10 buses have already passed by 9:00 AM. The very next bus comes 18 minutes later, which puts it at 9:18 AM. Wait, let me recalculate carefully. Actually, from 6:40 to 7:00 is 20 minutes, so the first bus after 6:40 at 7:00 isn't quite right because 6:40 + 18 = 6:58. Let's do it properly: - 6:40 AM + 18 min = 6:58 AM (Bus #1) - Each subsequent bus is +18 min. - From 9:00 AM backwards by multiples of 18 min: - 9:00 - 18*5 = 8:42 AM (last bus before 9:00? No, let's count forward from 6:40) Better approach: Total time from 6:40 to 9:00 is 180 minutes. Number of buses that have left by 9:00 = floor(180 / 18) = 10 buses. The last bus before 9:00 was at 9:00 - 18 = 8:42 AM? No, wait: Let's list them: - Bus #1: 6:58 - Bus #2: 7:16 - ... - Bus #10: 9:00 exactly? Let's check: 6:40 + 18*9 = 6:40 + 162 min = 9:02 AM. That's wrong. Correct calculation: Time from 6:40 to 9:00 = 180 minutes. Number of intervals = 180 / 18 = 10 exactly. So the 10th bus is at 6:40 + 18*10 = 6:40 + 180 = 9:00 AM exactly. But the question as",
+      "log": [
+        "calc clock difference between 9:00 am and 6:40 am in minutes, divided by 18, multiplied by 18, plus 6:40 am",
+        "failed: SyntaxError: Unexpected operator , (char 56) (line 1)",
+        "calc clock(\"9:00 am\") - clock(\"6:40 am\")",
+        "failed: Error: Undefined function clock (line 1)",
+        "calc (9 - 6) * 60 + 40 = minutes from 6:40 to 9:00, then divide by 18 and multiply by 18 to get the next multiple of 18 after 9:00",
+        "calc 180 / 18 * 18",
+        "calc 6:40 + 180 minutes",
+        "failed: TypeError: Unexpected type of argument in function addScalar (expected: number or bigint or string or boolean or BigNumber or Complex or Fra",
+        "verified: numbers computed with code, not estimated · corrected 7 wrong calculations: \"40 + 18 = 6\" is wrong - it is 58; \"00 - 18*5 = 8\" is wrong - it is -90; \"00 - 18 = 8\" is wrong - it is -18; \"40 + 18*9 = 6\" is wrong - it is 202; \"40 + 18*10 = 6\" is wrong - it is 220; \"40 + 180 = 9\" is wrong - it",
+        "cost: 7 model calls · 31k tokens · 45 s"
+      ]
+    },
+    {
+      "id": "neither",
+      "split": "holdout",
+      "category": "sets",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 17,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 18000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"5\""
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Five students play neither sport. I subtracted the five who play both sports from the soccer and badminton totals, added those unique groups together to get twenty-three players total, then took that away from the class of thirty to find the five who don't participate in either activity. The calculation confirms this is correct.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 5",
+        "check: the reply does not give the computed answer (5) - answering again",
+        "Five students play neither sport.\n\nI subtracted the five students who play both sports from the soccer and badminton groups, added those results together to get",
+        "run code (7 lines)",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"5\"",
+        "cost: 6 model calls · 18k tokens · 16 s"
+      ]
+    },
+    {
+      "id": "battery",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 17,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"250\""
+      ],
+      "tools": [],
+      "answer": "250 minutes until it reaches 20%. You divide the battery drop needed (60%) by the rate per interval (6%), which gives 10 intervals. Multiply that by 25 minutes per interval to get your total time. The math checks out cleanly across all three programs.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 250",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"250\"",
+        "cost: 4 model calls · 7k tokens · 17 s"
+      ]
+    },
+    {
+      "id": "remainder",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 6000,
+      "verified": [],
+      "tools": [],
+      "answer": "The smallest whole number that leaves a remainder of 1 when divided by 2, 3, 4, 5, or 6 is 61. It also satisfies the condition of being divisible by 7 (61 ÷ 7 = 8 with a remainder of 5). Wait, let me recalculate that to make sure: - Numbers that leave a remainder of 1 when divided by 2, 3, 4, 5, or 6 are of the form 60n + 1 (since LCM(2, 3, 4, 5, 6) = 60). - We need to find the smallest n such that 60n + 1 is divisible by 7. Let me check: - For n = 1: 60(1) + 1 = 61, which gives a remainder of 5 when divided by 7 (not divisible). - For n = 2: 60(2) + 1 = 121, which gives a remainder of 2 when divided by 7 (not divisible). - For n = 3: 60(3) + 1 = 181, which gives a remainder of 6 when divided by 7 (not divisible). - For n = 4: 60(4) + 1 = 241, which gives a remainder of 3 when divided by 7 (not divisible). - For n = 5: 60(5) + 1 = 301, which gives a remainder of 0 when divided by 7 (divisible!). So the answer is 301.",
+      "log": [
+        "cost: 1 model call · 6k tokens · 9 s"
+      ]
+    },
+    {
+      "id": "flour",
+      "split": "holdout",
+      "category": "ratio",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 23,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 13000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"300\""
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "You need **300 grams** more flour. Here's the quick math: 300g serves 4 people, so that's 75g per person. For 10 people you need 750g total (75 × 10), and since you already have 450g, you're short by exactly 300g.",
+      "log": [
+        "solving it with independent programs",
+        "remembered: new note \"Math Problem: Soccer and Badminton Participation\", 2 facts -> Math Problem: Soccer and Badminton Participation",
+        "solver: 3 of 3 programs agree - 300",
+        "You need 150 grams of flour more. The ratio for 10 people is 300 g per person (since 300 g serves 4, that's 75 g per person scaled up). Wait, let me recalculate",
+        "run code (7 lines)",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"300\"",
+        "cost: 5 model calls · 13k tokens · 23 s"
+      ]
+    },
+    {
+      "id": "june-first",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": false,
+      "missing": [],
+      "wrong": [
+        "(June 1|1st of June|June 1st)[^.]{0,40}\\b(Monday|Wednesday|Thursday|Friday|Saturday|Sunday)\\b"
+      ],
+      "seconds": 46,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"Tuesday\""
+      ],
+      "tools": [],
+      "answer": "June 1, 2027 is a Wednesday. You started with March 1st as your anchor (a Monday). That month has 31 days, so the day shifts forward by 4 (31 mod 7), landing April 1st on Friday. May adds another 31 days, shifting it to Tuesday for June 1st. Finally, June itself has 30 days, which pushes the date back one full week cycle, settling you on Wednesday.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - Tuesday",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"Tuesday\"",
+        "cost: 5 model calls · 9k tokens · 45 s"
+      ]
+    },
+    {
+      "id": "bill",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"17.70\""
+      ],
+      "tools": [],
+      "answer": "Each of the other two pays $17.70. Ana paid $17.10, leaving $35.40 to split between them; that divides evenly to $17.70 per person.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 17.70",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"17.70\"",
+        "cost: 4 model calls · 7k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "race",
+      "split": "holdout",
+      "category": "logic",
+      "pass": false,
+      "missing": [
+        "Xia\\D{0,25}(\\b3\\b|3rd|third)|(\\b3\\b|3rd|third)\\W{0,12}(place\\W{0,5})?Xia",
+        "Wes\\D{0,25}(\\b1\\b|1st|first|wins|won)|(\\b1\\b|1st|first)\\W{0,12}(place\\W{0,5})?Wes"
+      ],
+      "wrong": [],
+      "seconds": 301,
+      "timedOut": true,
+      "denied": 0,
+      "calls": 8,
+      "tokens": 43000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "There are two valid solutions. I can't pin down a single answer without more constraints. Option 1: Zoe (1st), Xia (2nd), Wes (3rd), Yan (4th) Option 2: Zoe (2nd),",
+      "log": [
+        "solving it with independent programs",
+        "solver: no agreement (error: Ollama stopped respondi | Wes 1, Zoe 2, Xia 3, Yan 4 | Zoe 0 , Yan 3 , Xia 1 , Wes 2 | error: Stopped after 6 s - the | Zoe 2, Yan 4, Xia 3, Wes 1)",
+        "run code (219 lines)",
+        "failed: TypeError: cannot read property 'place' of undefined (line 1)",
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (86 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 8 model calls · 43k tokens · 301 s"
+      ]
+    },
+    {
+      "id": "tank",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 14,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"15.000000000000004\""
+      ],
+      "tools": [],
+      "answer": "It takes 15 hours to fill the tank when both the pipe and drain are open. The calculation combines the filling rate of one-sixth per hour with the draining rate of one-tenth per hour, resulting in a net rate of three-twenty-fourths per hour, which inverted gives exactly fifteen hours.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 15.000000000000004",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"15.000000000000004\"",
+        "cost: 4 model calls · 7k tokens · 12 s"
+      ]
+    },
+    {
+      "id": "sum-3-5",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 41,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 8000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"9368\""
+      ],
+      "tools": [],
+      "answer": "The sum is 9,368. You count every number from 1 to 200 divisible by 3 or 5 (using inclusion-exclusion to avoid double-counting multiples of 15), sum those groups separately, then subtract the overlap where both conditions apply. The three programs you referenced all converged on this exact result, which I verified with code.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 9368",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"9368\"",
+        "cost: 4 model calls · 8k tokens · 40 s"
+      ]
+    },
+    {
+      "id": "savings",
+      "split": "holdout",
+      "category": "series",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 15,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 4,
+      "tokens": 7000,
+      "verified": [
+        "numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"285.00\""
+      ],
+      "tools": [],
+      "answer": "You've saved $285 after 10 weeks. This is an arithmetic series where your savings start at $15 and increase by $3 each week. The formula for the sum of this sequence gives you the total accumulated savings over the period.",
+      "log": [
+        "solving it with independent programs",
+        "solver: 3 of 3 programs agree - 285.00",
+        "verified: numbers computed with code, not estimated · solved by programs: 3 of 3 agree on \"285.00\"",
+        "cost: 4 model calls · 7k tokens · 15 s"
+      ]
+    }
+  ]
+}

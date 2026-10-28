@@ -5,9 +5,9 @@ import { BootLog } from './BootLog';
 import { playBootChime } from '../services/sfx';
 
 const CHECK_LABEL: Record<string, string> = {
-  memory: 'MEMORY',
+  memory: 'MEMORY VAULT',
   settings: 'SETTINGS',
-  brain: 'BRAIN (OLLAMA)',
+  brain: 'BRAIN',
   voice: 'VOICE (TTS)',
 };
 const CHECK_ORDER = ['memory', 'settings', 'brain', 'voice'] as const;
@@ -20,8 +20,8 @@ const MAX_MS = 5000;
 
 /**
  * The intro. Every line on it reflects a real startup check App.tsx is
- * already running (memory load, settings load, Ollama probe, TTS support) -
- * nothing here is a decorative fake progress bar.
+ * already running (vault, settings, brain probe, TTS support) - nothing here
+ * is a decorative fake progress bar.
  */
 export function BootSequence() {
   const booting = useStore((s) => s.booting);
@@ -89,7 +89,7 @@ export function BootSequence() {
         </svg>
       </div>
 
-      <div className="boot__wordmark"><GlitchText>ATLAS</GlitchText></div>
+      <div className="boot__wordmark"><GlitchText>ULTRON</GlitchText></div>
       <div className="boot__subtitle">COMMAND CENTER — INITIALIZING</div>
 
       <div className="boot__checks">

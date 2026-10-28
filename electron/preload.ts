@@ -2,214 +2,215 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 /**
  * The only bridge between the HUD and the OS. Everything the renderer can do
- * is enumerated here - there is no direct node access in the UI.
+ * is enumerated here - there is no direct Node access in the UI.
  */
+
+function on<T>(channel: string, cb: (payload: T) => void): () => void {
+  const handler = (_e: unknown, payload: T) => cb(payload);
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.off(channel, handler);
+}
+
 const api = {
   win: {
     minimize: () => ipcRenderer.invoke('win:minimize'),
     maximize: () => ipcRenderer.invoke('win:maximize'),
     close: () => ipcRenderer.invoke('win:close'),
     show: () => ipcRenderer.invoke('win:show'),
-    onState: (cb: (s: { maximized: boolean }) => void) => {
-      const handler = (_e: unknown, s: { maximized: boolean }) => cb(s);
-      ipcRenderer.on('win:state', handler);
-      return () => ipcRenderer.off('win:state', handler);
-    },
+    onState: (cb: (s: { maximized: boolean }) => void) => on('win:state', cb),
   },
 
   notify: {
     show: (title: string, body: string) => ipcRenderer.invoke('notify:show', title, body),
   },
 
-  backup: {
-    export: () => ipcRenderer.invoke('backup:export'),
-    import: () => ipcRenderer.invoke('backup:import'),
+  brain: {
+    ask: (text: string, history: { role: 'user' | 'assistant'; content: string }[]) => ipcRenderer.invoke('brain:ask', { text, history }),
+    cancel: (runId: string) => ipcRenderer.invoke('brain:cancel', runId),
+    status: () => ipcRenderer.invoke('brain:status'),
+    usage: () => ipcRenderer.invoke('brain:usage'),
+    recheck: () => ipcRenderer.invoke('brain:recheck'),
+    once: (payload: { system: string; user?: string; tier?: 'main' | 'fast'; temperature?: number }) => ipcRenderer.invoke('brain:once', payload),
+    greet: (kind: 'boot' | 'wake' | 'checkin') => ipcRenderer.invoke('brain:greet', kind),
+    agents: () => ipcRenderer.invoke('brain:agents'),
+    liveVoice: () => ipcRenderer.invoke('brain:liveVoice'),
+    onEvent: (cb: (e: Record<string, unknown>) => void) => on('brain:event', cb),
   },
 
-  vision: {
-    captureScreen: () => ipcRenderer.invoke('vision:captureScreen'),
-    listScreenSources: () => ipcRenderer.invoke('vision:listScreenSources'),
+  council: {
+    state: () => ipcRenderer.invoke('council:state'),
+    line: (id: string) => ipcRenderer.invoke('council:line', id),
+    convene: () => ipcRenderer.invoke('council:convene'),
+    phoneLink: () => ipcRenderer.invoke('council:phoneLink'),
+    helios: (on: boolean) => ipcRenderer.invoke('council:helios', on),
+    onReview: (cb: (r: { date: string; text: string }) => void) => on('council:review', cb),
   },
 
-  sessionMemory: {
-    getPending: () => ipcRenderer.invoke('sessionMemory:getPending'),
-    save: (text: string) => ipcRenderer.invoke('sessionMemory:save', text),
-    consume: () => ipcRenderer.invoke('sessionMemory:consume'),
+  health: {
+    view: (date?: string) => ipcRenderer.invoke('health:view', date),
+    log: (kind: string, p: unknown) => ipcRenderer.invoke('health:log', kind, p),
+    edit: (kind: string, id: string, p: unknown) => ipcRenderer.invoke('health:edit', kind, id, p),
+    remove: (kind: string, id: string) => ipcRenderer.invoke('health:remove', kind, id),
+    restore: (kind: string, entry: unknown) => ipcRenderer.invoke('health:restore', kind, entry),
+    preview: (text: string) => ipcRenderer.invoke('health:preview', text),
+    search: (q: string) => ipcRenderer.invoke('health:search', q),
+    barcode: (code: string) => ipcRenderer.invoke('health:barcode', code),
+    saveUsual: (name: string, p: unknown) => ipcRenderer.invoke('health:saveUsual', name, p),
+    removeUsual: (name: string) => ipcRenderer.invoke('health:removeUsual', name),
+    scheduleAdd: (p: unknown) => ipcRenderer.invoke('health:scheduleAdd', p),
+    scheduleRemove: (id: string) => ipcRenderer.invoke('health:scheduleRemove', id),
+    program: (action: 'on' | 'off' | 'restart') => ipcRenderer.invoke('health:program', action),
+    onChanged: (cb: (p: { at: number }) => void) => on('health:changed', cb),
+    onNudge: (cb: (p: { text: string }) => void) => on('health:nudge', cb),
   },
 
-  monitor: {
-    list: () => ipcRenderer.invoke('monitor:list'),
-    add: (query: string) => ipcRenderer.invoke('monitor:add', query),
-    remove: (id: string) => ipcRenderer.invoke('monitor:remove', id),
-    checkAll: () => ipcRenderer.invoke('monitor:checkAll'),
+  approvals: {
+    respond: (id: string, approved: boolean, all = false) => ipcRenderer.invoke('approval:respond', id, approved, all),
+    pending: () => ipcRenderer.invoke('approval:pending'),
+    onRequest: (cb: (req: unknown) => void) => on('approval:request', cb),
+    onSettled: (cb: (p: { id: string; approved: boolean }) => void) => on('approval:settled', cb),
   },
 
-  reminders: {
-    list: () => ipcRenderer.invoke('reminders:list'),
-    schedule: (text: string, whenISO: string) => ipcRenderer.invoke('reminders:schedule', text, whenISO),
-    cancel: (id: string) => ipcRenderer.invoke('reminders:cancel', id),
+  clouds: {
+    presets: () => ipcRenderer.invoke('clouds:presets'),
+    add: (p: { preset?: string; label?: string; baseUrl?: string; model?: string; key: string; accountId?: string }) => ipcRenderer.invoke('clouds:add', p),
+    remove: (id: string) => ipcRenderer.invoke('clouds:remove', id),
+    setKey: (id: string, value: string) => ipcRenderer.invoke('clouds:setKey', id, value),
+    pasteKey: (id: string) => ipcRenderer.invoke('clouds:pasteKey', id),
+  },
+  secrets: {
+    status: () => ipcRenderer.invoke('secrets:status'),
+    set: (name: string, value: string) => ipcRenderer.invoke('secrets:set', name, value),
+  },
+  discord: {
+    status: () => ipcRenderer.invoke('discord:status'),
+  },
+  addons: {
+    status: () => ipcRenderer.invoke('addons:status'),
+    setHindsight: (on: boolean) => ipcRenderer.invoke('addons:setHindsight', on),
+    setAskBrowserAgent: (on: boolean) => ipcRenderer.invoke('addons:setAskBrowserAgent', on),
   },
 
-  flights: {
-    find: (origin: string, destination: string, date: string) => ipcRenderer.invoke('flights:find', origin, destination, date),
-  },
-
-  games: {
-    detect: () => ipcRenderer.invoke('games:detect'),
-    updateSteam: () => ipcRenderer.invoke('games:updateSteam'),
-    updateEpic: () => ipcRenderer.invoke('games:updateEpic'),
-  },
-
-  remote: {
-    start: () => ipcRenderer.invoke('remote:start'),
-    stop: () => ipcRenderer.invoke('remote:stop'),
-    status: () => ipcRenderer.invoke('remote:status'),
-    onCommand: (cb: (cmd: { type: string; payload?: unknown }) => void) => {
-      const handler = (_e: unknown, cmd: { type: string; payload?: unknown }) => cb(cmd);
-      ipcRenderer.on('remote:command', handler);
-      return () => ipcRenderer.off('remote:command', handler);
-    },
-  },
-
-  telegram: {
-    hasToken: () => ipcRenderer.invoke('telegram:hasToken'),
-    verify: () => ipcRenderer.invoke('telegram:verify'),
-    send: (chatId: string, text: string) => ipcRenderer.invoke('telegram:send', chatId, text),
-    recentChats: () => ipcRenderer.invoke('telegram:recentChats'),
-  },
-
-  clipboard: {
-    onNewText: (cb: (text: string) => void) => {
-      const handler = (_e: unknown, text: string) => cb(text);
-      ipcRenderer.on('clipboard:newText', handler);
-      return () => ipcRenderer.off('clipboard:newText', handler);
-    },
-  },
-
-  calc: {
-    evaluate: (expr: string) => ipcRenderer.invoke('calc:evaluate', expr),
-  },
-  wolfram: {
-    hasKey: () => ipcRenderer.invoke('wolfram:hasKey'),
-    ask: (query: string) => ipcRenderer.invoke('wolfram:ask', query),
-  },
-  notes: {
-    add: (text: string) => ipcRenderer.invoke('notes:add', text),
-    list: () => ipcRenderer.invoke('notes:list'),
-    delete: (id: string) => ipcRenderer.invoke('notes:delete', id),
-  },
-  joke: {
-    random: () => ipcRenderer.invoke('joke:random'),
-  },
-  ip: {
-    info: () => ipcRenderer.invoke('ip:info'),
-  },
-  battery: {
-    info: () => ipcRenderer.invoke('battery:info'),
-  },
-  windows: {
-    list: () => ipcRenderer.invoke('windows:list'),
-    switchTo: (titleContains: string) => ipcRenderer.invoke('windows:switchTo', titleContains),
-    cycle: () => ipcRenderer.invoke('windows:cycle'),
-  },
-  screenshot: {
-    take: (filename?: string) => ipcRenderer.invoke('screenshot:take', filename),
-  },
-  fileVisibility: {
-    hide: (folderPath: string) => ipcRenderer.invoke('fileVisibility:hide', folderPath),
-    unhide: (folderPath: string) => ipcRenderer.invoke('fileVisibility:unhide', folderPath),
-  },
-  geo: {
-    place: (query: string) => ipcRenderer.invoke('geo:place', query),
-    distance: (from: string, to: string) => ipcRenderer.invoke('geo:distance', from, to),
+  settings: {
+    get: () => ipcRenderer.invoke('settings:get'),
+    save: (patch: unknown) => ipcRenderer.invoke('settings:save', patch),
   },
 
   ollama: {
     status: () => ipcRenderer.invoke('ollama:status'),
-    chat: (payload: { requestId: string; messages: unknown[]; model?: string; temperature?: number }) =>
-      ipcRenderer.invoke('ollama:chat', payload),
-    cancel: (requestId: string) => ipcRenderer.invoke('ollama:cancel', requestId),
-    once: (payload: { messages: unknown[]; model?: string; temperature?: number; timeoutMs?: number; tools?: unknown[] }) =>
-      ipcRenderer.invoke('ollama:once', payload),
-    onChunk: (cb: (p: { requestId: string; token: string }) => void) => {
-      const handler = (_e: unknown, p: { requestId: string; token: string }) => cb(p);
-      ipcRenderer.on('ollama:chunk', handler);
-      return () => ipcRenderer.off('ollama:chunk', handler);
-    },
-    onDone: (cb: (p: { requestId: string; aborted?: boolean }) => void) => {
-      const handler = (_e: unknown, p: { requestId: string; aborted?: boolean }) => cb(p);
-      ipcRenderer.on('ollama:done', handler);
-      return () => ipcRenderer.off('ollama:done', handler);
-    },
-    onError: (cb: (p: { requestId: string; error: string }) => void) => {
-      const handler = (_e: unknown, p: { requestId: string; error: string }) => cb(p);
-      ipcRenderer.on('ollama:error', handler);
-      return () => ipcRenderer.off('ollama:error', handler);
-    },
+    pull: (model: string) => ipcRenderer.invoke('ollama:pull', model),
+    onPullProgress: (cb: (p: unknown) => void) => on('ollama:pullProgress', cb),
   },
 
-  gemini: {
-    status: () => ipcRenderer.invoke('gemini:status'),
-    chat: (payload: { requestId: string; messages: unknown[]; model?: string; temperature?: number }) =>
-      ipcRenderer.invoke('gemini:chat', payload),
-    cancel: (requestId: string) => ipcRenderer.invoke('gemini:cancel', requestId),
-    once: (payload: { messages: unknown[]; model?: string; temperature?: number; timeoutMs?: number }) =>
-      ipcRenderer.invoke('gemini:once', payload),
-    onChunk: (cb: (p: { requestId: string; token: string }) => void) => {
-      const handler = (_e: unknown, p: { requestId: string; token: string }) => cb(p);
-      ipcRenderer.on('gemini:chunk', handler);
-      return () => ipcRenderer.off('gemini:chunk', handler);
-    },
-    onDone: (cb: (p: { requestId: string; aborted?: boolean }) => void) => {
-      const handler = (_e: unknown, p: { requestId: string; aborted?: boolean }) => cb(p);
-      ipcRenderer.on('gemini:done', handler);
-      return () => ipcRenderer.off('gemini:done', handler);
-    },
-    onError: (cb: (p: { requestId: string; error: string }) => void) => {
-      const handler = (_e: unknown, p: { requestId: string; error: string }) => cb(p);
-      ipcRenderer.on('gemini:error', handler);
-      return () => ipcRenderer.off('gemini:error', handler);
-    },
-    getKeyForLiveSession: () => ipcRenderer.invoke('gemini:getKeyForLiveSession'),
+  vault: {
+    stats: () => ipcRenderer.invoke('vault:stats'),
+    recent: (limit?: number) => ipcRenderer.invoke('vault:recent', limit),
+    search: (q: string) => ipcRenderer.invoke('vault:search', q),
+    profile: () => ipcRenderer.invoke('vault:profile'),
+    saveProfile: (text: string) => ipcRenderer.invoke('vault:saveProfile', text),
+    open: (rel?: string) => ipcRenderer.invoke('vault:open', rel),
+    reveal: () => ipcRenderer.invoke('vault:reveal'),
+    choose: () => ipcRenderer.invoke('vault:choose'),
+    reindex: () => ipcRenderer.invoke('vault:reindex'),
+    graph: () => ipcRenderer.invoke('memory:graph'),
+    read: (rel: string) => ipcRenderer.invoke('vault:read', rel),
+    onUpdated: (cb: (p: unknown) => void) => on('memory:updated', cb),
+  },
+
+  web: {
+    status: () => ipcRenderer.invoke('web:status'),
+    signIn: (url?: string) => ipcRenderer.invoke('web:signIn', url),
+    clear: () => ipcRenderer.invoke('web:clear'),
+    onChanged: (cb: (s: unknown) => void) => on('web:changed', cb),
+  },
+  transcript: {
+    load: () => ipcRenderer.invoke('transcript:load'),
+    save: (entries: unknown) => ipcRenderer.invoke('transcript:save', entries),
+  },
+  tasks: {
+    list: () => ipcRenderer.invoke('tasks:list'),
+    add: (input: { title: string; due?: string; priority?: string }) => ipcRenderer.invoke('tasks:add', input),
+    complete: (id: string) => ipcRenderer.invoke('tasks:complete', id),
+    reopen: (id: string) => ipcRenderer.invoke('tasks:reopen', id),
+    remove: (id: string) => ipcRenderer.invoke('tasks:remove', id),
+    snooze: (id: string, minutes: number) => ipcRenderer.invoke('tasks:snooze', id, minutes),
+    update: (id: string, patch: unknown) => ipcRenderer.invoke('tasks:update', id, patch),
+    clearDone: () => ipcRenderer.invoke('tasks:clearDone'),
+    onChanged: (cb: (all: unknown[]) => void) => on('tasks:changed', cb),
+    onReminder: (cb: (p: unknown) => void) => on('tasks:reminder', cb),
   },
 
   browser: {
-    search: (query: string, limit?: number) => ipcRenderer.invoke('browser:search', query, limit),
-    youtubeSearch: (query: string, limit?: number) => ipcRenderer.invoke('browser:youtubeSearch', query, limit),
-    open: (url: string) => ipcRenderer.invoke('browser:open', url),
-    click: (selector: string) => ipcRenderer.invoke('browser:click', selector),
-    type: (selector: string, text: string, submit?: boolean) => ipcRenderer.invoke('browser:type', selector, text, submit),
-    screenshot: () => ipcRenderer.invoke('browser:screenshot'),
-    close: () => ipcRenderer.invoke('browser:close'),
+    onFrame: (cb: (f: unknown) => void) => on('browser:frame', cb),
+    onClosed: (cb: (c: unknown) => void) => on('browser:closed', cb),
+  },
+  apps: {
+    status: () => ipcRenderer.invoke('apps:status'),
+    connect: (slug: string) => ipcRenderer.invoke('apps:connect', slug),
+    disconnect: (slug: string) => ipcRenderer.invoke('apps:disconnect', slug),
+    signIn: () => ipcRenderer.invoke('apps:signIn'),
+    signOut: () => ipcRenderer.invoke('apps:signOut'),
+    onChanged: (cb: (s: unknown) => void) => on('apps:changed', cb),
   },
 
-  tray: {
-    isAutoLaunchEnabled: () => ipcRenderer.invoke('tray:isAutoLaunchEnabled'),
-    setAutoLaunch: (enabled: boolean) => ipcRenderer.invoke('tray:setAutoLaunch', enabled),
+  briefing: {
+    now: () => ipcRenderer.invoke('briefing:now'),
+    onReady: (cb: (b: unknown) => void) => on('briefing:ready', cb),
   },
-
-  system: {
-    openApp: (name: string) => ipcRenderer.invoke('system:openApp', name),
-    openGoogleService: (service: string) => ipcRenderer.invoke('system:openGoogleService', service),
-    setVolume: (direction: 'up' | 'down' | 'mute') => ipcRenderer.invoke('system:setVolume', direction),
-    lock: () => ipcRenderer.invoke('system:lock'),
-    sleep: () => ipcRenderer.invoke('system:sleep'),
-    openExplorer: (path?: string) => ipcRenderer.invoke('system:openExplorer', path),
-    hardwareStats: () => ipcRenderer.invoke('system:hardwareStats'),
+  focus: {
+    state: () => ipcRenderer.invoke('focus:state'),
+    start: (subject: string, minutes?: number) => ipcRenderer.invoke('focus:start', subject, minutes),
+    stop: () => ipcRenderer.invoke('focus:stop'),
+    onChanged: (cb: (s: unknown) => void) => on('focus:changed', cb),
+    onDone: (cb: (s: unknown) => void) => on('focus:done', cb),
   },
-
-  google: {
-    hasCredentials: () => ipcRenderer.invoke('google:hasCredentials'),
-    isConnected: () => ipcRenderer.invoke('google:isConnected'),
-    connect: (scopes: string[]) => ipcRenderer.invoke('google:connect', scopes),
-    disconnect: () => ipcRenderer.invoke('google:disconnect'),
-    gmailListUnread: (limit?: number) => ipcRenderer.invoke('google:gmail:listUnread', limit),
-    gmailSend: (to: string, subject: string, body: string) => ipcRenderer.invoke('google:gmail:send', to, subject, body),
-    calendarListUpcoming: (limit?: number) => ipcRenderer.invoke('google:calendar:listUpcoming', limit),
-    calendarCreateEvent: (title: string, start: string, end: string, description?: string) =>
-      ipcRenderer.invoke('google:calendar:createEvent', title, start, end, description),
-    driveListRecent: (limit?: number) => ipcRenderer.invoke('google:drive:listRecent', limit),
-    driveSearch: (query: string, limit?: number) => ipcRenderer.invoke('google:drive:search', query, limit),
+  learn: {
+    summary: () => ipcRenderer.invoke('learn:summary'),
+    reflect: () => ipcRenderer.invoke('learn:reflect'),
+    selfTest: () => ipcRenderer.invoke('learn:selftest'),
+    onUpdated: (cb: (s: unknown) => void) => on('learn:updated', cb),
+  },
+  dashboard: {
+    get: () => ipcRenderer.invoke('dashboard:get'),
+    refresh: () => ipcRenderer.invoke('dashboard:refresh'),
+    spotify: (action?: string) => ipcRenderer.invoke('dashboard:spotify', action),
+    open: (url: string) => ipcRenderer.invoke('dashboard:open', url),
+    onUpdate: (cb: (s: unknown) => void) => on('dashboard:update', cb),
+  },
+  voice: {
+    status: () => ipcRenderer.invoke('voice:status'),
+    prepare: () => ipcRenderer.invoke('voice:prepare'),
+    voices: () => ipcRenderer.invoke('voice:voices'),
+    synth: (text: string, voice: string, speed: number) => ipcRenderer.invoke('voice:synth', text, voice, speed),
+    onChanged: (cb: (s: unknown) => void) => on('voice:changed', cb),
+  },
+  powerschool: {
+    status: () => ipcRenderer.invoke('powerschool:status'),
+    signIn: () => ipcRenderer.invoke('powerschool:signIn'),
+    signOut: () => ipcRenderer.invoke('powerschool:signOut'),
+    open: () => ipcRenderer.invoke('powerschool:open'),
+    onChanged: (cb: (s: unknown) => void) => on('powerschool:changed', cb),
+  },
+  trackers: {
+    collected: (kind: 'pc' | 'games') => ipcRenderer.invoke('trackers:collected', kind),
+    forget: (kind: 'pc' | 'games') => ipcRenderer.invoke('trackers:forget', kind),
+  },
+  school: {
+    state: () => ipcRenderer.invoke('school:state'),
+    refresh: () => ipcRenderer.invoke('school:refresh'),
+    courses: () => ipcRenderer.invoke('school:courses'),
+    sync: (course?: string) => ipcRenderer.invoke('school:sync', course),
+    search: (q: string, course?: string) => ipcRenderer.invoke('school:search', q, course),
+    plan: (p: { what: string; due: string; total?: number; block?: number }) => ipcRenderer.invoke('school:plan', p),
+    onChanged: (cb: (p: unknown) => void) => on('school:changed', cb),
+  },
+  d2l: {
+    status: () => ipcRenderer.invoke('d2l:status'),
+    signIn: () => ipcRenderer.invoke('d2l:signIn'),
+    signOut: () => ipcRenderer.invoke('d2l:signOut'),
+    open: () => ipcRenderer.invoke('d2l:open'),
+    sync: () => ipcRenderer.invoke('d2l:sync'),
+    onChanged: (cb: (s: unknown) => void) => on('d2l:changed', cb),
   },
 
   news: {
@@ -218,61 +219,12 @@ const api = {
     hasKey: () => ipcRenderer.invoke('news:hasKey'),
   },
 
-  settings: {
-    get: () => ipcRenderer.invoke('settings:get'),
-    save: (patch: unknown) => ipcRenderer.invoke('settings:save', patch),
-    setEnvKey: (key: string, value: string) => ipcRenderer.invoke('env:setKey', { key, value }),
-    envPath: () => ipcRenderer.invoke('env:path'),
-  },
-
-  memory: {
-    get: () => ipcRenderer.invoke('memory:get'),
-    save: (content: string) => ipcRenderer.invoke('memory:save', content),
-    path: () => ipcRenderer.invoke('memory:path'),
-  },
-
   research: {
-    wikipedia: (query: string) => ipcRenderer.invoke('research:wikipedia', query),
-    multi: (query: string) => ipcRenderer.invoke('research:multi', query),
     weather: (place: string) => ipcRenderer.invoke('research:weather', place),
-    onThisDay: () => ipcRenderer.invoke('research:onThisDay'),
   },
 
-  github: {
-    hasToken: () => ipcRenderer.invoke('github:hasToken'),
-    verify: () => ipcRenderer.invoke('github:verify'),
-    repos: (limit?: number) => ipcRenderer.invoke('github:repos', limit),
-    openWork: (limit?: number) => ipcRenderer.invoke('github:openWork', limit),
-  },
-
-  notion: {
-    hasToken: () => ipcRenderer.invoke('notion:hasToken'),
-    verify: () => ipcRenderer.invoke('notion:verify'),
-    search: (limit?: number) => ipcRenderer.invoke('notion:search', limit),
-  },
-
-  discord: {
-    hasWebhook: () => ipcRenderer.invoke('discord:hasWebhook'),
-    verify: () => ipcRenderer.invoke('discord:verify'),
-    postMessage: (content: string) => ipcRenderer.invoke('discord:postMessage', content),
-    hasBotToken: () => ipcRenderer.invoke('discord:hasBotToken'),
-    verifyBot: () => ipcRenderer.invoke('discord:verifyBot'),
-    guilds: () => ipcRenderer.invoke('discord:guilds'),
-    channels: (guildId: string) => ipcRenderer.invoke('discord:channels', guildId),
-    messages: (channelId: string, limit?: number) => ipcRenderer.invoke('discord:messages', channelId, limit),
-    postAsBot: (channelId: string, content: string) => ipcRenderer.invoke('discord:postAsBot', channelId, content),
-    roles: (guildId: string) => ipcRenderer.invoke('discord:roles', guildId),
-    members: (guildId: string, limit?: number) => ipcRenderer.invoke('discord:members', guildId, limit),
-    assignRole: (guildId: string, userId: string, roleId: string) => ipcRenderer.invoke('discord:assignRole', guildId, userId, roleId),
-    removeRole: (guildId: string, userId: string, roleId: string) => ipcRenderer.invoke('discord:removeRole', guildId, userId, roleId),
-    createChannel: (guildId: string, name: string) => ipcRenderer.invoke('discord:createChannel', guildId, name),
-    renameChannel: (channelId: string, name: string) => ipcRenderer.invoke('discord:renameChannel', channelId, name),
-  },
-
-  obsidian: {
-    hasVault: () => ipcRenderer.invoke('obsidian:hasVault'),
-    folders: () => ipcRenderer.invoke('obsidian:folders'),
-    recentNotes: (limit?: number) => ipcRenderer.invoke('obsidian:recentNotes', limit),
+  system: {
+    hardwareStats: () => ipcRenderer.invoke('system:hardwareStats'),
   },
 
   files: {
@@ -290,6 +242,24 @@ const api = {
     delete: (p: string) => ipcRenderer.invoke('files:delete', p),
     createFile: (folder: string, name: string, content?: string) => ipcRenderer.invoke('files:createFile', folder, name, content),
     createFolder: (folder: string, name: string) => ipcRenderer.invoke('files:createFolder', folder, name),
+  },
+
+  backup: {
+    export: () => ipcRenderer.invoke('backup:export'),
+    import: () => ipcRenderer.invoke('backup:import'),
+  },
+
+  tray: {
+    isAutoLaunchEnabled: () => ipcRenderer.invoke('tray:isAutoLaunchEnabled'),
+    setAutoLaunch: (enabled: boolean) => ipcRenderer.invoke('tray:setAutoLaunch', enabled),
+  },
+
+  clipboard: {
+    onNewText: (cb: (text: string) => void) => on('clipboard:newText', cb),
+  },
+
+  ui: {
+    onFocus: (cb: (p: { tab?: string; health?: string; school?: string }) => void) => on('ui:focus', cb),
   },
 
   app: {

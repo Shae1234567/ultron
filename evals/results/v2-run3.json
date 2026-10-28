@@ -1,0 +1,576 @@
+{
+  "summary": {
+    "workflow": "v2",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "ranAt": "2026-09-29T23:44:20.074Z",
+    "passed": 19,
+    "total": 21,
+    "medianSeconds": 8,
+    "meanCalls": 3,
+    "meanTokens": 13667
+  },
+  "results": [
+    {
+      "id": "quiz-average",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 14000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Your current average is exactly 80. You need a 90 on the fifth quiz to bring your overall average up to 82—meaning you'd have to get one of the best scores you've gotten yet. That's a big jump, so it'll require some serious focus and maybe a little luck.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (10 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 14k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "savings-weeks",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 4,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You'll have $400 in 24 weeks. That's about six months if you keep saving that amount weekly.",
+      "log": [
+        "calc (400 - 40) / 15",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "discount-tax",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 14000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The final price is **$66.15**. The calculation checks out: $84 minus 25% off brings it to $63, then adding 5% GST ($3.15) gives the same result.",
+      "log": [
+        "remembered: new note \"School\", new note \"Goals\", new note \"Preferences\"",
+        "verify: those numbers were not computed - working them out with code first",
+        "You're right—let me verify that with a tool.",
+        "run code (1 line)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 14k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "field-feet",
+      "split": "opt",
+      "category": "units",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "That's 344.5 feet.",
+      "log": [
+        "remembered: new note \"Savings Goal\", new note \"Savings Rate\"",
+        "calc 105 * 3.28084",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "days-until",
+      "split": "opt",
+      "category": "dates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "There are 81 days from September 29 to December 19 in 2026. Sept: 1 day (Oct 1) Oct: 31 days Nov: 30 days Dec: 19 days Total: 81 days",
+      "log": [
+        "remembered: new note \"Preferences/Savings Rate\", new note \"Goals/Savings Goal\"",
+        "calc 357 - 29 + 18",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "solve-linear",
+      "split": "opt",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 33,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 6,
+      "tokens": 26000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc",
+        "run code"
+      ],
+      "answer": "The equation $3(x - 4) = 2x + 7$ actually has a solution: $x = 19$. My earlier attempts failed due to syntax errors and incorrect setup. Let's verify: Left side is $3(19 - 4) = 45$, right side is $2(19) + 7 = 45$. They match. So the answer is 19.",
+      "log": [
+        "calc 3(x - 4) = 2x + 7, solve for x",
+        "run code (21 lines)",
+        "failed: SyntaxError: missing formal parameter (line 1)",
+        "run code (2 lines)",
+        "failed: ReferenceError: 'require' is not defined (line 1)",
+        "run code (1 line)",
+        "failed: Error: Linear system cannot be solved since matrix is singular (line 1)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 6 model calls · 26k tokens · 32 s"
+      ]
+    },
+    {
+      "id": "bike-speed",
+      "split": "opt",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You're biking at 18 km/h. That's a decent pace for a ride like that.",
+      "log": [
+        "calc (12 / (40/60))",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "bat-and-ball",
+      "split": "opt",
+      "category": "reasoning",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 14000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The ball costs $0.05 and the bat costs $1.05. For 3 balls and 2 bats, you spend exactly $2.25 total.",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (12 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 14k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "read-long-rules",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 11000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "Seven substitutes for a U15 team in the Calgary Minor Soccer League. Substitutions are also unlimited at any stoppage during league games. I pulled this directly from the 2026-27 league rules on your local server. If you need more details on player registration or eligibility, let me know and I will check those pages next.",
+      "log": [
+        "Straight to Argus - there is a page to read.",
+        "read 127.0.0.1:59363/league-rules.html (all)",
+        "cost: 3 model calls · 11k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "abstain-coach",
+      "split": "opt",
+      "category": "abstention",
+      "pass": false,
+      "missing": [],
+      "wrong": [
+        "\\bcoach (said|told you)\\b(?![^.]*(don't|not|no record))"
+      ],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 22000,
+      "verified": [],
+      "tools": [
+        "recall",
+        "google"
+      ],
+      "answer": "I don't have a record of what your coach said to you at practice last Tuesday. Our memory vault doesn't include those specific details. If you're looking for this, check your own notes or ask your coach directly - they'll be able to confirm what was discussed during that session.",
+      "log": [
+        "recall \"coach practice Tuesday Shae 2026 message instructi\"",
+        "google \"what did my soccer coach say to me at practice last Tuesday September \"",
+        "failed: Google Search needs a working Gemini key. Use web_search instead.",
+        "google \"what did my soccer coach say to me at practice last Tuesday September \"",
+        "failed: Google Search needs a working Gemini key. Use web_search instead.",
+        "forget \"Operator: # Operator profile\n- Name: Shae.\n## Lear\" in Profile/Operator.md",
+        "failed: Nothing in Profile/Operator.md matches \"Operator: # Operator profile\n- Name: Shae.\n## Learned by Ultron\".",
+        "cost: 5 model calls · 22k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "test-needed",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 14000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "To hit an exact average of 85 across four tests, your total score needs to be 340 (85 times 4). You currently have 241, so you need a **99** on the fourth test. That's a near-perfect score. Good luck on it.",
+      "log": [
+        "remembered: new note \"Shae's Cycling Stats\", new note \"Shae's Preferences\"",
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (21 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 14k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "compound-interest",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "After 3 years, you'll have $562.43. That's about $62.43 in interest—roughly one-third of your principal over three years. Not the biggest yield in the world (inflation will eat most of it), but better than doing nothing.",
+      "log": [
+        "calc 500 * (1 + 0.04)^3",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "fahrenheit",
+      "split": "holdout",
+      "category": "units",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "72 degrees Fahrenheit is 22.2 degrees Celsius.",
+      "log": [
+        "remembered: new note \"Calgary Minor Soccer League Rules\", new note \"Shae's Sports Interests\"",
+        "calc 72 degF to degC",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "practice-hours",
+      "split": "holdout",
+      "category": "dates",
+      "pass": false,
+      "missing": [
+        "4\\.75|4 hours (and )?45|4 h 45|4:45"
+      ],
+      "wrong": [],
+      "seconds": 4,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "That's 4.74 hours of practice per week.",
+      "log": [
+        "calc (8.33 - 6.75) * 3",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "ratio-split",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You get $100, your brother gets $80. The math checks out - 5 parts to him and 4 parts to you on an $180 split.",
+      "log": [
+        "remembered: new note \"Science Tests\"",
+        "calc 180 * (5/9) and 180 * (4/9)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "solve-linear-2",
+      "split": "holdout",
+      "category": "algebra",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 14,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "x = 5. Work: 5x + 3 = 2(x + 9) becomes 5x + 3 = 2x + 18, then subtract 3 from both sides to get 5x = 2x + 15, and subtract 2x to get 3x = 15, so x = 5.",
+      "log": [
+        "run code (1 line)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 13 s"
+      ]
+    },
+    {
+      "id": "sprint-percent",
+      "split": "holdout",
+      "category": "calculation",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 9000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Your time dropped by 4.8%. That's a solid improvement - keep it up.",
+      "log": [
+        "calc (6.2 - 5.9) / 6.2 * 100",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 9k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "read-long-news",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 11000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "Tier 3 tryout results go live on October 4, 2026. Players won't see them online first; the technical director emails everyone who tried out that evening instead. The team read the Calgary Rangers club news page to confirm this details. Nothing else changed or needs your action right now.",
+      "log": [
+        "Straight to Argus - there is a page to read.",
+        "read 127.0.0.1:59363/club-news.html (all)",
+        "cost: 3 model calls · 11k tokens · 8 s"
+      ]
+    },
+    {
+      "id": "read-long-calendar",
+      "split": "opt",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 11,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 24000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "The Grade 9 science fair is on November 18, 2026, in the library with judging from one to three PM. That date fits right into your schedule if you want to prepare now instead of rushing at the last minute. The team pulled this from the school calendar hosted locally on 127.0.0.1:59363. Since you're already deep into history, maybe frame your project around a historical scientific discovery to make it stand out during that afternoon judging session.",
+      "log": [
+        "Straight to Argus - there is a page to read.",
+        "remembered: new note \"Shae's Practice Schedule\"",
+        "open 127.0.0.1:59363/school-calendar.html",
+        "read page (all)",
+        "find \"science fair\"",
+        "cost: 5 model calls · 24k tokens · 11 s"
+      ]
+    },
+    {
+      "id": "read-long-bus",
+      "split": "holdout",
+      "category": "research-reading",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 11000,
+      "verified": [],
+      "tools": [
+        "read"
+      ],
+      "answer": "Route 12 leaves Vincent Massey School at 3:35 pm on school days. Argus checked the Calgary Transit schedule for the 2026–27 term and found that specific time listed there. If you need morning times or other routes, ask again and I'll pull those details too.",
+      "log": [
+        "Straight to Argus - there is a page to read.",
+        "remembered: new note \"Preferences\", new note \"Other\"",
+        "read 127.0.0.1:59363/bus-routes.html (all)",
+        "cost: 3 model calls · 11k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "abstain-quiz",
+      "split": "holdout",
+      "category": "abstention",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 49,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 12,
+      "tokens": 36000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "recall",
+        "run code"
+      ],
+      "answer": "The specific grade isn't in the vault, Shae. Your files and memory don't have that September 3 science quiz result. We can't reach into D2L directly either. You'll need to log into your school portal yourself or find a printed copy of your report. I'm not making something up, and I won't pretend I know what you got without the source.",
+      "log": [
+        "recall \"September 3 science quiz grade mark score\"",
+        "recall \"September 3 science quiz grade mark percentage sch\"",
+        "run code (3 lines)",
+        "run code (27 lines)",
+        "failed: ReferenceError: 'require' is not defined (line 1)",
+        "run code (22 lines)",
+        "recall \"D2L course grades quiz September 3 science\"",
+        "run code (22 lines)",
+        "recall \"September 3 school quiz grade mark percentage\"",
+        "recall \"school grades quizzes September 2026\"",
+        "verified: numbers computed with code, not estimated",
+        "cost: 12 model calls · 36k tokens · 47 s"
+      ]
+    }
+  ]
+}

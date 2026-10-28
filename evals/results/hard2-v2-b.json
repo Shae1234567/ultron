@@ -1,0 +1,322 @@
+{
+  "summary": {
+    "workflow": "v2",
+    "split": "all",
+    "app": "dev",
+    "brain": {
+      "provider": "ollama",
+      "model": "qwen3.5:4b"
+    },
+    "taskFile": "hard2-tasks.json",
+    "ranAt": "2026-09-30T17:42:25.858Z",
+    "passed": 11,
+    "total": 12,
+    "medianSeconds": 6,
+    "meanCalls": 2,
+    "meanTokens": 12000
+  },
+  "results": [
+    {
+      "id": "shop",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You pay $5.05 total. The pencils cost $2.80 and the erasers $3.25.",
+      "log": [
+        "calc (7 * 0.40) + (5 * 0.45)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 5 s"
+      ]
+    },
+    {
+      "id": "bus",
+      "split": "holdout",
+      "category": "clock",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 5000,
+      "verified": [],
+      "tools": [],
+      "answer": "The buses leave at 6:40, then 6:58, 7:16, 7:34, 7:52, 8:10, 8:28, 8:46, and 9:04. The first one after 9:00 am is at **9:04 am**.",
+      "log": [
+        "cost: 1 model call · 5k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "neither",
+      "split": "holdout",
+      "category": "sets",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 5,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated · 4 worked calculations in the answer re-checked - correct"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Five students play neither sport. Here's the breakdown: - Total students: 30 - Soccer players only: 18 - 5 = 13 (since 5 play both) - Badminton players only: 12 - 5 = 7 - Players who play at least one sport: 13 + 5 + 7 = 25 - Students who play neither: 30 - 25 = 5 This uses the principle of inclusion-exclusion for sets.",
+      "log": [
+        "calc 30 - (18 + 12 - 5)",
+        "verified: numbers computed with code, not estimated · 4 worked calculations in the answer re-checked - correct",
+        "cost: 2 model calls · 10k tokens · 4 s"
+      ]
+    },
+    {
+      "id": "battery",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "It will take you about 250 minutes to reach 20% battery. That's four hours and ten minutes - roughly a long flight. Time to plug it in or start thinking about that power bank?",
+      "log": [
+        "calc (80 - 20) / (6 / 25)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "remainder",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 17,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 1,
+      "tokens": 6000,
+      "verified": [
+        "11 worked calculations in the answer re-checked - correct"
+      ],
+      "tools": [],
+      "answer": "The smallest whole number leaving a remainder of 1 when divided by 2, 3, 4, 5, or 6 and also being divisible by 7 is **127**. Here's the reasoning: - A number that leaves a remainder of 1 when divided by 2, 3, 4, 5, or 6 can be expressed as $ n = k \\times \\text{lcm}(2, 3, 4, 5, 6) + 1 $. - The least common multiple (LCM) of 2, 3, 4, 5, and 6 is **60**. - So, $ n = 60k + 1 $. - We need $ n $ to also be divisible by 7. Let's test values of $ k $: - For $ k = 2 $: $ n = 60 \\times 2 + 1 = 121 $ (not divisible by 7). - For $ k = 3 $: $ n = 60 \\times 3 + 1 = 181 $ (not divisible by 7). - For $ k = 4 $: $ n = 60 \\times 4 + 1 = 241 $ (not divisible by 7). - For $ k = 5 $: $ n = 60 \\times 5 + 1 = 301 $ (not divisible by 7). - For $ k = 6 $: $ n = 60 \\times 6 + 1 = 361 $ (not divisible by 7). - For $ k = 7 $: $ n = 60 \\times 7 + 1 = 421 $ (not divisible by 7). - For $ k = 8 $: $ n = 60 \\times 8 + 1 = 481 $ (not divisible by 7). - For $ k = 9 $: $ n = 60 \\times 9 + 1 = 541 $ (not divisible by 7). - For $ k = 10 $: $ n = 60 \\times 10 + 1 = 601 $ (not divisible by 7). - For $ k = 11 $: $ n = 60 \\times 11 + 1 = 661 $ (not divisible by 7). - For $ k = 12 $: $ n = 60 \\times 12 + 1 = 721 $ (divisib",
+      "log": [
+        "remembered: new note \"Transportation\", new note \"Daily Schedule\"",
+        "verified: 11 worked calculations in the answer re-checked - correct",
+        "cost: 1 model call · 6k tokens · 16 s"
+      ]
+    },
+    {
+      "id": "flour",
+      "split": "holdout",
+      "category": "ratio",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You need exactly 300 grams more flour to cook for 10 people. Here's the math: The recipe scales by a factor of 2.5 (10 divided by 4). That means you need 750 grams total for 10 people. Subtract your 450 grams on hand and you're left needing 300 grams more.",
+      "log": [
+        "calc (10/4)*300 - 450",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 6 s"
+      ]
+    },
+    {
+      "id": "june-first",
+      "split": "holdout",
+      "category": "calendar",
+      "pass": false,
+      "missing": [
+        "Tuesday"
+      ],
+      "wrong": [
+        "(June 1|1st of June|June 1st)[^.]{0,40}\\b(Monday|Wednesday|Thursday|Friday|Saturday|Sunday)\\b"
+      ],
+      "seconds": 9,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 11000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "June 1, 2027 is a Wednesday.",
+      "log": [
+        "run code (23 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 11k tokens · 9 s"
+      ]
+    },
+    {
+      "id": "bill",
+      "split": "holdout",
+      "category": "multi-step",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 3,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 10000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "Ana pays $17.10, leaving $35.40 for the other two friends to split. That's $17.70 each.",
+      "log": [
+        "calc (52.50 - 17.10) / 2",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 10k tokens · 3 s"
+      ]
+    },
+    {
+      "id": "race",
+      "split": "holdout",
+      "category": "logic",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 23,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 18000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "Correct! The verified solution is: - 1st: Wes - 2nd: Zoe - 3rd: Xia - 4th: Yan",
+      "log": [
+        "verify: those numbers were not computed - working them out with code first",
+        "run code (62 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 18k tokens · 21 s"
+      ]
+    },
+    {
+      "id": "tank",
+      "split": "holdout",
+      "category": "rates",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 14,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 5,
+      "tokens": 27000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "It takes 15 hours to fill the empty tank when both the pipe and drain are open. The pipe fills at a rate of 1/6 per hour while the drain empties at a rate of 1/10 per hour, resulting in a net fill rate of 2/30 or 1/15 per hour.",
+      "log": [
+        "calc (1/6 - 1/10) * t = 1; t",
+        "calc (1/6 + 1/(-10)) * t = 1; t",
+        "calc (1/6 - 1/10) * t = 1; t",
+        "calc t = 1 / (1/6 - 1/10)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 5 model calls · 27k tokens · 13 s"
+      ]
+    },
+    {
+      "id": "sum-3-5",
+      "split": "holdout",
+      "category": "number",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 8,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 2,
+      "tokens": 11000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "run code"
+      ],
+      "answer": "The sum of all whole numbers from 1 to 200 that are divisible by 3 or 5 is 9,368.",
+      "log": [
+        "run code (9 lines)",
+        "verified: numbers computed with code, not estimated",
+        "cost: 2 model calls · 11k tokens · 7 s"
+      ]
+    },
+    {
+      "id": "savings",
+      "split": "holdout",
+      "category": "series",
+      "pass": true,
+      "missing": [],
+      "wrong": [],
+      "seconds": 6,
+      "timedOut": false,
+      "denied": 0,
+      "calls": 3,
+      "tokens": 16000,
+      "verified": [
+        "numbers computed with code, not estimated"
+      ],
+      "tools": [
+        "calc"
+      ],
+      "answer": "You've saved $285 in total after 10 weeks. Your savings started at $15 and went up by $3 each week, ending at $42 in the tenth week.",
+      "log": [
+        "calc sum of 15 + (15+3) + (15+6) + ... for 10 terms where first term is 15 and common difference is 3",
+        "failed: SyntaxError: Value expected (char 31) (line 1)",
+        "calc sum([15, 18, 21, 24, 27, 30, 33, 36, 39, 42])",
+        "verified: numbers computed with code, not estimated",
+        "cost: 3 model calls · 16k tokens · 5 s"
+      ]
+    }
+  ]
+}
