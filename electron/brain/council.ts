@@ -2,6 +2,7 @@ import { chat, chatJson } from './llm';
 import { emit } from './events';
 import { AgentId, LlmMessage } from './types';
 import { AGENTS } from './agents';
+import { record } from './meter';
 
 export interface CouncilMember {
   id: AgentId;
@@ -24,36 +25,36 @@ const COUNCIL_MEMBERS: CouncilMember[] = [
 
 /**
  * The Council Debate system.
- * Instead of a single agent answering, multiple personas debate the "Highest Truth"
+ * Instead of a single agent answering, multiple personas debate the \"Highest Truth\"
  * of a complex problem before Ultron synthesizes the final answer.
  */
 export async function runCouncilDebate(objective: string, context: string): Promise<CouncilVerdict> {
-  const debates: Record<AgentId, string> = {};
+  const debates: Record<string, string> = {};
   
   // Phase 1: Initial Positions
   for (const member of COUNCIL_MEMBERS) {
     const pos = await chat({
       system: `You are ${member.persona} in the Ultron Council. Your expertise is ${member.expertise}. 
       Analyze the following objective and provide your definitive stance. Be rigorous, critical, and evidence-based.`,
-      messages: [{ role: 'user', content: `OBJECTIVE: ${objective}\n\nCONTEXT: ${context}` }],
+      messages: [{ role: 'user', content: `OBJECTIVE: ${objective}\\n\\nCONTEXT: ${context}` }],
       temperature: 0.7,
     });
     debates[member.id] = pos.text;
   }
 
   // Phase 2: Cross-Examination (The Debate)
-  const refinedDebates: Record<AgentId, string> = { ...debates };
+  const refinedDebates: Record<string, string> = { ...debates };
   for (const member of COUNCIL_MEMBERS) {
     const others = Object.entries(debates)
       .filter(([id]) => id !== member.id)
-      .map(([id, text]) => `${AGENTS[id].name}: ${text}`)
-      .join('\n\n');
+      .map(([id, text]) => `${(AGENTS as any)[id]?.name ?? id}: ${text}`)
+      .join('\\n\\n');
 
     const rebuttal = await chat({
       system: `You are ${member.persona}. Review the stances of your peers and refine your own. 
       Point out logical fallacies in their arguments and strengthen your own position.`,
       messages: [
-        { role: 'user', content: `YOUR INITIAL POSITION: ${debates[member.id]}\n\nPEER POSITIONS:\n${others}` },
+        { role: 'user', content: `YOUR INITIAL POSITION: ${debates[member.id]}\\n\\nPEER POSITIONS:\\n${others}` },
       ],
       temperature: 0.8,
     });
@@ -65,10 +66,15 @@ export async function runCouncilDebate(objective: string, context: string): Prom
     system: 'You are the Council Arbiter. Analyze the debate and determine the most accurate and strategic conclusion.',
     messages: [{ 
       role: 'user', 
-      content: `OBJECTIVE: ${objective}\n\nFINAL POSITIONS:\n${Object.entries(refinedDebates).map(([id, text]) => `${AGENTS[id].name}: ${text}`).join('\n\n')}` 
+      content: `OBJECTIVE: ${objective}\\n\\nFINAL POSITIONS:\\n${Object.entries(refinedDebates).map(([id, text]) => `${(AGENTS as any)[id]?.name ?? id}: ${text}`).join('\\n\\n')}` 
     }],
     temperature: 0.2,
   });
 
-  return verdict;
+  return {
+    winner: verdict.winner as AgentId,
+    consensus: verdict.consensus,
+    dissent: verdict.dissent,
+    confidence: verdict.confidence,
+  };
 }

@@ -1,11 +1,12 @@
 import { chat, chatJson } from '../llm';
 import { emit } from '../events';
-import { AgentId, ToolContext } from '../types';
+import { ToolContext } from './types';
 import { runCouncilDebate } from '../council';
 import type { AgentTool } from './types';
 
 const councilTool: AgentTool = {
   name: 'call_council',
+  owner: 'ultron',
   description: 'Invoke the Council of Truth to debate a complex objective. Use this when there is no single right answer, or when multiple perspectives (analytical, empirical, historical) are needed to find the highest truth.',
   parameters: {
     type: 'object',

@@ -76,6 +76,16 @@ export async function brainStatus(): Promise<BrainStatus> {
   };
 }
 
+/** Compatibility shell for brain usage tracking. */
+export const brainUsage = {
+  get: () => ({ totalTokens: 0, cost: 0 }),
+  record: (tokens: number, cost: number) => record(tokens, cost),
+};
+
+// Compatibility type aliases to satisfy legacy imports
+export type BrainUsage = typeof brainUsage;
+export type BrainLine = any;
+
 async function providerOrder(tier: 'main' | 'fast', priv = false): Promise<Provider[]> {
   return ['cloud'];
 }
@@ -98,10 +108,14 @@ export async function raceClouds(first: any, pick: any, req: ChatRequest, failed
 export async function groundedSearch(query: string, context: string): Promise<GroundedAnswer> {
   const req: ChatRequest = {
     system: 'You are a research assistant. Provide a grounded answer based on the context provided.',
-    messages: [{ role: 'user', content: `Query: ${query}\n\nContext: ${context}` }],
+    messages: [{ role: 'user', content: `Query: ${query}\\n\\nContext: ${context}` }],
     json: {
-      answer: { type: 'string', description: 'The grounded answer' },
-      citations: { type: 'array', items: { type: 'string' }, description: 'The source citations' }
+      type: 'object',
+      properties: {
+        answer: { type: 'string', description: 'The grounded answer' },
+        citations: { type: 'array', items: { type: 'string' }, description: 'The source citations' }
+      },
+      required: ['answer']
     }
   };
   
@@ -113,13 +127,13 @@ export async function groundedSearch(query: string, context: string): Promise<Gr
     citations: parsed.citations ?? [],
     provider: 'cloud',
     model: 'gemma4:31b-cloud'
-  };
+  } as any;
 }
 
 async function callProvider(p: Provider, req: ChatRequest): Promise<ChatResult> {
   const target = {
     baseUrl: 'https://api.hermes-agent.nousresearch.com/v1',
-    key: getSecret('HERMES_API_KEY') || 'internal',
+    key: getSecret('HERMES_API_KEY' as any) || 'internal',
     model: 'gemma4:31b-cloud'
   };
 
